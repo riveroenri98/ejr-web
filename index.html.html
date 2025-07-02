@@ -387,8 +387,8 @@
                 const app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
-                setupAuthListener();
                 setupListeners();
+                setupAuthListener();
             } catch (e) {
                 console.error("Firebase init error", e);
             }
@@ -398,7 +398,7 @@
         // --- NAVEGACIÓN Y AUTENTICACIÓN ---
         function setupAuthListener() {
             onAuthStateChanged(auth, user => {
-                updateNav(user);
+                updateNavUI(user);
                 updateAppointmentView(user);
                 if (user && intendedTargetPage) {
                     navigateTo(intendedTargetPage);
@@ -413,7 +413,7 @@
             });
         }
 
-        function updateNav(user) {
+        function updateNavUI(user) {
             const authNavLinks = document.getElementById('auth-nav-links');
             if (user) {
                 authNavLinks.innerHTML = `
@@ -441,7 +441,7 @@
             if (page === 'customer-system' && auth.currentUser && !unsubscribeClients) {
                 listenForClients();
             }
-            if (page === 'appointments' && auth.currentUser && !unsubscribeAppointments) {
+            if (page.startsWith('appointments') && auth.currentUser && !unsubscribeAppointments) {
                 listenForAppointments();
             }
 
@@ -501,8 +501,8 @@
             addListener('go-to-appointments', 'click', () => navigateTo('appointments'));
             addListener('play-game-1', 'click', () => navigateTo('game-1'));
             addListener('play-game-2', 'click', () => navigateTo('game-2'));
-            addListener('back-to-games-from-game1', 'click', () => navigateTo('licenciada-hub'));
-            addListener('back-to-games-from-game2', 'click', () => navigateTo('licenciada-hub'));
+            addListener('back-to-hub-from-game1', 'click', () => navigateTo('licenciada-hub'));
+            addListener('back-to-hub-from-game2', 'click', () => navigateTo('licenciada-hub'));
 
             addListener('add-client-form', 'submit', handleAddClient);
             addListener('search-client-input', 'input', renderClientList);
@@ -511,8 +511,8 @@
             addListener('logout-btn-customers', 'click', handleSignOut);
             
             document.querySelectorAll('.modal-close-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    btn.closest('.modal-backdrop').style.display = 'none';
+                btn.addEventListener('click', (e) => {
+                    e.target.closest('.modal-backdrop').style.display = 'none';
                 });
             });
             
