@@ -355,6 +355,7 @@
         let isGame1Initialized = false;
         let isGame2Initialized = false;
         let intendedTargetPage = null; // Para recordar a dónde ir después del login
+        let unsubscribeClients = null; // Para detener el listener de clientes al cerrar sesión
 
         // --- INICIALIZACIÓN ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -374,11 +375,16 @@
         function setupAuthListener() {
             onAuthStateChanged(auth, user => {
                 updateNav(user);
-                if (user && intendedTargetPage) {
-                    navigateTo(intendedTargetPage);
-                    intendedTargetPage = null;
-                } else if (!user) {
+                if (user) {
+                    const targetPage = intendedTargetPage || 'customer-system';
+                    navigateTo(targetPage);
+                    intendedTargetPage = null; 
+                } else {
                     navigateTo('landing');
+                    if (unsubscribeClients) {
+                        unsubscribeClients(); // Detener el listener si el usuario cierra sesión
+                        unsubscribeClients = null;
+                    }
                 }
             });
         }
@@ -412,6 +418,10 @@
                 } else {
                     targetPage.style.display = 'block';
                 }
+            }
+
+            if (page === 'customer-system' && auth.currentUser && !unsubscribeClients) {
+                listenForClients();
             }
 
             if (page === 'game-1' && !isGame1Initialized) {
@@ -495,7 +505,7 @@
         function listenForClients() {
             if (!db || !auth.currentUser) return;
             const q = query(collection(db, "customers"), orderBy('name'));
-            onSnapshot(q, (snapshot) => {
+            unsubscribeClients = onSnapshot(q, (snapshot) => {
                 allClients = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderClientList();
             }, (error) => {
@@ -508,6 +518,7 @@
             if (!searchInput) return;
             const searchTerm = searchInput.value.toLowerCase();
             const tbody = document.getElementById('client-list-tbody');
+            if (!tbody) return;
             const filteredClients = allClients.filter(c => c.name.toLowerCase().includes(searchTerm) || c.dni.toLowerCase().includes(searchTerm));
             
             tbody.innerHTML = '';
