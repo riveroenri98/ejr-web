@@ -780,6 +780,158 @@
             }).join('');
         }
 
+        // --- LÓGICA DEL JUEGO 1 ---
+        function initializeGame1() {
+            const monstersData = [
+                { emotion: 'alegria', color: '#FFD700', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><g fill="#FFD700"><circle cx="50" cy="50" r="45"/><path d="M25,60 A30,30 0 0,1 75,60" fill="white" stroke="black" stroke-width="3"/><circle cx="35" cy="40" r="7" fill="white"/><circle cx="65" cy="40" r="7" fill="white"/></g></svg>`, prompt: '¡Qué bien! Cuéntame algo que te haya hecho sentir muy feliz últimamente.' },
+                { emotion: 'tristeza', color: '#6495ED', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><g fill="#6495ED"><circle cx="50" cy="50" r="45"/><path d="M25,70 A30,30 0 0,0 75,70" fill="white" stroke="black" stroke-width="3"/><path d="M30 50 C 30 60, 40 60, 40 50" fill="none" stroke="white" stroke-width="3"/><path d="M60 50 C 60 60, 70 60, 70 50" fill="none" stroke="white" stroke-width="3"/><circle cx="35" cy="40" r="5" fill="white"/><circle cx="65" cy="40" r="5" fill="white"/></g></svg>`, prompt: 'A veces nos sentimos así. ¿Hay algo que te ponga triste? Hablar de ello puede ayudar.' },
+                { emotion: 'enojo', color: '#DC143C', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><g fill="#DC143C"><circle cx="50" cy="50" r="45"/><path d="M25,70 Q50,50 75,70" fill="none" stroke="white" stroke-width="4"/><path d="M25 30 L40 45" stroke="white" stroke-width="5"/><path d="M75 30 L60 45" stroke="white" stroke-width="5"/></g></svg>`, prompt: 'El enojo es como un volcán. ¿Qué cosas hacen que tu volcán empiece a echar humo?' },
+                { emotion: 'miedo', color: '#9370DB', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><g fill="#9370DB"><circle cx="50" cy="50" r="45"/><path d="M30 70 C 40 60, 60 60, 70 70" fill="white" stroke-width="3" stroke="black"/><circle cx="35" cy="45" r="10" fill="white"/><circle cx="65" cy="45" r="10" fill="white"/><circle cx="35" cy="45" r="4" fill="black"/><circle cx="65" cy="45" r="4" fill="black"/></g></svg>`, prompt: 'Todos sentimos miedo a veces. Si tuvieras una capa mágica contra el miedo, ¿cuándo la usarías?' },
+                { emotion: 'calma', color: '#3CB371', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><g fill="#3CB371"><circle cx="50" cy="50" r="45"/><path d="M30 40 C 40 50, 60 50, 70 40" fill="none" stroke="white" stroke-width="4" stroke-linecap="round"/><path d="M30 65 A 20 10 0 0 1 70 65" fill="none" stroke="white" stroke-width="4" stroke-linecap="round"/></g></svg>`, prompt: '¡Qué sensación tan agradable! ¿Qué cosas te ayudan a sentirte tranquilo y en paz?' },
+                { emotion: 'sorpresa', color: '#FFA500', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><g fill="#FFA500"><circle cx="50" cy="50" r="45"/><circle cx="50" cy="70" r="12" fill="white"/><circle cx="35" cy="40" r="8" fill="white"/><circle cx="65" cy="40" r="8" fill="white"/></g></svg>`, prompt: '¡Oh! Una sorpresa. Cuéntame la mejor sorpresa que hayas tenido.' }
+            ];
+            const gameBoard = document.getElementById('game-board');
+            const modal = document.getElementById('prompt-modal');
+            const modalMonsterContainer = document.getElementById('modal-monster-container');
+            const modalQuestion = document.getElementById('modal-question');
+            const closeModalBtn = document.getElementById('modal-close-btn');
+            const restartBtn = document.getElementById('restart-btn');
+            let flippedCards = [], matchedPairs = 0, canFlip = true, totalPairs = monstersData.length;
+
+            function shuffle(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
+
+            function createBoard() {
+                gameBoard.innerHTML = '';
+                flippedCards = []; matchedPairs = 0; canFlip = true;
+                const gameCards = shuffle([...monstersData, ...monstersData]);
+                gameCards.forEach(monster => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.dataset.emotion = monster.emotion;
+                    card.innerHTML = `
+                        <div class="card-face card-face--front"><svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.11.248-.247V5.3c0-.138-.11-.247-.248-.247h-.825a.237.237 0 0 0-.241.247v.486zm4.491 0a.237.237 0 0 0 .241.247h.825c.138 0 .248-.11.248-.247V5.3c0-.138-.11-.247-.248-.247h-.825a.237.237 0 0 0-.241.247v.486zM8 8a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 1 0v-1A.5.5 0 0 0 8 8z"/><path d="M2.5 0A2.5 2.5 0 0 0 0 2.5v11A2.5 2.5 0 0 0 2.5 16h11a2.5 2.5 0 0 0 2.5-2.5v-11A2.5 2.5 0 0 0 13.5 0h-11zM1 2.5A1.5 1.5 0 0 1 2.5 1h11A1.5 1.5 0 0 1 15 2.5v11a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 13.5v-11z"/></svg></div>
+                        <div class="card-face card-face--back" style="background-color: ${monster.color}33; border: 3px solid ${monster.color};">${monster.svg}</div>
+                    `;
+                    card.addEventListener('click', handleCardClick);
+                    gameBoard.appendChild(card);
+                });
+            }
+
+            function handleCardClick(e) {
+                if (!canFlip) return;
+                const clickedCard = e.currentTarget;
+                if (clickedCard.classList.contains('is-flipped') || clickedCard.classList.contains('is-matched')) return;
+                clickedCard.classList.add('is-flipped');
+                flippedCards.push(clickedCard);
+                if (flippedCards.length === 2) checkForMatch();
+            }
+
+            function checkForMatch() {
+                canFlip = false;
+                const [card1, card2] = flippedCards;
+                const isMatch = card1.dataset.emotion === card2.dataset.emotion;
+                setTimeout(() => {
+                    if (isMatch) {
+                        card1.classList.add('is-matched'); card2.classList.add('is-matched');
+                        matchedPairs++;
+                        showPrompt(card1.dataset.emotion);
+                    } else {
+                        card1.classList.remove('is-flipped'); card2.classList.remove('is-flipped');
+                    }
+                    flippedCards = [];
+                    canFlip = true;
+                }, isMatch ? 500 : 1200);
+            }
+
+            function showPrompt(emotion) {
+                const monster = monstersData.find(m => m.emotion === emotion);
+                if (monster) {
+                    modalMonsterContainer.innerHTML = monster.svg;
+                    modalMonsterContainer.style.color = monster.color;
+                    modalQuestion.textContent = monster.prompt;
+                    modal.classList.add('is-visible');
+                }
+            }
+
+            closeModalBtn.addEventListener('click', () => modal.classList.remove('is-visible'));
+            restartBtn.addEventListener('click', createBoard);
+            createBoard();
+        }
+
+        // --- LÓGICA DEL JUEGO 2 ---
+        function initializeGame2() {
+            const socialMissions = [
+                { scenario: "Un niño nuevo llega a la clase y está solo en el recreo. ¿Qué haces?", image: `<img src="https://picsum.photos/id/219/200/200" onerror="this.onerror=null;this.src='https://placehold.co/200x200/81D4FA/34495e?text=Ni%C3%B1o+Nuevo';" alt="Un niño nuevo está solo en el patio">`, choices: [ { text: "Me acerco y le pregunto si quiere jugar.", outcome: "¡Excelente idea! El niño nuevo se pone muy contento. Hacer sentir bienvenida a una persona es un gran gesto de amistad. ¿Cómo crees que se sintió él?" }, { text: "Lo miro desde lejos pero me da vergüenza.", outcome: "Es normal sentir un poco de timidez. A veces es difícil dar el primer paso. ¿Qué podríamos hacer para que sea más fácil la próxima vez? ¿Quizás sonreírle?" }, { text: "Sigo en mi juego y no le hago caso.", outcome: "A veces estamos muy metidos en nuestro juego. Pensemos: ¿cómo se sentirá el niño nuevo si nadie le habla? ¿Qué nos gustaría que hicieran si fuéramos nosotros?" } ] },
+                { scenario: "Estás jugando con un amigo y él quiere cambiar las reglas del juego a la mitad. A ti no te gusta la nueva regla. ¿Qué haces?", image: `<img src="https://picsum.photos/id/342/200/200" onerror="this.onerror=null;this.src='https://placehold.co/200x200/FFAB91/34495e?text=Nuevas+Reglas';" alt="Dos niños discutiendo sobre un juego">`, choices: [ { text: "Le digo que no me gusta la nueva regla y propongo otra idea.", outcome: "¡Buena comunicación! Decir lo que no nos gusta con respeto y proponer otra cosa es una forma genial de llegar a acuerdos para que todos se diviertan." }, { text: "Me enojo, le digo que así no juego más y me voy.", outcome: "Es normal sentir frustración cuando cambian las reglas. Pero si nos vamos, el juego se termina. ¿Qué otra cosa podríamos haber hecho para seguir jugando juntos?" }, { text: "No digo nada y juego con la nueva regla aunque no me guste.", outcome: "A veces cedemos para no discutir, y eso está bien. Pero si siempre hacemos lo que no queremos, dejamos de divertirnos. Es importante que tu opinión también cuente." } ] },
+                { scenario: "Sin querer, tropiezas y le tiras el jugo a un compañero. Él se enoja mucho. ¿Qué haces?", image: `<img src="https://picsum.photos/id/40/200/200" onerror="this.onerror=null;this.src='https://placehold.co/200x200/F48FB1/34495e?text=Accidente';" alt="Un vaso de jugo derramado en el suelo">`, choices: [ { text: "Le pido perdón y le ofrezco mi ayuda para limpiar.", outcome: "¡Esa es una gran forma de reparar un error! Pedir perdón y ayudar demuestra que te importa cómo se siente el otro. Es normal que se enoje, pero tu acción puede calmarlo." }, { text: "Le digo que fue sin querer y que no se enoje.", outcome: "Explicar que fue un accidente es importante. A veces, aunque no tengamos la culpa, la otra persona igual se siente mal. Quizás, además de explicar, podríamos preguntarle: '¿estás bien?'" }, { text: "Me enojo yo también porque él se enojó conmigo.", outcome: "A veces reaccionamos enojándonos para defendernos. Pero eso puede hacer el problema más grande. Respirar hondo y pensar 'fue un accidente' puede ayudarnos a reaccionar mejor." } ] },
+                { scenario: "Ves que unos niños no dejan jugar a tu amiga en su grupo. Tu amiga se ve triste. ¿Qué haces?", image: `<img src="https://picsum.photos/id/106/200/200" onerror="this.onerror=null;this.src='https://placehold.co/200x200/CE93D8/34495e?text=Amiga+Triste';" alt="Una niña triste porque no la dejan jugar">`, choices: [ { text: "Voy con mi amiga y le propongo jugar a otra cosa juntas.", outcome: "¡Qué gran amiga eres! Apoyar a alguien que se siente mal es muy importante. A veces, empezar un juego nuevo es más divertido que intentar entrar en otro." }, { text: "Me acerco al grupo y les pregunto por qué no la dejan jugar.", outcome: "Defender a una amiga requiere valentía. Es una buena forma de intentar solucionar el problema. A veces, preguntar con calma puede hacer que los demás cambien de opinión." }, { text: "No hago nada para no meterme en problemas.", outcome: "Es comprensible no querer problemas. Pero, ¿cómo se sentirá tu amiga si te ve y no la ayudas? Pensemos en una forma segura de poder ayudarla, como hablar con una maestra." } ] }
+            ];
+            const gameContainer = document.getElementById('game-2-container');
+            const scenarioImage = gameContainer.querySelector('#scenario-image');
+            const scenarioText = gameContainer.querySelector('#scenario-text');
+            const choicesContainer = gameContainer.querySelector('#choices-container');
+            const modal = document.getElementById('outcome-modal');
+            const outcomeText = modal.querySelector('#outcome-text');
+            const nextBtn = modal.querySelector('#next-btn');
+            let currentMissionIndex = 0;
+            let shuffledMissions = [];
+
+            function shuffle(array) {
+                const newArray = [...array];
+                for (let i = newArray.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+                }
+                return newArray;
+            }
+
+            function startGame() {
+                currentMissionIndex = 0;
+                shuffledMissions = shuffle(socialMissions);
+                displayMission();
+            }
+
+            function displayMission() {
+                gameContainer.style.transform = 'scale(1)';
+                const mission = shuffledMissions[currentMissionIndex];
+                scenarioImage.innerHTML = mission.image;
+                scenarioText.textContent = mission.scenario;
+                choicesContainer.innerHTML = '';
+                mission.choices.forEach(choice => {
+                    const button = document.createElement('button');
+                    button.className = 'choice-btn';
+                    button.innerHTML = `<span class="icon">✨</span> <span class="text">${choice.text}</span>`;
+                    button.onclick = () => showOutcome(choice.outcome);
+                    choicesContainer.appendChild(button);
+                });
+            }
+
+            function showOutcome(outcome) {
+                gameContainer.style.transform = 'scale(0.95)';
+                outcomeText.textContent = outcome;
+                modal.classList.add('is-visible');
+            }
+
+            function nextMission() {
+                modal.classList.remove('is-visible');
+                currentMissionIndex++;
+                if (currentMissionIndex >= shuffledMissions.length) {
+                    currentMissionIndex = 0; 
+                    shuffledMissions = shuffle(socialMissions);
+                }
+                setTimeout(displayMission, 300);
+            }
+
+            nextBtn.addEventListener('click', nextMission);
+            startGame();
+        }
+
         // --- FUNCIONES DE UTILIDAD ---
         const formatCurrency = (value) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(value || 0);
         const formatDate = (ts) => ts ? new Date(ts.seconds * 1000).toLocaleString('es-AR') : 'N/A';
