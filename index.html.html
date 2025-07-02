@@ -498,6 +498,8 @@
             onSnapshot(q, (snapshot) => {
                 allClients = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderClientList();
+            }, (error) => {
+                console.error("Error listening to clients:", error);
             });
         }
 
