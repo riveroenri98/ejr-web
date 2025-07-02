@@ -95,7 +95,9 @@
         <header class="bg-white shadow-sm">
             <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
                 <div class="text-2xl font-black text-primary">EJR<span class="font-light">.com.ar</span></div>
-                <button id="nav-to-customers" class="font-bold text-primary hover:opacity-70 transition-opacity">CLIENTES</button>
+                <div id="auth-nav-links" class="flex items-center gap-4">
+                    <!-- Los botones de Login/Logout se insertarán aquí -->
+                </div>
             </nav>
         </header>
         <main>
@@ -117,20 +119,8 @@
                 <div class="container mx-auto px-6">
                     <h2 class="text-3xl font-bold text-center text-primary mb-12">Nuestra Ubicación y Contacto</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                        <div class="card-custom border rounded-xl shadow-sm p-6 flex items-center gap-6">
-                            <i class="fas fa-map-marker-alt icon-primary text-4xl"></i>
-                            <div>
-                                <h3 class="text-xl font-bold text-primary">Dirección</h3>
-                                <p class="text-secondary">[Tu Dirección, Ciudad, Provincia]</p>
-                            </div>
-                        </div>
-                        <div class="card-custom border rounded-xl shadow-sm p-6 flex items-center gap-6">
-                            <i class="fas fa-phone icon-primary text-4xl"></i>
-                            <div>
-                                <h3 class="text-xl font-bold text-primary">Teléfono</h3>
-                                <p class="text-secondary">[Tu Número de Teléfono]</p>
-                            </div>
-                        </div>
+                        <div class="card-custom border rounded-xl shadow-sm p-6 flex items-center gap-6"><i class="fas fa-map-marker-alt icon-primary text-4xl"></i><div><h3 class="text-xl font-bold text-primary">Dirección</h3><p class="text-secondary">[Tu Dirección, Ciudad, Provincia]</p></div></div>
+                        <div class="card-custom border rounded-xl shadow-sm p-6 flex items-center gap-6"><i class="fas fa-phone icon-primary text-4xl"></i><div><h3 class="text-xl font-bold text-primary">Teléfono</h3><p class="text-secondary">[Tu Número de Teléfono]</p></div></div>
                     </div>
                 </div>
             </section>
@@ -142,24 +132,48 @@
             </div>
         </footer>
     </div>
+    
+    <!-- Contenedor de la Página de Login (oculto por defecto) -->
+    <div id="login-page" style="display: none;" class="flex items-center justify-center min-h-screen">
+        <div class="card-custom border rounded-xl shadow-lg w-full max-w-md mx-4">
+            <div class="p-8 text-center">
+                <h1 class="text-3xl font-black text-primary mb-2">Iniciar Sesión</h1>
+                <p class="text-secondary mb-6">Acceso exclusivo para administradores.</p>
+            </div>
+            <div class="p-8 border-t border-custom">
+                <form id="login-form">
+                    <div class="mb-4">
+                        <label for="email" class="block text-sm font-medium mb-1 text-secondary">Correo Electrónico</label>
+                        <input type="email" id="email" required class="w-full p-3 border border-custom rounded-lg focus:outline-none ring-custom transition" />
+                    </div>
+                    <div class="mb-6">
+                        <label for="password" class="block text-sm font-medium mb-1 text-secondary">Contraseña</label>
+                        <input type="password" id="password" required class="w-full p-3 border border-custom rounded-lg focus:outline-none ring-custom transition" />
+                    </div>
+                    <button type="submit" class="w-full bg-primary bg-primary-hover text-white font-bold rounded-lg py-3 flex items-center justify-center gap-2">
+                        <i class="fas fa-sign-in-alt"></i> Entrar
+                    </button>
+                </form>
+                <button id="back-to-home-from-login" class="w-full mt-4 bg-gray-200 text-gray-800 font-bold rounded-lg py-3 flex items-center justify-center gap-2 hover:bg-gray-300">
+                    <i class="fas fa-arrow-left"></i> Volver al Inicio
+                </button>
+            </div>
+        </div>
+    </div>
+
 
     <!-- Contenedor del Sistema de Clientes (oculto por defecto) -->
     <div id="customer-system-page" style="display: none;">
         <header class="bg-white shadow-sm">
             <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
                 <div class="text-2xl font-black text-primary">EJR<span class="font-light">.com.ar</span></div>
-                <button id="nav-to-home-from-customers" class="font-bold text-primary hover:opacity-70 transition-opacity flex items-center gap-2">
-                    <i class="fas fa-home"></i> Volver al Inicio
+                <button id="logout-btn-customers" class="font-bold text-red-500 hover:opacity-70 transition-opacity flex items-center gap-2">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
                 </button>
             </nav>
         </header>
         <main class="container mx-auto p-4 sm:p-6 lg:p-8">
-            <div class="flex flex-col sm:flex-row items-center justify-center sm:justify-start mb-10 gap-6">
-                <img src="https://ibb.co/MDCJxVDS" 
-                     onerror="this.onerror=null;this.src='https://placehold.co/250x70/0f2b6c/ffffff?text=Logo+Super+21';"
-                     alt="Logo Super 21" class="h-16 object-contain">
-                <h1 class="text-4xl md:text-5xl font-black text-primary text-center sm:text-left">Panel de Clientes</h1>
-            </div>
+            <h1 class="text-4xl md:text-5xl font-black text-primary mb-10 text-center sm:text-left">Panel de Clientes - SUPER21</h1>
             <div class="card-custom border rounded-xl shadow-sm mb-8">
                 <div class="p-6 border-b border-custom"><h2 class="text-xl font-bold flex items-center gap-3 text-primary"><i class="fas fa-user-plus"></i> Agregar Nuevo Cliente</h2></div>
                 <div class="p-6">
@@ -322,7 +336,7 @@
     <!-- Firebase y Lógica de la Aplicación -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, increment, serverTimestamp, query, orderBy, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -335,36 +349,69 @@
             measurementId: "G-79RSPJE5L8"
         };
 
-        let db;
+        let db, auth;
         let allClients = [];
         let selectedClient = null;
         let isGame1Initialized = false;
         let isGame2Initialized = false;
+        let intendedTargetPage = null; // Para recordar a dónde ir después del login
 
         // --- INICIALIZACIÓN ---
         document.addEventListener('DOMContentLoaded', () => {
             try {
                 const app = initializeApp(firebaseConfig);
-                const auth = getAuth(app);
+                auth = getAuth(app);
                 db = getFirestore(app);
-                signInAnonymously(auth).then(() => {
-                    setupListeners();
-                    listenForClients();
-                }).catch(err => console.error("Auth error", err));
+                setupAuthListener();
+                setupListeners();
             } catch (e) {
                 console.error("Firebase init error", e);
             }
             document.getElementById('footer-year').textContent = new Date().getFullYear();
         });
 
-        // --- NAVEGACIÓN ---
+        // --- NAVEGACIÓN Y AUTENTICACIÓN ---
+        function setupAuthListener() {
+            onAuthStateChanged(auth, user => {
+                updateNav(user);
+                if (user && intendedTargetPage) {
+                    navigateTo(intendedTargetPage);
+                    intendedTargetPage = null;
+                } else if (!user) {
+                    navigateTo('landing');
+                }
+            });
+        }
+
+        function updateNav(user) {
+            const authNavLinks = document.getElementById('auth-nav-links');
+            if (user) {
+                authNavLinks.innerHTML = `
+                    <button id="nav-to-customers-auth" class="font-bold text-primary hover:opacity-70 transition-opacity">CLIENTES</button>
+                    <button id="logout-btn-main" class="font-bold text-red-500 hover:opacity-70 transition-opacity flex items-center gap-2"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
+                `;
+                document.getElementById('nav-to-customers-auth').addEventListener('click', () => navigateTo('customer-system'));
+                document.getElementById('logout-btn-main').addEventListener('click', handleSignOut);
+            } else {
+                authNavLinks.innerHTML = `<button id="login-nav-btn" class="font-bold text-primary hover:opacity-70 transition-opacity">LOGIN</button>`;
+                document.getElementById('login-nav-btn').addEventListener('click', () => {
+                    intendedTargetPage = 'customer-system';
+                    navigateTo('login');
+                });
+            }
+        }
+
         function navigateTo(page) {
-            document.querySelectorAll('#landing-page, #customer-system-page, #games-page, #game-1-page, #game-2-page').forEach(p => {
+            document.querySelectorAll('#landing-page, #customer-system-page, #games-page, #game-1-page, #game-2-page, #login-page').forEach(p => {
                 p.style.display = 'none';
             });
             const targetPage = document.getElementById(`${page}-page`);
             if (targetPage) {
-                targetPage.style.display = 'block';
+                if (page === 'login') {
+                    targetPage.style.display = 'flex';
+                } else {
+                    targetPage.style.display = 'block';
+                }
             }
 
             if (page === 'game-1' && !isGame1Initialized) {
@@ -376,23 +423,63 @@
                 isGame2Initialized = true;
             }
         }
+        
+        function handleProtectedRoute(targetPage) {
+            if (auth.currentUser) {
+                navigateTo(targetPage);
+            } else {
+                intendedTargetPage = targetPage;
+                navigateTo('login');
+            }
+        }
 
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                showToast("Inicio de sesión exitoso.", "success");
+            } catch (error) {
+                showToast("Error: Correo o contraseña incorrectos.", "error");
+                console.error("Login failed:", error);
+            }
+        }
+
+        async function handleSignOut() {
+            try {
+                await signOut(auth);
+                showToast("Sesión cerrada.", "success");
+            } catch (error) {
+                console.error("Sign out failed:", error);
+            }
+        }
+        
         // --- LISTENERS DE EVENTOS GLOBALES ---
         function setupListeners() {
-            document.getElementById('nav-to-customers').addEventListener('click', () => navigateTo('customer-system'));
-            document.getElementById('main-to-customers').addEventListener('click', () => navigateTo('customer-system'));
-            document.getElementById('main-to-games').addEventListener('click', () => navigateTo('games'));
+            const addListener = (id, event, handler) => {
+                const element = document.getElementById(id);
+                if (element) element.addEventListener(event, handler);
+            };
             
-            document.getElementById('nav-to-home-from-customers').addEventListener('click', () => navigateTo('landing'));
-            document.getElementById('nav-to-home-from-games').addEventListener('click', () => navigateTo('landing'));
+            addListener('main-to-customers', 'click', () => handleProtectedRoute('customer-system'));
+            addListener('main-to-games', 'click', () => navigateTo('games'));
             
-            document.getElementById('play-game-1').addEventListener('click', () => navigateTo('game-1'));
-            document.getElementById('play-game-2').addEventListener('click', () => navigateTo('game-2'));
-            document.getElementById('back-to-games-from-game1').addEventListener('click', () => navigateTo('games'));
-            document.getElementById('back-to-games-from-game2').addEventListener('click', () => navigateTo('games'));
+            addListener('nav-to-home-from-customers', 'click', () => navigateTo('landing'));
+            addListener('nav-to-home-from-games', 'click', () => navigateTo('landing'));
+            
+            addListener('play-game-1', 'click', () => navigateTo('game-1'));
+            addListener('play-game-2', 'click', () => navigateTo('game-2'));
+            addListener('back-to-games-from-game1', 'click', () => navigateTo('games'));
+            addListener('back-to-games-from-game2', 'click', () => navigateTo('games'));
+            addListener('back-to-home-from-login', 'click', () => navigateTo('landing'));
 
-            document.getElementById('add-client-form').addEventListener('submit', handleAddClient);
-            document.getElementById('search-client-input').addEventListener('input', renderClientList);
+            addListener('add-client-form', 'submit', handleAddClient);
+            addListener('search-client-input', 'input', renderClientList);
+            addListener('login-form', 'submit', handleLogin);
+            
+            addListener('logout-btn-customers', 'click', handleSignOut);
+            addListener('logout-btn-games', 'click', handleSignOut);
             
             document.querySelectorAll('.modal-close-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -400,13 +487,13 @@
                 });
             });
             
-            document.getElementById('add-change-form').addEventListener('submit', handleAddChange);
-            document.getElementById('use-balance-form').addEventListener('submit', handleUseBalance);
+            addListener('add-change-form', 'submit', handleAddChange);
+            addListener('use-balance-form', 'submit', handleUseBalance);
         }
 
         // --- LÓGICA DE CLIENTES ---
         function listenForClients() {
-            if (!db) return;
+            if (!db || !auth.currentUser) return;
             const q = query(collection(db, "customers"), orderBy('name'));
             onSnapshot(q, (snapshot) => {
                 allClients = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -415,7 +502,9 @@
         }
 
         function renderClientList() {
-            const searchTerm = document.getElementById('search-client-input').value.toLowerCase();
+            const searchInput = document.getElementById('search-client-input');
+            if (!searchInput) return;
+            const searchTerm = searchInput.value.toLowerCase();
             const tbody = document.getElementById('client-list-tbody');
             const filteredClients = allClients.filter(c => c.name.toLowerCase().includes(searchTerm) || c.dni.toLowerCase().includes(searchTerm));
             
