@@ -330,6 +330,17 @@
         </div>
     </div>
 
+    <div id="delete-modal" class="modal-backdrop">
+        <div class="modal-content text-center">
+            <h3 class="text-lg font-bold text-primary p-6" id="delete-modal-title">Confirmar Eliminación</h3>
+            <p id="delete-modal-text" class="px-6 pb-6 text-secondary"></p>
+            <div class="p-6 border-t border-custom flex justify-center gap-4">
+                <button type="button" class="modal-close-btn bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300">Cancelar</button>
+                <button id="confirm-delete-btn" class="bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Notificación Toast -->
     <div id="toast-notification" class="toast"></div>
 
@@ -337,7 +348,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, increment, serverTimestamp, query, orderBy, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, increment, serverTimestamp, query, orderBy, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAJbCC1pR-CQTpOXBicC59Jqm32Rr7q9M8",
@@ -354,8 +365,8 @@
         let selectedClient = null;
         let isGame1Initialized = false;
         let isGame2Initialized = false;
-        let intendedTargetPage = null; // Para recordar a dónde ir después del login
-        let unsubscribeClients = null; // Para detener el listener de clientes al cerrar sesión
+        let intendedTargetPage = null; 
+        let unsubscribeClients = null; 
 
         // --- INICIALIZACIÓN ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -382,7 +393,7 @@
                 } else {
                     navigateTo('landing');
                     if (unsubscribeClients) {
-                        unsubscribeClients(); // Detener el listener si el usuario cierra sesión
+                        unsubscribeClients(); 
                         unsubscribeClients = null;
                     }
                 }
@@ -413,11 +424,7 @@
             });
             const targetPage = document.getElementById(`${page}-page`);
             if (targetPage) {
-                if (page === 'login') {
-                    targetPage.style.display = 'flex';
-                } else {
-                    targetPage.style.display = 'block';
-                }
+                targetPage.style.display = page === 'login' ? 'flex' : 'block';
             }
 
             if (page === 'customer-system' && auth.currentUser && !unsubscribeClients) {
@@ -425,12 +432,10 @@
             }
 
             if (page === 'game-1' && !isGame1Initialized) {
-                initializeGame1();
-                isGame1Initialized = true;
+                initializeGame1(); isGame1Initialized = true;
             }
             if (page === 'game-2' && !isGame2Initialized) {
-                initializeGame2();
-                isGame2Initialized = true;
+                initializeGame2(); isGame2Initialized = true;
             }
         }
         
@@ -452,7 +457,6 @@
                 showToast("Inicio de sesión exitoso.", "success");
             } catch (error) {
                 showToast("Error: Correo o contraseña incorrectos.", "error");
-                console.error("Login failed:", error);
             }
         }
 
@@ -499,11 +503,12 @@
             
             addListener('add-change-form', 'submit', handleAddChange);
             addListener('use-balance-form', 'submit', handleUseBalance);
+            addListener('confirm-delete-btn', 'click', handleDeleteClient);
         }
 
         // --- LÓGICA DE CLIENTES ---
         function listenForClients() {
-            if (!db || !auth.currentUser) return;
+            if (!db || !auth.currentUser || unsubscribeClients) return;
             const q = query(collection(db, "customers"), orderBy('name'));
             unsubscribeClients = onSnapshot(q, (snapshot) => {
                 allClients = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -538,11 +543,13 @@
                         <button data-action="add-change" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-3 rounded-lg flex items-center gap-2"><i class="fas fa-wallet"></i><span class="hidden sm:inline">Vuelto</span></button>
                         <button data-action="use-balance" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-3 rounded-lg flex items-center gap-2"><i class="fas fa-exchange-alt"></i><span class="hidden sm:inline">Usar</span></button>
                         <button data-action="history" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-3 rounded-lg flex items-center gap-2"><i class="fas fa-history"></i><span class="hidden sm:inline">Historial</span></button>
+                        <button data-action="delete" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 rounded-lg flex items-center gap-2"><i class="fas fa-trash"></i><span class="hidden sm:inline">Eliminar</span></button>
                     </div></td>
                 `;
                 tr.querySelector('[data-action="add-change"]').addEventListener('click', () => openModal('add-change', client));
                 tr.querySelector('[data-action="use-balance"]').addEventListener('click', () => openModal('use-balance', client));
                 tr.querySelector('[data-action="history"]').addEventListener('click', () => openModal('history', client));
+                tr.querySelector('[data-action="delete"]').addEventListener('click', () => openModal('delete', client));
                 tbody.appendChild(tr);
             });
         }
@@ -564,6 +571,26 @@
             } catch (err) { showToast("Error al agregar el cliente.", "error"); }
         }
         
+        async function handleDeleteClient() {
+            if (!selectedClient) return;
+            const clientDocRef = doc(db, "customers", selectedClient.id);
+            try {
+                // Opcional: Borrar subcolección de movimientos si es necesario
+                const movementsRef = collection(clientDocRef, "movements");
+                const movementsSnapshot = await getDocs(movementsRef);
+                for (const movementDoc of movementsSnapshot.docs) {
+                    await deleteDoc(movementDoc.ref);
+                }
+                // Borrar el documento principal del cliente
+                await deleteDoc(clientDocRef);
+                showToast(`Cliente "${selectedClient.name}" eliminado.`, "success");
+            } catch (error) {
+                showToast("Error al eliminar el cliente.", "error");
+                console.error("Delete error:", error);
+            }
+            document.getElementById('delete-modal').style.display = 'none';
+        }
+
         // --- LÓGICA DE TRANSACCIONES Y MODALES ---
         function openModal(type, client) {
             selectedClient = client;
@@ -576,6 +603,8 @@
             } else if (type === 'history') {
                 document.getElementById('history-modal-title').textContent = `Historial de ${client.name}`;
                 loadHistory(client.id);
+            } else if (type === 'delete') {
+                document.getElementById('delete-modal-text').textContent = `¿Estás seguro de que quieres eliminar a ${client.name}? Esta acción no se puede deshacer.`;
             }
             modal.style.display = 'flex';
         }
