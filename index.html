@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Fidelidad de Clientes</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 40;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .modal-body {
+            overflow-y: auto;
+        }
+        .modal-show {
+            display: flex;
+        }
+        .toast {
+            position: fixed;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: bottom 0.5s ease-in-out;
+            z-index: 100;
+        }
+        .toast.show {
+            bottom: 20px;
+        }
+        .toast.success { background-color: #28a745; }
+        .toast.error { background-color: #dc3545; }
+    </style>
+</head>
+<body class="antialiased text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+        
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-700">Sistema de Fidelidad de Clientes</h1>
+            <p class="text-gray-500 mt-2">Gestiona el saldo y el historial de tus clientes.</p>
+        </header>
+
+        <!-- Add New Client Section -->
+        <div class="bg-white p-6 rounded-xl shadow-md mb-8">
+            <h2 class="text-xl font-semibold mb-4">Agregar Nuevo Cliente</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <input type="text" id="new-client-name" placeholder="Nombre completo del cliente" class="md:col-span-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                <input type="text" id="new-client-dni" placeholder="DNI del cliente" class="md:col-span-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                <button id="add-client-btn" class="md:col-span-1 bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors shadow-sm flex items-center justify-center">
+                    <i class="fas fa-user-plus mr-2"></i> Agregar Cliente
+                </button>
+            </div>
+        </div>
+        
+        <!-- Search Section -->
+        <div class="bg-white p-6 rounded-xl shadow-md mb-8">
+            <h2 class="text-xl font-semibold mb-4">Buscar Cliente</h2>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fas fa-search text-gray-400"></i>
+                </div>
+                <input type="text" id="search-client-input" placeholder="Buscar por Nombre o DNI..." class="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition shadow-sm">
+            </div>
+        </div>
+
+        <!-- Client List Section -->
+        <div>
+            <h2 class="text-xl font-semibold mb-4 text-gray-600">Lista de Clientes</h2>
+            <div id="client-list" class="space-y-4">
+                <!-- Client items will be dynamically inserted here -->
+                <div id="loading-placeholder" class="text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-4xl text-gray-400"></i>
+                    <p class="mt-2 text-gray-500">Conectando a la base de datos...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="add-change-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <h3 class="text-2xl font-bold mb-4">Agregar Vuelto a la Cuenta</h3>
+            <form id="add-change-form" class="modal-body">
+                <input type="hidden" id="add-change-client-id">
+                <div class="mb-4">
+                    <label for="purchase-total" class="block text-sm font-medium text-gray-700 mb-1">Total de la Compra ($)</label>
+                    <input type="number" id="purchase-total" step="0.01" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-6">
+                    <label for="amount-paid" class="block text-sm font-medium text-gray-700 mb-1">Monto Pagado por el Cliente ($)</label>
+                    <input type="number" id="amount-paid" step="0.01" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex justify-end gap-4 mt-4">
+                    <button type="button" class="modal-close-btn bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300 transition">Cancelar</button>
+                    <button type="submit" class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 transition">Confirmar y Agregar Vuelto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="use-balance-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <h3 class="text-2xl font-bold mb-4">Usar Saldo para Pagar</h3>
+            <form id="use-balance-form" class="modal-body">
+                <input type="hidden" id="use-balance-client-id">
+                <input type="hidden" id="use-balance-client-current-balance">
+                <div class="mb-4">
+                    <label for="use-purchase-total" class="block text-sm font-medium text-gray-700 mb-1">Total de la Nueva Compra ($)</label>
+                    <input type="number" id="use-purchase-total" step="0.01" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-6">
+                    <label for="use-amount-paid-cash" class="block text-sm font-medium text-gray-700 mb-1">Monto Pagado en Efectivo ($)</label>
+                    <input type="number" id="use-amount-paid-cash" step="0.01" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value="0">
+                </div>
+                <div class="flex justify-end gap-4 mt-4">
+                    <button type="button" class="modal-close-btn bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300 transition">Cancelar</button>
+                    <button type="submit" class="bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700 transition">Confirmar y Usar Saldo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="history-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <h3 class="text-2xl font-bold mb-2">Historial de Movimientos</h3>
+            <h4 id="history-client-name" class="text-lg text-gray-600 mb-4 font-medium"></h4>
+            <div id="history-list" class="modal-body border-t border-b py-4 my-4 -mx-8 px-8">
+                <!-- History items will be injected here -->
+            </div>
+            <div class="flex justify-end gap-4">
+                <button type="button" class="modal-close-btn bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300 transition">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast-notification" class="toast"></div>
+
+    <!-- Firebase -->
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, increment, setLogLevel, serverTimestamp, query, orderBy, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Firebase Configuration ---
+        // Credenciales insertadas desde tu proyecto de Firebase.
+        const firebaseConfig = {
+          apiKey: "AIzaSyAJbCC1pR-CQTpOXBicC59Jqm32Rr7q9M8",
+          authDomain: "sistemafidelidad-super-21.firebaseapp.com",
+          projectId: "sistemafidelidad-super-21",
+          storageBucket: "sistemafidelidad-super-21.firebasestorage.app",
+          messagingSenderId: "221163223090",
+          appId: "1:221163223090:web:ffe60b7a75758d591c242b",
+          measurementId: "G-79RSPJE5L8"
+        };
+        
+        let app, auth, db, customersCollectionRef;
+        const loadingPlaceholder = document.getElementById('loading-placeholder');
+
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            setLogLevel('debug');
+            // Usamos un nombre de colección simple para el entorno local
+            customersCollectionRef = collection(db, "customers");
+
+            // Para uso local, iniciamos sesión de forma anónima
+            await signInAnonymously(auth);
+            
+        } catch (error) {
+            console.error("Firebase initialization failed:", error);
+            loadingPlaceholder.innerHTML = '<p class="text-red-500">Error al conectar con la base de datos. Verifica que tu configuración de Firebase sea correcta y que no haya errores de tipeo.</p>';
+        }
+
+        // --- DOM Elements ---
+        const newClientNameInput = document.getElementById('new-client-name');
+        const newClientDniInput = document.getElementById('new-client-dni');
+        const addClientBtn = document.getElementById('add-client-btn');
+        const clientListDiv = document.getElementById('client-list');
+        const searchClientInput = document.getElementById('search-client-input');
+        
+        // Modals
+        const addChangeModal = document.getElementById('add-change-modal');
+        const useBalanceModal = document.getElementById('use-balance-modal');
+        const historyModal = document.getElementById('history-modal');
+        const addChangeForm = document.getElementById('add-change-form');
+        const useBalanceForm = document.getElementById('use-balance-form');
+        const modalCloseBtns = document.querySelectorAll('.modal-close-btn');
+
+        // --- Global State ---
+        let allClients = [];
+
+        // --- Utility Functions ---
+        const formatCurrency = (value) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(value);
+        const formatDate = (timestamp) => timestamp ? new Date(timestamp.seconds * 1000).toLocaleString('es-AR') : 'Fecha no disponible';
+
+        const showToast = (message, type = 'success') => {
+            const toast = document.getElementById('toast-notification');
+            toast.textContent = message;
+            toast.className = `toast show ${type}`;
+            setTimeout(() => { toast.className = 'toast'; }, 3000);
+        };
+
+        // --- Modal Handling ---
+        const openModal = (modal) => modal.classList.add('modal-show');
+        const closeModal = (modal) => modal.classList.remove('modal-show');
+        modalCloseBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                closeModal(addChangeModal);
+                closeModal(useBalanceModal);
+                closeModal(historyModal);
+            });
+        });
+
+        // --- Firestore Logic & Rendering ---
+
+        // Only run Firestore logic if initialization was successful
+        if (db) {
+            // 1. Add New Client with DNI validation
+            addClientBtn.addEventListener('click', async () => {
+                const name = newClientNameInput.value.trim();
+                const dni = newClientDniInput.value.trim();
+                if (!name || !dni) {
+                    showToast("Por favor, ingresa nombre y DNI.", "error");
+                    return;
+                }
+
+                try {
+                    // Check if a client with the same DNI already exists
+                    const q = query(customersCollectionRef, where("dni", "==", dni));
+                    const querySnapshot = await getDocs(q);
+
+                    if (!querySnapshot.empty) {
+                        const existingClient = querySnapshot.docs[0].data();
+                        showToast(`El cliente ${existingClient.name} ya se encuentra registrado.`, "error");
+                        return; // Stop execution if DNI exists
+                    }
+
+                    // If DNI is unique, add the new client
+                    await addDoc(customersCollectionRef, {
+                        name: name,
+                        dni: dni,
+                        balance: 0
+                    });
+                    showToast(`Cliente "${name}" agregado exitosamente.`);
+                    newClientNameInput.value = '';
+                    newClientDniInput.value = '';
+                } catch (error) {
+                    console.error("Error adding document: ", error);
+                    showToast("Error al agregar el cliente.", "error");
+                }
+            });
+
+            // 2. Listen for Client Data
+            onSnapshot(customersCollectionRef, (snapshot) => {
+                allClients = [];
+                snapshot.forEach(doc => allClients.push({ id: doc.id, ...doc.data() }));
+                allClients.sort((a, b) => a.name.localeCompare(b.name));
+                renderClientList(); // Render the full list initially
+            }, (error) => {
+                console.error("Error listening to clients collection:", error);
+                loadingPlaceholder.innerHTML = `<p class="text-red-500">Error al cargar los datos de los clientes.</p>`;
+            });
+            
+            // 3. Search Event Listener
+            searchClientInput.addEventListener('input', renderClientList);
+        }
+        
+
+        // 4. Render Client List (handles filtering)
+        function renderClientList() {
+            const searchTerm = searchClientInput.value.toLowerCase().trim();
+            
+            const filteredClients = allClients.filter(client => {
+                const nameMatch = client.name.toLowerCase().includes(searchTerm);
+                const dniMatch = client.dni ? client.dni.toLowerCase().includes(searchTerm) : false;
+                return nameMatch || dniMatch;
+            });
+
+            clientListDiv.innerHTML = '';
+            if (filteredClients.length === 0) {
+                 if (allClients.length > 0) {
+                    clientListDiv.innerHTML = `<div class="text-center bg-white p-8 rounded-lg shadow-sm"><p>No se encontraron clientes con ese criterio de búsqueda.</p></div>`;
+                 } else {
+                    clientListDiv.innerHTML = `<div class="text-center bg-white p-8 rounded-lg shadow-sm"><p>Aún no hay clientes registrados.</p></div>`;
+                 }
+            } else {
+                filteredClients.forEach(client => {
+                    const clientEl = document.createElement('div');
+                    clientEl.className = 'bg-white p-5 rounded-xl shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4';
+                    clientEl.innerHTML = `
+                        <div class="flex-grow">
+                            <p class="font-semibold text-lg text-gray-800">${client.name}</p>
+                            <p class="text-sm text-gray-500">DNI: ${client.dni || 'No especificado'}</p>
+                            <p class="text-2xl font-bold text-green-600 mt-1">${formatCurrency(client.balance)}</p>
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                            <button data-id="${client.id}" class="add-change-btn bg-emerald-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-emerald-600 transition-all flex items-center justify-center gap-2">
+                                <i class="fas fa-hand-holding-dollar"></i> Agregar Vuelto
+                            </button>
+                            <button data-id="${client.id}" data-balance="${client.balance}" class="use-balance-btn bg-purple-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-purple-600 transition-all flex items-center justify-center gap-2">
+                                <i class="fas fa-wallet"></i> Usar Saldo
+                            </button>
+                            <button data-id="${client.id}" data-name="${client.name}" class="history-btn bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-gray-600 transition-all flex items-center justify-center gap-2">
+                                <i class="fas fa-history"></i> Historial
+                            </button>
+                        </div>
+                    `;
+                    clientListDiv.appendChild(clientEl);
+                });
+            }
+            attachActionListeners();
+        }
+
+        // 5. Attach Listeners for Client Actions
+        function attachActionListeners() {
+            document.querySelectorAll('.add-change-btn').forEach(b => b.onclick = (e) => {
+                document.getElementById('add-change-client-id').value = e.currentTarget.dataset.id;
+                addChangeForm.reset();
+                openModal(addChangeModal);
+            });
+
+            document.querySelectorAll('.use-balance-btn').forEach(b => b.onclick = (e) => {
+                document.getElementById('use-balance-client-id').value = e.currentTarget.dataset.id;
+                document.getElementById('use-balance-client-current-balance').value = e.currentTarget.dataset.balance;
+                useBalanceForm.reset();
+                openModal(useBalanceModal);
+            });
+            
+            document.querySelectorAll('.history-btn').forEach(b => b.onclick = (e) => {
+                showHistory(e.currentTarget.dataset.id, e.currentTarget.dataset.name);
+            });
+        }
+        
+        // 6. Show History Modal
+        let historyUnsubscribe = null;
+        function showHistory(clientId, clientName) {
+            if (!db) return; // Don't run if DB not initialized
+            document.getElementById('history-client-name').textContent = `Cliente: ${clientName}`;
+            const historyListDiv = document.getElementById('history-list');
+            historyListDiv.innerHTML = `<div class="text-center"><i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i></div>`;
+            openModal(historyModal);
+
+            const movementsRef = collection(db, `customers/${clientId}/movements`);
+            const q = query(movementsRef, orderBy('date', 'desc'));
+
+            if (historyUnsubscribe) historyUnsubscribe(); // Unsubscribe from previous listener
+
+            historyUnsubscribe = onSnapshot(q, (snapshot) => {
+                historyListDiv.innerHTML = '';
+                if (snapshot.empty) {
+                    historyListDiv.innerHTML = `<p class="text-center text-gray-500">No hay movimientos para mostrar.</p>`;
+                } else {
+                    snapshot.forEach(doc => {
+                        const movement = doc.data();
+                        const isCredit = movement.type === 'credit';
+                        const movementEl = document.createElement('div');
+                        movementEl.className = `p-3 rounded-lg flex justify-between items-center mb-2 ${isCredit ? 'bg-green-50' : 'bg-red-50'}`;
+                        movementEl.innerHTML = `
+                            <div>
+                                <p class="font-semibold">${movement.description}</p>
+                                <p class="text-sm text-gray-500">${formatDate(movement.date)}</p>
+                            </div>
+                            <p class="font-bold text-lg ${isCredit ? 'text-green-700' : 'text-red-700'}">
+                                ${isCredit ? '+' : '-'}${formatCurrency(movement.amount)}
+                            </p>
+                        `;
+                        historyListDiv.appendChild(movementEl);
+                    });
+                }
+            });
+        }
+        
+        // 7. Handle "Add Change" Form
+        addChangeForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!db) return;
+            const clientId = document.getElementById('add-change-client-id').value;
+            const purchaseTotal = parseFloat(document.getElementById('purchase-total').value);
+            const amountPaid = parseFloat(document.getElementById('amount-paid').value);
+            const change = amountPaid - purchaseTotal;
+
+            if (change > 0) {
+                const clientDocRef = doc(db, "customers", clientId);
+                const movementsRef = collection(clientDocRef, "movements");
+                try {
+                    await updateDoc(clientDocRef, { balance: increment(change) });
+                    await addDoc(movementsRef, {
+                        type: 'credit',
+                        amount: change,
+                        description: 'Vuelto de compra',
+                        date: serverTimestamp()
+                    });
+                    showToast(`Se agregaron ${formatCurrency(change)} al saldo.`, "success");
+                    closeModal(addChangeModal);
+                } catch (error) { showToast("Error al actualizar el saldo.", "error"); }
+            } else {
+                showToast("No hay vuelto para agregar.", "success");
+                closeModal(addChangeModal);
+            }
+        });
+
+        // 8. Handle "Use Balance" Form
+        useBalanceForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!db) return;
+            const clientId = document.getElementById('use-balance-client-id').value;
+            const currentBalance = parseFloat(document.getElementById('use-balance-client-current-balance').value);
+            const purchaseTotal = parseFloat(document.getElementById('use-purchase-total').value);
+            const cashPaid = parseFloat(document.getElementById('use-amount-paid-cash').value);
+            const amountToUseFromBalance = purchaseTotal - cashPaid;
+
+            if (amountToUseFromBalance <= 0) {
+                showToast("No se necesita usar saldo.", "error");
+                return;
+            }
+            if (currentBalance < amountToUseFromBalance) {
+                showToast(`Saldo insuficiente.`, "error");
+                return;
+            }
+            
+            const clientDocRef = doc(db, "customers", clientId);
+            const movementsRef = collection(clientDocRef, "movements");
+            try {
+                await updateDoc(clientDocRef, { balance: increment(-amountToUseFromBalance) });
+                await addDoc(movementsRef, {
+                    type: 'debit',
+                    amount: amountToUseFromBalance,
+                    description: 'Uso de saldo en compra',
+                    date: serverTimestamp()
+                });
+                showToast(`Se usaron ${formatCurrency(amountToUseFromBalance)} del saldo.`, "success");
+                closeModal(useBalanceModal);
+            } catch (error) { showToast("Error al usar el saldo.", "error"); }
+        });
+
+    </script>
+</body>
+</html>
