@@ -552,14 +552,21 @@
                         <!-- INICIO: SECCIÓN DE ANÁLISIS MENSUAL -->
                         <div class="bg-white p-6 rounded-lg shadow-md">
                             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                                <h2 class="text-2xl font-semibold">Análisis Mensual de Compras</h2>
+                                <h2 class="text-2xl font-semibold">Análisis Anual</h2>
                                 <div class="mt-4 sm:mt-0">
                                     <label for="year-selector" class="text-sm font-medium text-gray-700 mr-2">Año:</label>
                                     <select id="year-selector" class="p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></select>
                                 </div>
                             </div>
-                            <div id="monthly-breakdown-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-                                <!-- Las tarjetas de los meses se insertarán aquí -->
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-6">
+                                <div>
+                                    <h3 class="text-xl font-semibold mb-4 text-center">Compras por Mes</h3>
+                                    <div id="monthly-purchases-breakdown-container"></div>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-semibold mb-4 text-center">Ventas por Mes</h3>
+                                    <div id="monthly-sales-breakdown-container"></div>
+                                </div>
                             </div>
                         </div>
                         <!-- FIN: SECCIÓN DE ANÁLISIS MENSUAL -->
@@ -1202,7 +1209,8 @@
             const cancelAddSupplierBtn = page.querySelector('#cancel-add-supplier');
             const purchaseCuitInput = page.querySelector('#purchase-cuit');
             const yearSelector = page.querySelector('#year-selector');
-            const monthlyBreakdownContainer = page.querySelector('#monthly-breakdown-container');
+            const monthlyPurchasesBreakdownContainer = page.querySelector('#monthly-purchases-breakdown-container');
+            const monthlySalesBreakdownContainer = page.querySelector('#monthly-sales-breakdown-container');
 
 
             let lineChart, supplierPieChart, paymentPieChart;
@@ -1314,7 +1322,7 @@
                     allTransactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     renderTransactions(allTransactions);
                     updateAllCharts(allTransactions);
-                    updateMonthlyAnalysis(allTransactions);
+                    updateAllMonthlyAnalyses(allTransactions);
                 }, (error) => {
                     console.error("Error al escuchar transacciones financieras:", error);
                     showToast("Error al cargar las transacciones.", "error");
@@ -1523,7 +1531,7 @@
                 chart.update();
             }
             
-            function updateMonthlyAnalysis(transactions) {
+            function updateAllMonthlyAnalyses(transactions) {
                 const years = [...new Set(transactions.map(t => new Date(t.date).getFullYear()))].sort((a, b) => b - a);
                 const currentYearSelection = yearSelector.value;
                 yearSelector.innerHTML = '';
@@ -1540,23 +1548,25 @@
                     yearSelector.value = years[0];
                 }
 
-                renderMonthlyBreakdown(transactions);
+                renderMonthlyPurchasesBreakdown(transactions);
+                renderMonthlySalesBreakdown(transactions);
             }
 
-            function renderMonthlyBreakdown(transactions) {
+            function renderMonthlyPurchasesBreakdown(transactions) {
                 const selectedYear = parseInt(yearSelector.value);
-                monthlyBreakdownContainer.innerHTML = '';
+                monthlyPurchasesBreakdownContainer.innerHTML = '';
                 if (isNaN(selectedYear)) return;
 
                 const purchases = transactions.filter(t => t.type === 'purchase' && new Date(t.date).getFullYear() === selectedYear);
                 
                 const byMonth = purchases.reduce((acc, t) => {
-                    const month = new Date(t.date).getMonth(); // 0 = Enero, 11 = Diciembre
+                    const month = new Date(t.date).getMonth();
                     if (!acc[month]) acc[month] = [];
                     acc[month].push(t);
                     return acc;
                 }, {});
 
+                let content = '';
                 for (let i = 11; i >= 0; i--) {
                     if (byMonth[i]) {
                         const monthTransactions = byMonth[i];
@@ -1568,15 +1578,12 @@
                             return acc;
                         }, {});
 
-                        const sortedSuppliers = Object.entries(bySupplier)
-                            .sort(([, a], [, b]) => b - a);
-
+                        const sortedSuppliers = Object.entries(bySupplier).sort(([, a], [, b]) => b - a);
                         const monthName = new Date(selectedYear, i).toLocaleString('es-ES', { month: 'long' });
                         
-                        let suppliersHTML = '';
-                        sortedSuppliers.forEach(([name, total]) => {
+                        let suppliersHTML = sortedSuppliers.map(([name, total]) => {
                             const percentage = (total / totalMonthAmount) * 100;
-                            suppliersHTML += `
+                            return `
                                 <li class="py-2">
                                     <div class="flex justify-between items-center mb-1">
                                         <span class="text-sm font-medium text-gray-700">${name}</span>
@@ -1587,24 +1594,76 @@
                                     </div>
                                     <div class="text-right text-xs text-gray-500 mt-1">${percentage.toFixed(2)}%</div>
                                 </li>`;
-                        });
+                        }).join('');
 
-                        const monthCard = `
-                            <div class="bg-gray-50 p-4 rounded-lg border">
-                                <h3 class="font-bold text-lg capitalize text-primary">${monthName} ${selectedYear}</h3>
+                        content += `
+                            <div class="bg-gray-50 p-4 rounded-lg border mb-4">
+                                <h4 class="font-bold text-lg capitalize text-primary">${monthName} ${selectedYear}</h4>
                                 <p class="text-sm text-secondary mb-3">Total Compras: ${formatCurrency(totalMonthAmount)}</p>
                                 <ul class="space-y-2">${suppliersHTML}</ul>
                             </div>`;
-                        
-                        monthlyBreakdownContainer.innerHTML += monthCard;
                     }
                 }
-                 if(monthlyBreakdownContainer.innerHTML === '') {
-                    monthlyBreakdownContainer.innerHTML = `<p class="text-secondary col-span-full text-center">No hay datos de compras para el año ${selectedYear}.</p>`;
+                monthlyPurchasesBreakdownContainer.innerHTML = content || `<p class="text-secondary text-center">No hay datos de compras para el año ${selectedYear}.</p>`;
+            }
+
+            function renderMonthlySalesBreakdown(transactions) {
+                const selectedYear = parseInt(yearSelector.value);
+                monthlySalesBreakdownContainer.innerHTML = '';
+                if (isNaN(selectedYear)) return;
+
+                const sales = transactions.filter(t => t.type === 'sale' && new Date(t.date).getFullYear() === selectedYear);
+                
+                const byMonth = sales.reduce((acc, t) => {
+                    const month = new Date(t.date).getMonth();
+                    if (!acc[month]) acc[month] = [];
+                    acc[month].push(t);
+                    return acc;
+                }, {});
+
+                let content = '';
+                for (let i = 11; i >= 0; i--) { // Loop from December to January
+                    if (byMonth[i]) {
+                        const monthTransactions = byMonth[i];
+                        const totalMonthAmount = monthTransactions.reduce((sum, t) => sum + t.amount, 0);
+                        
+                        const byChannel = monthTransactions.reduce((acc, t) => {
+                            const channel = t.saleType || 'No especificado';
+                            if (!acc[channel]) acc[channel] = 0;
+                            acc[channel] += t.amount;
+                            return acc;
+                        }, {});
+
+                        const sortedChannels = Object.entries(byChannel).sort(([, a], [, b]) => b - a);
+                        const monthName = new Date(selectedYear, i).toLocaleString('es-ES', { month: 'long' });
+                        
+                        let channelsHTML = sortedChannels.map(([name, total]) => {
+                            const percentage = (total / totalMonthAmount) * 100;
+                            return `
+                                <li class="py-2">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="text-sm font-medium text-gray-700">${name}</span>
+                                        <span class="text-sm font-semibold text-gray-900">${formatCurrency(total)}</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                        <div class="bg-green-500 h-2.5 rounded-full" style="width: ${percentage.toFixed(2)}%"></div>
+                                    </div>
+                                    <div class="text-right text-xs text-gray-500 mt-1">${percentage.toFixed(2)}%</div>
+                                </li>`;
+                        }).join('');
+
+                        content += `
+                            <div class="bg-gray-50 p-4 rounded-lg border mb-4">
+                                <h4 class="font-bold text-lg capitalize text-primary">${monthName} ${selectedYear}</h4>
+                                <p class="text-sm text-secondary mb-3">Total Ventas: ${formatCurrency(totalMonthAmount)}</p>
+                                <ul class="space-y-2">${channelsHTML}</ul>
+                            </div>`;
+                    }
                 }
+                monthlySalesBreakdownContainer.innerHTML = content || `<p class="text-secondary text-center">No hay datos de ventas para el año ${selectedYear}.</p>`;
             }
             
-            yearSelector.addEventListener('change', () => renderMonthlyBreakdown(allTransactions));
+            yearSelector.addEventListener('change', () => updateAllMonthlyAnalyses(allTransactions));
 
 
             function generateColors(numColors) { const colors = []; for (let i = 0; i < numColors; i++) { colors.push(`hsl(${(i * 137.508) % 360}, 65%, 60%)`); } return colors; }
