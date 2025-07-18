@@ -255,7 +255,6 @@
         </main>
     </div>
 
-    <!-- INICIO: PÁGINA DE GESTIÓN DE PROVEEDORES -->
     <div id="supplier-management-page" style="display: none;">
         <header class="bg-white shadow-sm">
             <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
@@ -291,8 +290,6 @@
             </div>
         </main>
     </div>
-    <!-- FIN: PÁGINA DE GESTIÓN DE PROVEEDORES -->
-    
     <div id="licenciada-hub-page" style="display: none;">
         <header class="bg-white shadow-sm">
             <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
@@ -549,7 +546,6 @@
                             </div>
                         </div>
                         
-                        <!-- INICIO: SECCIÓN DE ANÁLISIS MENSUAL -->
                         <div class="bg-white p-6 rounded-lg shadow-md">
                             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
                                 <h2 class="text-2xl font-semibold">Análisis Anual</h2>
@@ -569,8 +565,7 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- FIN: SECCIÓN DE ANÁLISIS MENSUAL -->
-                    </div>
+                        </div>
                 </div>
             </div>
 
@@ -757,7 +752,6 @@
     <div id="history-modal" class="modal-backdrop"><div class="modal-content"><h3 class="text-lg font-bold text-primary p-6 border-b border-custom" id="history-modal-title">Historial</h3><div id="history-list-content" class="p-6 max-h-96 overflow-y-auto space-y-3"></div><div class="p-6 border-t border-custom flex justify-end"><button type="button" class="modal-close-btn bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300">Cerrar</button></div></div></div>
     <div id="delete-modal" class="modal-backdrop"><div class="modal-content text-center"><h3 class="text-lg font-bold text-primary p-6" id="delete-modal-title">Confirmar Eliminación</h3><p id="delete-modal-text" class="px-6 pb-6 text-secondary"></p><div class="p-6 border-t border-custom flex justify-center gap-4"><button type="button" class="modal-close-btn bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300">Cancelar</button><button id="confirm-delete-btn" class="bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700">Eliminar</button></div></div></div>
     <div id="redeem-stars-modal" class="modal-backdrop"><div class="modal-content text-center"><h3 class="text-lg font-bold text-primary p-6" id="redeem-stars-modal-title">Canjear Estrellas</h3><p id="redeem-stars-modal-text" class="px-6 pb-6 text-secondary"></p><div class="p-6 border-t border-custom flex justify-center gap-4"><button type="button" class="modal-close-btn bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300">Cancelar</button><button id="confirm-redeem-btn" class="bg-amber-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-amber-600">Confirmar Canje</button></div></div></div>
-    <!-- INICIO: MODAL PARA EDITAR PROVEEDOR -->
     <div id="edit-supplier-modal" class="modal-backdrop">
         <div class="modal-content">
             <h3 class="text-lg font-bold text-primary p-6 border-b border-custom">Editar Proveedor</h3>
@@ -781,7 +775,6 @@
             </form>
         </div>
     </div>
-    <!-- FIN: MODAL PARA EDITAR PROVEEDOR -->
     <div id="toast-notification" class="toast"></div>
 
     <script type="module">
@@ -1307,8 +1300,17 @@
             
             const handleFormDisplay = () => {
                 const selectedType = typeSelect.value;
-                purchaseFields.style.display = selectedType === 'purchase' ? 'block' : 'none';
-                saleFields.style.display = selectedType === 'sale' ? 'block' : 'none';
+                const purchaseSupplierSelect = page.querySelector('#purchase-supplier');
+
+                if (selectedType === 'purchase') {
+                    purchaseFields.style.display = 'block';
+                    saleFields.style.display = 'none';
+                    purchaseSupplierSelect.required = true; // Lo hacemos obligatorio
+                } else { // Para 'sale'
+                    purchaseFields.style.display = 'none';
+                    saleFields.style.display = 'block';
+                    purchaseSupplierSelect.required = false; // DEJA de ser obligatorio
+                }
             };
             
             typeSelect.addEventListener('change', handleFormDisplay);
@@ -1359,7 +1361,7 @@
             transactionForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 errorMessageDiv.classList.add('hidden');
-                
+
                 const type = page.querySelector('#type').value;
                 let newTransaction = {
                     date: page.querySelector('#date').value,
@@ -1369,28 +1371,41 @@
 
                 if (type === 'purchase') {
                     const selectedSupplierId = supplierSelect.value;
+                    const amount = parseFloat(page.querySelector('#purchase-amount').value);
+
+                    // Validación para compras
                     if (!selectedSupplierId) {
                         errorMessageDiv.textContent = "Debe seleccionar un proveedor.";
                         errorMessageDiv.classList.remove('hidden');
                         return;
                     }
-                    const supplierData = allSuppliers.find(s => s.id === selectedSupplierId);
+                    if (isNaN(amount) || amount <= 0) {
+                        errorMessageDiv.textContent = "El importe es obligatorio.";
+                        errorMessageDiv.classList.remove('hidden');
+                        return;
+                    }
 
+                    const supplierData = allSuppliers.find(s => s.id === selectedSupplierId);
                     newTransaction.partyName = supplierData.name;
                     newTransaction.partyCuit = supplierData.cuit;
                     newTransaction.paymentMethod = page.querySelector('#purchase-paymentMethod').value;
-                    newTransaction.amount = parseFloat(page.querySelector('#purchase-amount').value);
+                    newTransaction.amount = amount;
+
                 } else { // Venta
-                    newTransaction.partyName = page.querySelector('#sale-customerName').value.trim();
+                    const partyName = page.querySelector('#sale-customerName').value.trim();
+                    const amount = parseFloat(page.querySelector('#sale-amount').value);
+
+                    // Validación para ventas
+                    if (!partyName || isNaN(amount) || amount <= 0) {
+                        errorMessageDiv.textContent = "El nombre del cliente y el importe son obligatorios.";
+                        errorMessageDiv.classList.remove('hidden');
+                        return;
+                    }
+                    
+                    newTransaction.partyName = partyName;
                     newTransaction.partyCuit = page.querySelector('#sale-cuit').value.trim();
                     newTransaction.saleType = page.querySelector('#sale-type').value;
-                    newTransaction.amount = parseFloat(page.querySelector('#sale-amount').value);
-                }
-                
-                if ((type === 'sale' && !newTransaction.partyName) || !newTransaction.amount) {
-                    errorMessageDiv.textContent = "El nombre y el importe son obligatorios.";
-                    errorMessageDiv.classList.remove('hidden');
-                    return;
+                    newTransaction.amount = amount;
                 }
 
                 try {
