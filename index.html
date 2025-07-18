@@ -7,7 +7,6 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- SheetJS (xlsx) para leer archivos Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -143,8 +142,7 @@
             <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
                 <div class="text-2xl font-black text-primary">EJR<span class="font-light">.com.ar</span></div>
                 <div id="auth-nav-links" class="flex items-center gap-4">
-                    <!-- Links de autenticación se insertan aquí -->
-                </div>
+                    </div>
             </nav>
         </header>
         <main>
@@ -256,6 +254,44 @@
             </div>
         </main>
     </div>
+
+    <!-- INICIO: PÁGINA DE GESTIÓN DE PROVEEDORES -->
+    <div id="supplier-management-page" style="display: none;">
+        <header class="bg-white shadow-sm">
+            <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+                <div class="text-2xl font-black text-primary">EJR<span class="font-light">.com.ar</span></div>
+                <div class="flex items-center gap-4">
+                    <button id="nav-to-home-from-suppliers" class="font-bold text-primary hover:opacity-70 transition-opacity">INICIO</button>
+                    <button id="logout-btn-suppliers" class="font-bold text-red-500 hover:opacity-70 transition-opacity flex items-center gap-2">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    </button>
+                </div>
+            </nav>
+        </header>
+        <main class="container mx-auto p-4 sm:p-6 lg:p-8">
+            <h1 class="text-4xl md:text-5xl font-black text-primary mb-10 text-center sm:text-left">Panel de Proveedores</h1>
+            <div class="card-custom border rounded-xl shadow-sm">
+                <div class="p-6 border-b border-custom">
+                    <h2 class="text-xl font-bold text-primary">Lista de Proveedores</h2>
+                    <div class="relative mt-4">
+                       <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                       <input id="search-supplier-input" placeholder="Buscar por nombre o CUIT..." class="w-full p-3 pl-10 border border-custom rounded-lg focus:outline-none ring-custom transition" />
+                    </div>
+                </div>
+                <div class="p-0 overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 border-b border-custom"><tr>
+                            <th class="p-4 font-bold text-primary">Nombre</th>
+                            <th class="p-4 font-bold text-primary">CUIT</th>
+                            <th class="p-4 font-bold text-primary text-right">Acciones</th>
+                        </tr></thead>
+                        <tbody id="supplier-list-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+    <!-- FIN: PÁGINA DE GESTIÓN DE PROVEEDORES -->
     
     <div id="licenciada-hub-page" style="display: none;">
         <header class="bg-white shadow-sm">
@@ -384,7 +420,6 @@
         </main>
     </div>
 
-    <!-- INICIO: SECCIÓN DEL DASHBOARD FINANCIERO -->
     <div id="financial-dashboard-page" style="display: none;">
         <header class="bg-white shadow-sm">
             <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
@@ -403,11 +438,9 @@
                 </header>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- Data Entry Section -->
                     <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
                         <h2 class="text-2xl font-semibold mb-4">Agregar Transacción</h2>
                         <form id="transaction-form" class="space-y-4">
-                            <!-- Campos Comunes -->
                             <div>
                                 <label for="date" class="block text-sm font-medium text-gray-700">Fecha</label>
                                 <input type="date" id="date" name="date" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
@@ -420,15 +453,20 @@
                                 </select>
                             </div>
 
-                            <!-- Campos Condicionales para Compra -->
                             <div id="purchase-fields" class="space-y-4">
                                 <div>
-                                    <label for="purchase-supplierName" class="block text-sm font-medium text-gray-700">Nombre del Proveedor</label>
-                                    <input type="text" id="purchase-supplierName" name="supplierName" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    <label for="purchase-supplier" class="block text-sm font-medium text-gray-700">Proveedor</label>
+                                    <div class="flex items-center space-x-2 mt-1">
+                                        <select id="purchase-supplier" name="supplier" required class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                            </select>
+                                        <button type="button" id="add-new-supplier-btn" class="flex-shrink-0 bg-blue-500 hover:bg-blue-600 text-white font-bold p-2 rounded-md" title="Agregar Nuevo Proveedor">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div>
                                     <label for="purchase-cuit" class="block text-sm font-medium text-gray-700">CUIT</label>
-                                    <input type="text" id="purchase-cuit" name="cuit" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    <input type="text" id="purchase-cuit" name="cuit" readonly class="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md shadow-sm sm:text-sm" placeholder="Se completará automáticamente">
                                 </div>
                                 <div>
                                     <label for="purchase-paymentMethod" class="block text-sm font-medium text-gray-700">Método de Pago</label>
@@ -444,7 +482,6 @@
                                 </div>
                             </div>
 
-                            <!-- Campos Condicionales para Venta -->
                             <div id="sale-fields" class="space-y-4 hidden">
                                 <div>
                                     <label for="sale-customerName" class="block text-sm font-medium text-gray-700">Nombre del Cliente</label>
@@ -475,7 +512,6 @@
                         </form>
                     </div>
 
-                    <!-- Charts and Table Section -->
                     <div class="lg:col-span-2 space-y-8">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div class="bg-white p-6 rounded-lg shadow-md md:col-span-2">
@@ -492,7 +528,6 @@
                             </div>
                         </div>
 
-                        <!-- Transaction List -->
                         <div class="bg-white p-6 rounded-lg shadow-md">
                             <h2 class="text-2xl font-semibold mb-4">Historial de Transacciones</h2>
                             <div class="overflow-x-auto">
@@ -509,16 +544,29 @@
                                         </tr>
                                     </thead>
                                     <tbody id="transaction-list" class="bg-white divide-y divide-gray-200">
-                                        <!-- Rows will be inserted here from Firestore -->
-                                    </tbody>
+                                        </tbody>
                                 </table>
                             </div>
                         </div>
+                        
+                        <!-- INICIO: SECCIÓN DE ANÁLISIS MENSUAL -->
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+                                <h2 class="text-2xl font-semibold">Análisis Mensual de Compras</h2>
+                                <div class="mt-4 sm:mt-0">
+                                    <label for="year-selector" class="text-sm font-medium text-gray-700 mr-2">Año:</label>
+                                    <select id="year-selector" class="p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></select>
+                                </div>
+                            </div>
+                            <div id="monthly-breakdown-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+                                <!-- Las tarjetas de los meses se insertarán aquí -->
+                            </div>
+                        </div>
+                        <!-- FIN: SECCIÓN DE ANÁLISIS MENSUAL -->
                     </div>
                 </div>
             </div>
 
-            <!-- Edit Modal -->
             <div id="edit-modal" class="modal-overlay hidden">
                 <div class="modal-content">
                     <h2 class="text-2xl font-semibold mb-4">Editar Transacción</h2>
@@ -526,7 +574,6 @@
                         <input type="hidden" id="edit-id">
                         <input type="hidden" id="edit-transaction-type">
                         
-                        <!-- Campos Condicionales de Edición para Compra -->
                         <div id="edit-purchase-fields" class="hidden space-y-4">
                             <div>
                                 <label for="edit-purchase-supplierName" class="block text-sm font-medium text-gray-700">Nombre del Proveedor</label>
@@ -550,7 +597,6 @@
                             </div>
                         </div>
 
-                        <!-- Campos Condicionales de Edición para Venta -->
                         <div id="edit-sale-fields" class="hidden space-y-4">
                              <div>
                                 <label for="edit-sale-customerName" class="block text-sm font-medium text-gray-700">Nombre del Cliente</label>
@@ -582,11 +628,29 @@
                     </form>
                 </div>
             </div>
+
+            <div id="add-supplier-modal" class="modal-overlay hidden">
+                <div class="modal-content">
+                    <h2 class="text-2xl font-semibold mb-4">Agregar Nuevo Proveedor</h2>
+                    <form id="add-supplier-form" class="space-y-4">
+                        <div>
+                            <label for="new-supplier-name" class="block text-sm font-medium text-gray-700">Nombre del Proveedor</label>
+                            <input type="text" id="new-supplier-name" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="new-supplier-cuit" class="block text-sm font-medium text-gray-700">CUIT</label>
+                            <input type="text" id="new-supplier-cuit" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </div>
+                        <div id="new-supplier-error" class="text-red-600 text-sm font-medium p-3 bg-red-100 rounded-md hidden"></div>
+                        <div class="flex justify-end space-x-4">
+                            <button type="button" id="cancel-add-supplier" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-md hover:bg-gray-300">Cancelar</button>
+                            <button type="submit" class="bg-indigo-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-indigo-700">Guardar Proveedor</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </main>
     </div>
-    <!-- FIN: SECCIÓN DEL DASHBOARD FINANCIERO -->
-
-    <!-- INICIO: SECCIÓN ANALIZADOR DE VENTAS -->
     <div id="sales-analyzer-page" style="display: none;">
         <header class="bg-white shadow-sm">
             <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
@@ -599,13 +663,11 @@
         </header>
         <main class="text-gray-800">
             <div class="container mx-auto p-4 sm:p-6 lg:p-8 max-w-7xl">
-                <!-- Encabezado -->
                 <header class="text-center mb-8">
                     <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">Analizador de Ventas Avanzado</h1>
                     <p class="mt-2 text-lg text-gray-600">Sube tu archivo de ventas para un análisis completo.</p>
                 </header>
 
-                <!-- Área para subir el archivo -->
                 <div class="bg-white p-6 rounded-xl shadow-md">
                     <div id="drop-zone" class="flex flex-col items-center justify-center p-8 rounded-lg text-center cursor-pointer">
                         <svg class="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-4-4V7a4 4 0 014-4h1.586A3 3 0 0111.172 4l1.414 1.414A1 1 0 0013 6h4a4 4 0 014 4v5a4 4 0 01-4 4H7z"></path></svg>
@@ -617,9 +679,7 @@
                     <div id="analyzer-error-message" class="mt-4 text-center text-red-600 font-medium"></div>
                 </div>
 
-                <!-- Sección de Resultados (inicialmente oculta) -->
                 <div id="results-section" class="hidden mt-8 space-y-8">
-                    <!-- Tarjetas de Resumen -->
                     <div id="summary-cards" class="grid grid-cols-1 md:grid-cols-3 gap-6 fade-in">
                         <div class="bg-white p-6 rounded-xl shadow-md flex items-center space-x-4">
                             <div class="bg-blue-100 p-3 rounded-full">
@@ -652,9 +712,7 @@
                         </div>
                     </div>
 
-                    <!-- Rankings Top -->
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <!-- Columna Top 10 por Unidades -->
                         <div class="bg-white p-6 rounded-xl shadow-md fade-in space-y-6" style="animation-delay: 0.1s;">
                             <h2 class="text-2xl font-bold text-gray-800">🚀 Top 10 por Unidades</h2>
                             <div id="table-container-units"></div>
@@ -662,7 +720,6 @@
                                 <canvas id="chart-units"></canvas>
                             </div>
                         </div>
-                        <!-- Columna Top 10 por Ingresos -->
                         <div class="bg-white p-6 rounded-xl shadow-md fade-in space-y-6" style="animation-delay: 0.2s;">
                             <h2 class="text-2xl font-bold text-gray-800">💰 Top 10 por Ingresos</h2>
                             <div id="table-container-revenue"></div>
@@ -672,7 +729,6 @@
                         </div>
                     </div>
 
-                    <!-- Ranking Menos Vendidos -->
                     <div id="bottom-section" class="bg-white p-6 rounded-xl shadow-md fade-in space-y-6" style="animation-delay: 0.3s;">
                          <h2 class="text-2xl font-bold text-gray-800">📉 20 Productos Menos Vendidos</h2>
                          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -689,17 +745,36 @@
             </div>
         </main>
     </div>
-    <!-- FIN: SECCIÓN ANALIZADOR DE VENTAS -->
-
-
-    <!-- MODALES EXISTENTES -->
     <div id="add-change-modal" class="modal-backdrop"><div class="modal-content"><h3 class="text-lg font-bold text-primary p-6 border-b border-custom" id="add-change-modal-title">Agregar Vuelto</h3><form id="add-change-form"><div class="p-6 space-y-4"><div><label class="block text-sm font-medium mb-1 text-secondary">Total Compra</label><input name="purchaseTotal" type="number" step="0.01" required placeholder="80.00" class="w-full p-3 border border-custom rounded-lg focus:outline-none ring-custom transition" /></div><div><label class="block text-sm font-medium mb-1 text-secondary">Monto Pagado</label><input name="amountPaid" type="number" step="0.01" required placeholder="100.00" class="w-full p-3 border border-custom rounded-lg focus:outline-none ring-custom transition" /></div></div><div class="p-6 border-t border-custom flex justify-end gap-3"><button type="button" class="modal-close-btn bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300">Cancelar</button><button type="submit" class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700">Confirmar</button></div></form></div></div>
     <div id="use-balance-modal" class="modal-backdrop"><div class="modal-content"><h3 class="text-lg font-bold text-primary p-6 border-b border-custom" id="use-balance-modal-title">Usar Saldo</h3><form id="use-balance-form"><div class="p-6 space-y-4"><p class="text-secondary">Saldo disponible: <span class="font-bold text-primary" id="use-balance-current-saldo"></span></p><div><label class="block text-sm font-medium mb-1 text-secondary">Total Nueva Compra</label><input name="purchaseTotal" type="number" step="0.01" required placeholder="150.00" class="w-full p-3 border border-custom rounded-lg focus:outline-none ring-custom transition"/></div><div><label class="block text-sm font-medium mb-1 text-secondary">Pago en Efectivo</label><input name="cashPaid" type="number" step="0.01" required placeholder="110.00" class="w-full p-3 border border-custom rounded-lg focus:outline-none ring-custom transition"/></div></div><div class="p-6 border-t border-custom flex justify-end gap-3"><button type="button" class="modal-close-btn bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300">Cancelar</button><button type="submit" class="bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700">Confirmar</button></div></form></div></div>
     <div id="history-modal" class="modal-backdrop"><div class="modal-content"><h3 class="text-lg font-bold text-primary p-6 border-b border-custom" id="history-modal-title">Historial</h3><div id="history-list-content" class="p-6 max-h-96 overflow-y-auto space-y-3"></div><div class="p-6 border-t border-custom flex justify-end"><button type="button" class="modal-close-btn bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300">Cerrar</button></div></div></div>
     <div id="delete-modal" class="modal-backdrop"><div class="modal-content text-center"><h3 class="text-lg font-bold text-primary p-6" id="delete-modal-title">Confirmar Eliminación</h3><p id="delete-modal-text" class="px-6 pb-6 text-secondary"></p><div class="p-6 border-t border-custom flex justify-center gap-4"><button type="button" class="modal-close-btn bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300">Cancelar</button><button id="confirm-delete-btn" class="bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700">Eliminar</button></div></div></div>
     <div id="redeem-stars-modal" class="modal-backdrop"><div class="modal-content text-center"><h3 class="text-lg font-bold text-primary p-6" id="redeem-stars-modal-title">Canjear Estrellas</h3><p id="redeem-stars-modal-text" class="px-6 pb-6 text-secondary"></p><div class="p-6 border-t border-custom flex justify-center gap-4"><button type="button" class="modal-close-btn bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300">Cancelar</button><button id="confirm-redeem-btn" class="bg-amber-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-amber-600">Confirmar Canje</button></div></div></div>
-    <!-- FIN MODALES EXISTENTES -->
-
+    <!-- INICIO: MODAL PARA EDITAR PROVEEDOR -->
+    <div id="edit-supplier-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <h3 class="text-lg font-bold text-primary p-6 border-b border-custom">Editar Proveedor</h3>
+            <form id="edit-supplier-form">
+                <input type="hidden" id="edit-supplier-id">
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1 text-secondary">Nombre del Proveedor</label>
+                        <input id="edit-supplier-name" type="text" required class="w-full p-3 border border-custom rounded-lg focus:outline-none ring-custom transition" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1 text-secondary">CUIT</label>
+                        <input id="edit-supplier-cuit" type="text" required class="w-full p-3 border border-custom rounded-lg focus:outline-none ring-custom transition" />
+                    </div>
+                    <div id="edit-supplier-error" class="text-red-600 text-sm font-medium p-3 bg-red-100 rounded-md hidden"></div>
+                </div>
+                <div class="p-6 border-t border-custom flex justify-end gap-3">
+                    <button type="button" class="modal-close-btn bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300">Cancelar</button>
+                    <button type="submit" class="bg-primary text-white font-bold py-2 px-4 rounded-lg bg-primary-hover">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- FIN: MODAL PARA EDITAR PROVEEDOR -->
     <div id="toast-notification" class="toast"></div>
 
     <script type="module">
@@ -717,28 +792,31 @@
             measurementId: "G-79RSPJE5L8"
         };
 
-        let db, auth;
+        // --- Global App State ---
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
         let allClients = [];
+        let allSuppliers = [];
+        let itemToDelete = null;
         let selectedClient = null;
         let intendedTargetPage = null; 
+        
         let unsubscribeClients = null; 
         let unsubscribeAppointments = null;
         let unsubscribeFinancial = null;
+        let unsubscribeSuppliers = null;
+
         let isGame1Initialized = false;
         let isGame2Initialized = false;
         let isFinancialDashboardInitialized = false;
         let isSalesAnalyzerInitialized = false;
+        let isSupplierManagementInitialized = false;
 
         document.addEventListener('DOMContentLoaded', () => {
-            try {
-                const app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-                setupListeners();
-                setupAuthListener();
-            } catch (e) {
-                console.error("Firebase init error", e);
-            }
+            setupListeners();
+            setupAuthListener();
             document.getElementById('footer-year').textContent = new Date().getFullYear();
         });
 
@@ -754,9 +832,11 @@
                     if (unsubscribeClients) unsubscribeClients();
                     if (unsubscribeAppointments) unsubscribeAppointments();
                     if (unsubscribeFinancial) unsubscribeFinancial();
+                    if (unsubscribeSuppliers) unsubscribeSuppliers();
                     unsubscribeClients = null;
                     unsubscribeAppointments = null;
                     unsubscribeFinancial = null;
+                    unsubscribeSuppliers = null;
                 }
             });
         }
@@ -766,11 +846,13 @@
             if (user) {
                 authNavLinks.innerHTML = `
                     <button id="nav-to-customers-auth" class="font-bold text-primary hover:opacity-70 transition-opacity">CLIENTES</button>
+                    <button id="nav-to-suppliers" class="font-bold text-primary hover:opacity-70 transition-opacity">PROVEEDORES</button>
                     <button id="nav-to-financial-dashboard" class="font-bold text-primary hover:opacity-70 transition-opacity">FINANZAS</button>
                     <button id="nav-to-sales-analyzer" class="font-bold text-primary hover:opacity-70 transition-opacity">ANALIZADOR</button>
                     <button id="logout-btn-main" class="font-bold text-red-500 hover:opacity-70 transition-opacity flex items-center gap-2"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
                 `;
                 document.getElementById('nav-to-customers-auth').addEventListener('click', () => handleProtectedRoute('customer-system'));
+                document.getElementById('nav-to-suppliers').addEventListener('click', () => handleProtectedRoute('supplier-management'));
                 document.getElementById('nav-to-financial-dashboard').addEventListener('click', () => handleProtectedRoute('financial-dashboard'));
                 document.getElementById('nav-to-sales-analyzer').addEventListener('click', () => handleProtectedRoute('sales-analyzer'));
                 document.getElementById('logout-btn-main').addEventListener('click', handleSignOut);
@@ -784,13 +866,14 @@
         }
 
         function navigateTo(page) {
-            document.querySelectorAll('#landing-page, #customer-system-page, #licenciada-hub-page, #appointments-page, #game-1-page, #game-2-page, #login-page, #financial-dashboard-page, #sales-analyzer-page').forEach(p => p.style.display = 'none');
+            document.querySelectorAll('#landing-page, #customer-system-page, #supplier-management-page, #licenciada-hub-page, #appointments-page, #game-1-page, #game-2-page, #login-page, #financial-dashboard-page, #sales-analyzer-page').forEach(p => p.style.display = 'none');
             const targetPage = document.getElementById(`${page}-page`);
             if (targetPage) {
                 targetPage.style.display = page === 'login' ? 'flex' : 'block';
             }
 
             if (page === 'customer-system' && auth.currentUser && !unsubscribeClients) listenForClients();
+            if (page === 'supplier-management' && auth.currentUser && !isSupplierManagementInitialized) { initializeSupplierManagement(); isSupplierManagementInitialized = true; }
             if (page.startsWith('appointments') && auth.currentUser && !unsubscribeAppointments) listenForAppointments();
             if (page === 'financial-dashboard' && auth.currentUser && !isFinancialDashboardInitialized) { initializeFinancialDashboard(); isFinancialDashboardInitialized = true; }
             if (page === 'sales-analyzer' && auth.currentUser && !isSalesAnalyzerInitialized) { initializeSalesAnalyzer(); isSalesAnalyzerInitialized = true; }
@@ -838,6 +921,7 @@
             addListener('main-to-licenciada', 'click', () => navigateTo('licenciada-hub'));
             
             addListener('nav-to-home-from-customers', 'click', () => navigateTo('landing'));
+            addListener('nav-to-home-from-suppliers', 'click', () => navigateTo('landing'));
             addListener('nav-to-home-from-licenciada', 'click', () => navigateTo('landing'));
             addListener('nav-to-home-from-financial', 'click', () => navigateTo('landing'));
             addListener('nav-to-home-from-analyzer', 'click', () => navigateTo('landing'));
@@ -855,6 +939,7 @@
             addListener('login-form', 'submit', handleLogin);
             
             addListener('logout-btn-customers', 'click', handleSignOut);
+            addListener('logout-btn-suppliers', 'click', handleSignOut);
             addListener('logout-btn-financial', 'click', handleSignOut);
             addListener('logout-btn-analyzer', 'click', handleSignOut);
             
@@ -866,7 +951,7 @@
             
             addListener('add-change-form', 'submit', handleAddChange);
             addListener('use-balance-form', 'submit', handleUseBalance);
-            addListener('confirm-delete-btn', 'click', handleDeleteClient);
+            addListener('confirm-delete-btn', 'click', handleConfirmDelete);
             addListener('confirm-redeem-btn', 'click', handleRedeemStars);
             addListener('request-appointment-form', 'submit', handleRequestAppointment);
         }
@@ -990,7 +1075,7 @@
                 tr.querySelector('[data-action="add-change"]').addEventListener('click', () => openModal('add-change', client));
                 tr.querySelector('[data-action="use-balance"]').addEventListener('click', () => openModal('use-balance', client));
                 tr.querySelector('[data-action="history"]').addEventListener('click', () => openModal('history', client));
-                tr.querySelector('[data-action="delete"]').addEventListener('click', () => openModal('delete', client));
+                tr.querySelector('[data-action="delete"]').addEventListener('click', () => openDeleteModal('client', client.id, client.name));
                 const redeemBtn = tr.querySelector('[data-action="redeem-stars"]');
                 if (redeemBtn) { redeemBtn.addEventListener('click', () => openModal('redeem-stars', client)); }
                 tbody.appendChild(tr);
@@ -1010,25 +1095,13 @@
                 e.target.reset();
             } catch (err) { showToast("Error al agregar el cliente.", "error"); }
         }
-        async function handleDeleteClient() {
-            if (!selectedClient) return;
-            const clientDocRef = doc(db, "customers", selectedClient.id);
-            try {
-                const movementsRef = collection(clientDocRef, "movements");
-                const movementsSnapshot = await getDocs(movementsRef);
-                for (const movementDoc of movementsSnapshot.docs) { await deleteDoc(movementDoc.ref); }
-                await deleteDoc(clientDocRef);
-                showToast(`Cliente "${selectedClient.name}" eliminado.`, "success");
-            } catch (error) { showToast("Error al eliminar el cliente.", "error"); }
-            document.getElementById('delete-modal').style.display = 'none';
-        }
+        
         function openModal(type, client) {
             selectedClient = client;
             const modal = document.getElementById(`${type}-modal`);
             if (type === 'add-change') { document.getElementById('add-change-modal-title').textContent = `Agregar Vuelto a ${client.name}`; } 
             else if (type === 'use-balance') { document.getElementById('use-balance-modal-title').textContent = `Usar Saldo de ${client.name}`; document.getElementById('use-balance-current-saldo').textContent = formatCurrency(client.balance); } 
             else if (type === 'history') { document.getElementById('history-modal-title').textContent = `Historial de ${client.name}`; loadHistory(client.id); } 
-            else if (type === 'delete') { document.getElementById('delete-modal-text').textContent = `¿Estás seguro de que quieres eliminar a ${client.name}? Esta acción no se puede deshacer.`; } 
             else if (type === 'redeem-stars') { document.getElementById('redeem-stars-modal-text').textContent = `¿Confirmas canjear 5 estrellas de ${client.name} por un descuento especial?`; }
             modal.style.display = 'flex';
         }
@@ -1115,40 +1188,133 @@
             const purchaseFields = page.querySelector('#purchase-fields');
             const saleFields = page.querySelector('#sale-fields');
             const errorMessageDiv = page.querySelector('#error-message');
-
             const transactionList = page.querySelector('#transaction-list');
             const editModal = page.querySelector('#edit-modal');
             const editForm = page.querySelector('#edit-form');
             const cancelEditBtn = page.querySelector('#cancel-edit');
-            
             const lineCtx = page.querySelector('#transaction-chart').getContext('2d');
             const supplierPieCtx = page.querySelector('#supplier-pie-chart').getContext('2d');
             const paymentPieCtx = page.querySelector('#payment-method-pie-chart').getContext('2d');
-            let lineChart, supplierPieChart, paymentPieChart;
-            
-            let allTransactions = []; 
+            const supplierSelect = page.querySelector('#purchase-supplier');
+            const addNewSupplierBtn = page.querySelector('#add-new-supplier-btn');
+            const addSupplierModal = page.querySelector('#add-supplier-modal');
+            const addSupplierForm = page.querySelector('#add-supplier-form');
+            const cancelAddSupplierBtn = page.querySelector('#cancel-add-supplier');
+            const purchaseCuitInput = page.querySelector('#purchase-cuit');
+            const yearSelector = page.querySelector('#year-selector');
+            const monthlyBreakdownContainer = page.querySelector('#monthly-breakdown-container');
 
+
+            let lineChart, supplierPieChart, paymentPieChart;
+            let allTransactions = []; 
+            let newlyAddedSupplierId = null;
+            
+            function listenForSuppliersInDashboard() {
+                if (!auth.currentUser) return;
+                if (unsubscribeSuppliers) unsubscribeSuppliers();
+                
+                const q = query(collection(db, "suppliers"), orderBy("name"));
+                unsubscribeSuppliers = onSnapshot(q, (snapshot) => {
+                    allSuppliers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    
+                    const currentSelection = newlyAddedSupplierId || supplierSelect.value;
+                    renderSupplierDropdown(currentSelection);
+                    
+                    if (newlyAddedSupplierId) {
+                        handleSupplierChange();
+                        newlyAddedSupplierId = null; 
+                    }
+                }, (error) => console.error("Error al escuchar proveedores:", error));
+            }
+
+            function renderSupplierDropdown(selectedValue = null) {
+                supplierSelect.innerHTML = '<option value="">-- Seleccione un Proveedor --</option>';
+                allSuppliers.forEach(supplier => {
+                    const option = document.createElement('option');
+                    option.value = supplier.id;
+                    option.textContent = supplier.name;
+                    if (supplier.id === selectedValue) option.selected = true;
+                    supplierSelect.appendChild(option);
+                });
+            }
+
+            function handleSupplierChange() {
+                const selectedId = supplierSelect.value;
+                purchaseCuitInput.value = selectedId ? (allSuppliers.find(s => s.id === selectedId)?.cuit || '') : '';
+            }
+            
+            supplierSelect.addEventListener('change', handleSupplierChange);
+
+            addNewSupplierBtn.addEventListener('click', () => {
+                addSupplierModal.classList.remove('hidden');
+                addSupplierModal.style.display = 'flex';
+            });
+
+            cancelAddSupplierBtn.addEventListener('click', () => {
+                addSupplierModal.classList.add('hidden');
+                addSupplierModal.style.display = 'none';
+                addSupplierForm.reset();
+            });
+
+            addSupplierForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const newName = addSupplierForm.querySelector('#new-supplier-name').value.trim();
+                const newCuit = addSupplierForm.querySelector('#new-supplier-cuit').value.trim();
+                const errorDiv = addSupplierForm.querySelector('#new-supplier-error');
+                
+                if (!newName || !newCuit) {
+                    errorDiv.textContent = 'Nombre y CUIT son obligatorios.';
+                    errorDiv.classList.remove('hidden');
+                    return;
+                }
+                
+                const nameExists = allSuppliers.some(s => s.name.toLowerCase() === newName.toLowerCase());
+                if (nameExists) {
+                    errorDiv.textContent = `El proveedor "${newName}" ya se encuentra registrado.`;
+                    errorDiv.classList.remove('hidden');
+                    return;
+                }
+                
+                const cuitExists = allSuppliers.some(s => s.cuit === newCuit);
+                if (cuitExists) {
+                    errorDiv.textContent = `Ya existe un proveedor con el CUIT ${newCuit}.`;
+                    errorDiv.classList.remove('hidden');
+                    return;
+                }
+
+                errorDiv.classList.add('hidden');
+
+                try {
+                    const docRef = await addDoc(collection(db, 'suppliers'), { name: newName, cuit: newCuit });
+                    showToast('Proveedor agregado con éxito.', 'success');
+                    newlyAddedSupplierId = docRef.id;
+                    addSupplierModal.classList.add('hidden');
+                    addSupplierModal.style.display = 'none';
+                    addSupplierForm.reset();
+                } catch (error) {
+                    console.error("Error al agregar proveedor:", error);
+                    showToast('Error al guardar el proveedor.', 'error');
+                }
+            });
+            
             const handleFormDisplay = () => {
                 const selectedType = typeSelect.value;
-                if (selectedType === 'purchase') {
-                    purchaseFields.classList.remove('hidden');
-                    saleFields.classList.add('hidden');
-                } else {
-                    purchaseFields.classList.add('hidden');
-                    saleFields.classList.remove('hidden');
-                }
+                purchaseFields.style.display = selectedType === 'purchase' ? 'block' : 'none';
+                saleFields.style.display = selectedType === 'sale' ? 'block' : 'none';
             };
             
             typeSelect.addEventListener('change', handleFormDisplay);
             
             function listenForFinancialTransactions() {
-                if (!db || unsubscribeFinancial) return;
+                if (!auth.currentUser) return;
+                if (unsubscribeFinancial) unsubscribeFinancial();
                 const q = query(collection(db, "financial_transactions"), orderBy("createdAt", "desc"));
 
                 unsubscribeFinancial = onSnapshot(q, (snapshot) => {
                     allTransactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     renderTransactions(allTransactions);
                     updateAllCharts(allTransactions);
+                    updateMonthlyAnalysis(allTransactions);
                 }, (error) => {
                     console.error("Error al escuchar transacciones financieras:", error);
                     showToast("Error al cargar las transacciones.", "error");
@@ -1194,8 +1360,16 @@
                 };
 
                 if (type === 'purchase') {
-                    newTransaction.partyName = page.querySelector('#purchase-supplierName').value.trim();
-                    newTransaction.partyCuit = page.querySelector('#purchase-cuit').value.trim();
+                    const selectedSupplierId = supplierSelect.value;
+                    if (!selectedSupplierId) {
+                        errorMessageDiv.textContent = "Debe seleccionar un proveedor.";
+                        errorMessageDiv.classList.remove('hidden');
+                        return;
+                    }
+                    const supplierData = allSuppliers.find(s => s.id === selectedSupplierId);
+
+                    newTransaction.partyName = supplierData.name;
+                    newTransaction.partyCuit = supplierData.cuit;
                     newTransaction.paymentMethod = page.querySelector('#purchase-paymentMethod').value;
                     newTransaction.amount = parseFloat(page.querySelector('#purchase-amount').value);
                 } else { // Venta
@@ -1205,7 +1379,7 @@
                     newTransaction.amount = parseFloat(page.querySelector('#sale-amount').value);
                 }
                 
-                if (!newTransaction.partyName || !newTransaction.amount) {
+                if ((type === 'sale' && !newTransaction.partyName) || !newTransaction.amount) {
                     errorMessageDiv.textContent = "El nombre y el importe son obligatorios.";
                     errorMessageDiv.classList.remove('hidden');
                     return;
@@ -1217,6 +1391,7 @@
                     transactionForm.reset();
                     page.querySelector('#date').valueAsDate = new Date();
                     handleFormDisplay();
+                    handleSupplierChange(); // Resetea el CUIT
                 } catch (err) {
                     console.error("Error al agregar transacción:", err);
                     showToast("Error al guardar la transacción.", "error");
@@ -1253,6 +1428,7 @@
                             editModal.querySelector('#edit-sale-amount').value = t.amount;
                         }
                         editModal.classList.remove('hidden');
+                        editModal.style.display = 'flex';
                     }
                 } else if (target.classList.contains('delete-btn')) {
                     if (confirm("¿Estás seguro de que quieres eliminar esta transacción?")) {
@@ -1294,13 +1470,17 @@
                     await updateDoc(transactionRef, updatedData);
                     showToast("Transacción actualizada.", "success");
                     editModal.classList.add('hidden');
+                    editModal.style.display = 'none';
                 } catch (err) {
                     console.error("Error al actualizar la transacción:", err);
                     showToast("No se pudieron guardar los cambios.", "error");
                 }
             });
 
-            cancelEditBtn.addEventListener('click', () => editModal.classList.add('hidden'));
+            cancelEditBtn.addEventListener('click', () => {
+                editModal.classList.add('hidden');
+                editModal.style.display = 'none';
+            });
             
             function setupCharts() {
                 if (lineChart) lineChart.destroy();
@@ -1342,12 +1522,97 @@
                 chart.data.datasets[0].backgroundColor = generateColors(Object.keys(dataMap).length);
                 chart.update();
             }
+            
+            function updateMonthlyAnalysis(transactions) {
+                const years = [...new Set(transactions.map(t => new Date(t.date).getFullYear()))].sort((a, b) => b - a);
+                const currentYearSelection = yearSelector.value;
+                yearSelector.innerHTML = '';
+                years.forEach(year => {
+                    const option = document.createElement('option');
+                    option.value = year;
+                    option.textContent = year;
+                    yearSelector.appendChild(option);
+                });
+
+                if (currentYearSelection && years.includes(parseInt(currentYearSelection))) {
+                    yearSelector.value = currentYearSelection;
+                } else if (years.length > 0) {
+                    yearSelector.value = years[0];
+                }
+
+                renderMonthlyBreakdown(transactions);
+            }
+
+            function renderMonthlyBreakdown(transactions) {
+                const selectedYear = parseInt(yearSelector.value);
+                monthlyBreakdownContainer.innerHTML = '';
+                if (isNaN(selectedYear)) return;
+
+                const purchases = transactions.filter(t => t.type === 'purchase' && new Date(t.date).getFullYear() === selectedYear);
+                
+                const byMonth = purchases.reduce((acc, t) => {
+                    const month = new Date(t.date).getMonth(); // 0 = Enero, 11 = Diciembre
+                    if (!acc[month]) acc[month] = [];
+                    acc[month].push(t);
+                    return acc;
+                }, {});
+
+                for (let i = 11; i >= 0; i--) {
+                    if (byMonth[i]) {
+                        const monthTransactions = byMonth[i];
+                        const totalMonthAmount = monthTransactions.reduce((sum, t) => sum + t.amount, 0);
+                        
+                        const bySupplier = monthTransactions.reduce((acc, t) => {
+                            if (!acc[t.partyName]) acc[t.partyName] = 0;
+                            acc[t.partyName] += t.amount;
+                            return acc;
+                        }, {});
+
+                        const sortedSuppliers = Object.entries(bySupplier)
+                            .sort(([, a], [, b]) => b - a);
+
+                        const monthName = new Date(selectedYear, i).toLocaleString('es-ES', { month: 'long' });
+                        
+                        let suppliersHTML = '';
+                        sortedSuppliers.forEach(([name, total]) => {
+                            const percentage = (total / totalMonthAmount) * 100;
+                            suppliersHTML += `
+                                <li class="py-2">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="text-sm font-medium text-gray-700">${name}</span>
+                                        <span class="text-sm font-semibold text-gray-900">${formatCurrency(total)}</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                        <div class="bg-blue-600 h-2.5 rounded-full" style="width: ${percentage.toFixed(2)}%"></div>
+                                    </div>
+                                    <div class="text-right text-xs text-gray-500 mt-1">${percentage.toFixed(2)}%</div>
+                                </li>`;
+                        });
+
+                        const monthCard = `
+                            <div class="bg-gray-50 p-4 rounded-lg border">
+                                <h3 class="font-bold text-lg capitalize text-primary">${monthName} ${selectedYear}</h3>
+                                <p class="text-sm text-secondary mb-3">Total Compras: ${formatCurrency(totalMonthAmount)}</p>
+                                <ul class="space-y-2">${suppliersHTML}</ul>
+                            </div>`;
+                        
+                        monthlyBreakdownContainer.innerHTML += monthCard;
+                    }
+                }
+                 if(monthlyBreakdownContainer.innerHTML === '') {
+                    monthlyBreakdownContainer.innerHTML = `<p class="text-secondary col-span-full text-center">No hay datos de compras para el año ${selectedYear}.</p>`;
+                }
+            }
+            
+            yearSelector.addEventListener('change', () => renderMonthlyBreakdown(allTransactions));
+
 
             function generateColors(numColors) { const colors = []; for (let i = 0; i < numColors; i++) { colors.push(`hsl(${(i * 137.508) % 360}, 65%, 60%)`); } return colors; }
 
             page.querySelector('#date').valueAsDate = new Date();
             setupCharts();
             listenForFinancialTransactions();
+            listenForSuppliersInDashboard();
             handleFormDisplay();
         }
         
@@ -1590,6 +1855,159 @@
             }
         }
         // --- FIN: LÓGICA DEL ANALIZADOR DE VENTAS ---
+
+        // --- INICIO: LÓGICA DE GESTIÓN DE PROVEEDORES ---
+        function initializeSupplierManagement() {
+            const page = document.getElementById('supplier-management-page');
+            if (!page) return;
+
+            const searchInput = page.querySelector('#search-supplier-input');
+            const tbody = page.querySelector('#supplier-list-tbody');
+            const editModal = document.getElementById('edit-supplier-modal');
+            const editForm = document.getElementById('edit-supplier-form');
+            
+            function listenForSuppliersInManagement() {
+                if (!auth.currentUser) return;
+                if (unsubscribeSuppliers) unsubscribeSuppliers();
+                
+                const q = query(collection(db, "suppliers"), orderBy("name"));
+                unsubscribeSuppliers = onSnapshot(q, (snapshot) => {
+                    allSuppliers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderSupplierList();
+                }, (error) => console.error("Error al escuchar proveedores:", error));
+            }
+
+            function renderSupplierList() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const filteredSuppliers = allSuppliers.filter(s => s.name.toLowerCase().includes(searchTerm) || s.cuit.toLowerCase().includes(searchTerm));
+                
+                tbody.innerHTML = '';
+                if (filteredSuppliers.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="3" class="text-center p-8 text-secondary">No se encontraron proveedores.</td></tr>`;
+                    return;
+                }
+
+                filteredSuppliers.forEach(supplier => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'border-b border-custom last:border-none hover:bg-gray-50';
+                    tr.innerHTML = `
+                        <td class="p-4 font-semibold text-primary">${supplier.name}</td>
+                        <td class="p-4 text-secondary">${supplier.cuit}</td>
+                        <td class="p-4 text-right">
+                            <div class="flex justify-end gap-2">
+                                <button data-id="${supplier.id}" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-3 rounded-lg edit-supplier-btn"><i class="fas fa-pencil-alt"></i></button>
+                                <button data-id="${supplier.id}" data-name="${supplier.name}" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 rounded-lg delete-supplier-btn"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </td>`;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            tbody.addEventListener('click', (e) => {
+                const editBtn = e.target.closest('.edit-supplier-btn');
+                const deleteBtn = e.target.closest('.delete-supplier-btn');
+
+                if (editBtn) {
+                    const supplierId = editBtn.dataset.id;
+                    const supplier = allSuppliers.find(s => s.id === supplierId);
+                    if (supplier) openEditSupplierModal(supplier);
+                }
+
+                if (deleteBtn) {
+                    const supplierId = deleteBtn.dataset.id;
+                    const supplierName = deleteBtn.dataset.name;
+                    openDeleteModal('supplier', supplierId, supplierName);
+                }
+            });
+
+            function openEditSupplierModal(supplier) {
+                editForm.querySelector('#edit-supplier-id').value = supplier.id;
+                editForm.querySelector('#edit-supplier-name').value = supplier.name;
+                editForm.querySelector('#edit-supplier-cuit').value = supplier.cuit;
+                editForm.querySelector('#edit-supplier-error').classList.add('hidden');
+                editModal.style.display = 'flex';
+            }
+
+            editForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const id = editForm.querySelector('#edit-supplier-id').value;
+                const newName = editForm.querySelector('#edit-supplier-name').value.trim();
+                const newCuit = editForm.querySelector('#edit-supplier-cuit').value.trim();
+                const errorDiv = editForm.querySelector('#edit-supplier-error');
+
+                if (!newName || !newCuit) {
+                    errorDiv.textContent = 'Nombre y CUIT son obligatorios.';
+                    errorDiv.classList.remove('hidden');
+                    return;
+                }
+
+                const nameExists = allSuppliers.some(s => s.id !== id && s.name.toLowerCase() === newName.toLowerCase());
+                if (nameExists) {
+                    errorDiv.textContent = `El proveedor "${newName}" ya existe.`;
+                    errorDiv.classList.remove('hidden');
+                    return;
+                }
+                
+                const cuitExists = allSuppliers.some(s => s.id !== id && s.cuit === newCuit);
+                if (cuitExists) {
+                    errorDiv.textContent = `El CUIT ${newCuit} ya está registrado.`;
+                    errorDiv.classList.remove('hidden');
+                    return;
+                }
+                
+                errorDiv.classList.add('hidden');
+
+                try {
+                    const supplierRef = doc(db, 'suppliers', id);
+                    await updateDoc(supplierRef, { name: newName, cuit: newCuit });
+                    showToast('Proveedor actualizado con éxito.', 'success');
+                    editModal.style.display = 'none';
+                } catch (error) {
+                    console.error('Error updating supplier:', error);
+                    showToast('Error al actualizar el proveedor.', 'error');
+                }
+            });
+
+            searchInput.addEventListener('input', renderSupplierList);
+            listenForSuppliersInManagement();
+        }
+        // --- FIN: LÓGICA DE GESTIÓN DE PROVEEDORES ---
+
+        // --- LÓGICA DE ELIMINACIÓN GENERAL ---
+        function openDeleteModal(type, id, name) {
+            itemToDelete = { type, id, name };
+            const modal = document.getElementById('delete-modal');
+            const text = modal.querySelector('#delete-modal-text');
+            text.textContent = `¿Estás seguro de que quieres eliminar a ${name}? Esta acción no se puede deshacer.`;
+            modal.style.display = 'flex';
+        }
+
+        async function handleConfirmDelete() {
+            if (!itemToDelete) return;
+
+            const { type, id, name } = itemToDelete;
+            let docRef;
+
+            if (type === 'client') {
+                docRef = doc(db, "customers", id);
+                try {
+                    const movementsRef = collection(docRef, "movements");
+                    const movementsSnapshot = await getDocs(movementsRef);
+                    for (const movementDoc of movementsSnapshot.docs) { await deleteDoc(movementDoc.ref); }
+                    await deleteDoc(docRef);
+                    showToast(`Cliente "${name}" eliminado.`, "success");
+                } catch (error) { showToast("Error al eliminar el cliente.", "error"); }
+            } else if (type === 'supplier') {
+                docRef = doc(db, "suppliers", id);
+                 try {
+                    await deleteDoc(docRef);
+                    showToast(`Proveedor "${name}" eliminado.`, "success");
+                } catch (error) { showToast("Error al eliminar el proveedor.", "error"); }
+            }
+            
+            document.getElementById('delete-modal').style.display = 'none';
+            itemToDelete = null;
+        }
 
 
         // --- FUNCIONES DE UTILIDAD ---
