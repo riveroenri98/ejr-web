@@ -527,6 +527,24 @@
 
                         <div class="bg-white p-6 rounded-lg shadow-md">
                             <h2 class="text-2xl font-semibold mb-4">Historial de Transacciones</h2>
+                            
+                            <div id="history-filters" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 p-4 bg-gray-50 rounded-lg border">
+                                <div>
+                                    <label for="filter-start-date" class="block text-sm font-medium text-gray-700">Fecha Desde</label>
+                                    <input type="date" id="filter-start-date" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                </div>
+                                <div>
+                                    <label for="filter-end-date" class="block text-sm font-medium text-gray-700">Fecha Hasta</label>
+                                    <input type="date" id="filter-end-date" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                </div>
+                                <div>
+                                    <label for="filter-name" class="block text-sm font-medium text-gray-700">Proveedor/Cliente</label>
+                                    <input type="text" id="filter-name" placeholder="Buscar por nombre..." class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                </div>
+                                <div class="flex items-end">
+                                    <button id="clear-filters-btn" class="w-full bg-gray-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-gray-600 transition duration-150 ease-in-out">Limpiar</button>
+                                </div>
+                            </div>
                             <div class="overflow-x-auto">
                                 <table class="min-w-full divide-y divide-gray-200">
                                     <thead class="bg-gray-50">
@@ -1204,12 +1222,42 @@
             const yearSelector = page.querySelector('#year-selector');
             const monthlyPurchasesBreakdownContainer = page.querySelector('#monthly-purchases-breakdown-container');
             const monthlySalesBreakdownContainer = page.querySelector('#monthly-sales-breakdown-container');
-
+            
+            // ---> INICIO: VARIABLES Y LISTENERS PARA FILTROS
+            const filterStartDate = page.querySelector('#filter-start-date');
+            const filterEndDate = page.querySelector('#filter-end-date');
+            const filterName = page.querySelector('#filter-name');
+            const clearFiltersBtn = page.querySelector('#clear-filters-btn');
+            // ---> FIN: VARIABLES Y LISTENERS PARA FILTROS
 
             let lineChart, supplierPieChart, paymentPieChart;
             let allTransactions = []; 
             let newlyAddedSupplierId = null;
             
+            // ---> INICIO: FUNCIÓN PARA APLICAR FILTROS Y RENDERIZAR
+            function applyFiltersAndRender() {
+                const startDate = filterStartDate.value;
+                const endDate = filterEndDate.value;
+                const nameQuery = filterName.value.toLowerCase();
+
+                let filteredTransactions = allTransactions;
+
+                if (startDate) {
+                    filteredTransactions = filteredTransactions.filter(t => t.date >= startDate);
+                }
+                if (endDate) {
+                    filteredTransactions = filteredTransactions.filter(t => t.date <= endDate);
+                }
+                if (nameQuery) {
+                    filteredTransactions = filteredTransactions.filter(t => 
+                        t.partyName.toLowerCase().includes(nameQuery)
+                    );
+                }
+
+                renderTransactions(filteredTransactions);
+            }
+            // ---> FIN: FUNCIÓN PARA APLICAR FILTROS Y RENDERIZAR
+
             function listenForSuppliersInDashboard() {
                 if (!auth.currentUser) return;
                 if (unsubscribeSuppliers) unsubscribeSuppliers();
@@ -1322,7 +1370,7 @@
 
                 unsubscribeFinancial = onSnapshot(q, (snapshot) => {
                     allTransactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    renderTransactions(allTransactions);
+                    applyFiltersAndRender(); // MODIFICADO: Llama a la función de filtro en lugar de render directo
                     updateAllCharts(allTransactions);
                     updateAllMonthlyAnalyses(allTransactions);
                 }, (error) => {
@@ -1334,7 +1382,7 @@
             function renderTransactions(transactions) {
                 transactionList.innerHTML = '';
                 if (transactions.length === 0) {
-                    transactionList.innerHTML = '<tr><td colspan="7" class="text-center py-4">No hay transacciones registradas.</td></tr>';
+                    transactionList.innerHTML = '<tr><td colspan="7" class="text-center py-4">No hay transacciones que coincidan con los filtros.</td></tr>';
                     return;
                 }
                 transactions.forEach(t => {
@@ -1679,7 +1727,18 @@
             }
             
             yearSelector.addEventListener('change', () => updateAllMonthlyAnalyses(allTransactions));
-
+            
+            // ---> INICIO: LISTENERS PARA LOS NUEVOS FILTROS
+            filterStartDate.addEventListener('change', applyFiltersAndRender);
+            filterEndDate.addEventListener('change', applyFiltersAndRender);
+            filterName.addEventListener('input', applyFiltersAndRender);
+            clearFiltersBtn.addEventListener('click', () => {
+                filterStartDate.value = '';
+                filterEndDate.value = '';
+                filterName.value = '';
+                applyFiltersAndRender();
+            });
+            // ---> FIN: LISTENERS PARA LOS NUEVOS FILTROS
 
             function generateColors(numColors) { const colors = []; for (let i = 0; i < numColors; i++) { colors.push(`hsl(${(i * 137.508) % 360}, 65%, 60%)`); } return colors; }
 
