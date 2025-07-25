@@ -609,7 +609,7 @@
             const batch = writeBatch(db);
             
             // 1. Agregar el registro de la compra a la subcolección
-            const newPurchaseRef = doc(collection(purchasesRef));
+            const newPurchaseRef = doc(purchasesRef);
             const purchaseData = {
                 amount: amount,
                 date: date,
@@ -1493,4 +1493,3 @@
     </script>
 </body>
 </html>
-
