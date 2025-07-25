@@ -197,7 +197,7 @@
                          </main>
                      </div>
                      <div class="mt-8 lg:mt-0">
-                         <h3 class="text-lg font-medium text-gray-700 mb-2">Mapa de Clientes por Valor de Compra</h3>
+                         <h3 class="text-lg font-medium text-gray-700 mb-2">Mapa de Concentración de Clientes</h3>
                          <div id="clients-map" class="shadow-lg"></div>
                      </div>
                  </div>
@@ -322,11 +322,15 @@
                 </div>
             </div>
         </div>
-         <div id="add-purchase-modal" class="fixed inset-0 z-40 hidden items-center justify-center p-4 modal-backdrop">
+        <div id="add-purchase-modal" class="fixed inset-0 z-40 hidden items-center justify-center p-4 modal-backdrop">
             <div id="add-purchase-modal-content" class="bg-white rounded-xl shadow-2xl w-full max-w-md transform transition-all opacity-0 -translate-y-10">
                 <form id="add-purchase-form" class="p-6 sm:p-8">
                     <h2 id="add-purchase-modal-title" class="text-2xl font-bold text-gray-900 mb-6">Agregar Compra</h2>
                     <div class="space-y-4">
+                        <div>
+                            <label for="purchaseDateInput" class="block text-sm font-medium text-gray-700">Fecha de Compra</label>
+                            <input type="date" id="purchaseDateInput" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
                         <div>
                             <label for="purchaseAmountInput" class="block text-sm font-medium text-gray-700">Importe de la Compra</label>
                             <div class="relative mt-1">
@@ -342,13 +346,49 @@
                 </form>
             </div>
         </div>
+        <div id="purchase-history-modal" class="fixed inset-0 z-40 hidden items-center justify-center p-4 modal-backdrop">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl transform transition-all opacity-0 -translate-y-10 max-h-[90vh] flex flex-col">
+                <h2 id="purchase-history-modal-title" class="text-2xl font-bold text-gray-900 p-6 border-b">Historial de Compras</h2>
+                <div id="purchase-history-list-container" class="p-6 overflow-y-auto">
+                    <!-- El contenido se generará dinámicamente -->
+                </div>
+                <div class="p-4 bg-gray-50 border-t flex justify-end">
+                    <button type="button" id="close-purchase-history-btn" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">Cerrar</button>
+                </div>
+            </div>
+        </div>
+        <div id="edit-purchase-modal" class="fixed inset-0 z-40 hidden items-center justify-center p-4 modal-backdrop">
+            <div id="edit-purchase-modal-content" class="bg-white rounded-xl shadow-2xl w-full max-w-md transform transition-all opacity-0 -translate-y-10">
+                <form id="edit-purchase-form" class="p-6 sm:p-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Editar Compra</h2>
+                    <input type="hidden" id="editPurchaseId">
+                    <div class="space-y-4">
+                        <div>
+                            <label for="editPurchaseDateInput" class="block text-sm font-medium text-gray-700">Fecha de Compra</label>
+                            <input type="date" id="editPurchaseDateInput" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label for="editPurchaseAmountInput" class="block text-sm font-medium text-gray-700">Importe de la Compra</label>
+                            <div class="relative mt-1">
+                                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
+                                <input type="number" id="editPurchaseAmountInput" class="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="0.00" step="0.01" min="0.01" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8 flex justify-end space-x-3">
+                        <button type="button" id="cancel-edit-purchase-btn" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">Cancelar</button>
+                        <button type="submit" class="inline-flex justify-center py-2 px-4 border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
     
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, collection, addDoc, onSnapshot, updateDoc, deleteDoc, query, serverTimestamp, orderBy, where, getDocs, writeBatch, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, collection, addDoc, onSnapshot, updateDoc, deleteDoc, query, serverTimestamp, orderBy, where, getDocs, writeBatch, increment, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         // --- CONFIGURACIÓN ---
         const firebaseConfig = {
@@ -363,15 +403,15 @@
         const Maps_API_KEY = "AIzaSyD9d0wzamU3rHdnfjVHeT0ZQWBz1-1bvd8"; 
 
         // --- VARIABLES GLOBALES ---
-        let db, auth, mainMap, modalMap, startPointMap, clientsMap, clientModalMap, geocoder;
+        let db, auth, mainMap, modalMap, startPointMap, clientsMap, clientModalMap, heatmap, geocoder;
         let modalMarker, startPointMarker, clientModalMarker, directionsService, directionsRenderer;
         let mainMapMarkers = [], clientMapMarkers = [];
         let infoWindow;
         let currentUserId = null, ordersUnsubscribe = null, clientsUnsubscribe = null;
         let allOrders = [], allClients = [];
         let modalLatLng = null, startPointLatLng = null, clientModalLatLng = null, startPoint = null;
-        let selectedClientIdForPurchase = null;
-        const appId = "gestor-envios-super21"; // ID estático para la app
+        let activePurchaseContext = {}; // { clientId, purchaseId, oldAmount }
+        const appId = "gestor-envios-super21"; 
 
         const ui = {
             loginScreen: document.getElementById('login-screen'),
@@ -429,6 +469,12 @@
             addPurchaseModal: document.getElementById('add-purchase-modal'),
             addPurchaseForm: document.getElementById('add-purchase-form'),
             cancelAddPurchaseBtn: document.getElementById('cancel-add-purchase-btn'),
+            purchaseHistoryModal: document.getElementById('purchase-history-modal'),
+            purchaseHistoryListContainer: document.getElementById('purchase-history-list-container'),
+            closePurchaseHistoryBtn: document.getElementById('close-purchase-history-btn'),
+            editPurchaseModal: document.getElementById('edit-purchase-modal'),
+            editPurchaseForm: document.getElementById('edit-purchase-form'),
+            cancelEditPurchaseBtn: document.getElementById('cancel-edit-purchase-btn'),
         };
         
         // --- LLAMADA A LA API DE GEMINI ---
@@ -553,42 +599,66 @@
                 renderClientMap();
             }, (error) => console.error("Error al escuchar clientes:", error));
         }
-        async function updateClientPurchaseStats(orderData) {
-            if (!currentUserId || !orderData.cliente || !orderData.latitude || !orderData.importe) return;
+        
+        async function logPurchase(clientId, amount, date, type, sourceId = null) {
+            if (!clientId || !amount || !date || !type) return;
 
+            const clientRef = doc(db, `artifacts/${appId}/users/${currentUserId}/clients/${clientId}`);
+            const purchasesRef = collection(clientRef, "purchases");
+
+            const batch = writeBatch(db);
+            
+            // 1. Agregar el registro de la compra a la subcolección
+            const newPurchaseRef = doc(collection(purchasesRef));
+            const purchaseData = {
+                amount: amount,
+                date: date,
+                type: type, // 'order' or 'manual'
+                createdAt: serverTimestamp()
+            };
+            if (type === 'order' && sourceId) {
+                purchaseData.orderId = sourceId;
+            }
+            batch.set(newPurchaseRef, purchaseData);
+
+            // 2. Actualizar las estadísticas en el documento del cliente
+            batch.update(clientRef, {
+                totalSpent: increment(amount),
+                purchaseCount: increment(1)
+            });
+
+            await batch.commit();
+        }
+
+        async function findOrCreateClientForOrder(orderData) {
             const clientsRef = collection(db, `artifacts/${appId}/users/${currentUserId}/clients`);
             const q = query(clientsRef, where("cliente", "==", orderData.cliente));
             const querySnapshot = await getDocs(q);
 
             if (querySnapshot.empty) {
-                // El cliente es nuevo, se crea con las estadísticas iniciales
-                await addDoc(clientsRef, {
+                // El cliente es nuevo, se crea
+                const newClientRef = await addDoc(clientsRef, {
                     cliente: orderData.cliente,
                     direccion: orderData.direccion,
                     latitude: orderData.latitude,
                     longitude: orderData.longitude,
-                    totalSpent: orderData.importe,
-                    purchaseCount: 1,
+                    totalSpent: 0, // Inicia en 0, logPurchase lo actualizará
+                    purchaseCount: 0, // Inicia en 0, logPurchase lo actualizará
                     firstSeen: serverTimestamp()
                 });
+                return newClientRef.id;
             } else {
-                // El cliente existe, se actualizan las estadísticas
+                // El cliente existe, se actualiza la dirección si es necesario
                 const docRef = querySnapshot.docs[0].ref;
                 const clientData = querySnapshot.docs[0].data();
-                
-                const updateData = {
-                    totalSpent: increment(orderData.importe),
-                    purchaseCount: increment(1)
-                };
-
-                // Actualizar dirección solo si cambió
                 if (clientData.direccion !== orderData.direccion) {
-                    updateData.direccion = orderData.direccion;
-                    updateData.latitude = orderData.latitude;
-                    updateData.longitude = orderData.longitude;
+                    await updateDoc(docRef, {
+                        direccion: orderData.direccion,
+                        latitude: orderData.latitude,
+                        longitude: orderData.longitude,
+                    });
                 }
-                
-                await updateDoc(docRef, updateData);
+                return docRef.id;
             }
         }
 
@@ -646,11 +716,11 @@
                                 <p class="text-sm text-green-600 font-semibold truncate">Compra Promedio: ${formatCurrency(avgPurchase)}</p>
                             </div>
                         </div>
-                        <div class="flex-shrink-0 flex items-center space-x-2 text-sm">
-                            <button class="add-purchase-btn font-medium text-green-600 hover:text-green-900" data-id="${client.id}">+ Compra</button>
-                            <button class="edit-client-btn font-medium text-indigo-600 hover:text-indigo-900" data-id="${client.id}">Editar</button>
-                            <span class="text-gray-300">|</span>
-                            <button class="delete-client-btn font-medium text-red-600 hover:text-red-900" data-id="${client.id}">Eliminar</button>
+                        <div class="flex-shrink-0 flex items-center space-x-1 sm:space-x-2 text-sm flex-wrap justify-end">
+                            <button class="add-purchase-btn font-medium text-green-600 hover:text-green-900 p-1" data-id="${client.id}">+ Compra</button>
+                            <button class="view-history-btn font-medium text-gray-600 hover:text-gray-900 p-1" data-id="${client.id}">Historial</button>
+                            <button class="edit-client-btn font-medium text-indigo-600 hover:text-indigo-900 p-1" data-id="${client.id}">Editar</button>
+                            <button class="delete-client-btn font-medium text-red-600 hover:text-red-900 p-1" data-id="${client.id}">Eliminar</button>
                         </div>
                     </div>
                 `;
@@ -658,42 +728,25 @@
             });
         }
         
-        function getMarkerIcon(avgPurchase) {
-            let color;
-            if (avgPurchase >= 50000) {
-                color = '#10B981'; // Verde
-            } else if (avgPurchase >= 20000) {
-                color = '#F59E0B'; // Amarillo
-            } else {
-                color = '#EF4444'; // Rojo
-            }
-            
-            return {
-                path: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z',
-                fillColor: color,
-                fillOpacity: 1,
-                strokeColor: 'white',
-                strokeWeight: 1,
-                scale: 1.5,
-                anchor: new google.maps.Point(12, 24)
-            };
-        }
-
         function renderClientMap() {
              clientMapMarkers.forEach(marker => marker.setMap(null));
              clientMapMarkers = [];
+             
+             const points = allClients.filter(c => c.latitude).map(client => new google.maps.LatLng(client.latitude, client.longitude));
+             
+            if (heatmap) {
+                heatmap.setData(points);
+            } else if (points.length > 0) {
+                heatmap = new google.maps.visualization.HeatmapLayer({
+                    data: points, map: clientsMap, radius: 30, opacity: 0.8
+                });
+            }
 
             allClients.forEach(client => {
                 if (!client.latitude) return;
                 const avgPurchase = (client.purchaseCount > 0) ? (client.totalSpent || 0) / client.purchaseCount : 0;
                 const position = new google.maps.LatLng(client.latitude, client.longitude);
-                
-                const marker = new google.maps.Marker({ 
-                    position, 
-                    map: clientsMap, 
-                    title: client.cliente,
-                    icon: getMarkerIcon(avgPurchase)
-                });
+                const marker = new google.maps.Marker({ position, map: clientsMap, title: client.cliente });
                 
                 const contentString = `
                     <div class="p-1">
@@ -909,15 +962,18 @@
                 data.longitude = modalLatLng.lng(); 
             }
             try {
+                let savedOrderId = orderDocId;
                 if (orderDocId) {
                     await updateDoc(doc(db,`artifacts/${appId}/users/${currentUserId}/pedidos`,orderDocId), data);
                 } else { 
                     data.timestamp = serverTimestamp(); 
-                    await addDoc(collection(db,`artifacts/${appId}/users/${currentUserId}/pedidos`), data); 
+                    const newOrderRef = await addDoc(collection(db,`artifacts/${appId}/users/${currentUserId}/pedidos`), data); 
+                    savedOrderId = newOrderRef.id;
                 }
                 
                 if (data.latitude && data.importe > 0) {
-                    await updateClientPurchaseStats(data);
+                    const clientId = await findOrCreateClientForOrder(data);
+                    await logPurchase(clientId, data.importe, new Date().toISOString().split('T')[0], 'order', savedOrderId);
                 }
                 
                 toggleOrderModal(false);
@@ -960,6 +1016,7 @@
             }
         }
         async function handleDelete(docId) {
+            // Note: Deleting an order does not automatically reverse the purchase stats. This could be a future enhancement.
             if (confirm('¿Estás seguro de que quieres eliminar este pedido?')) {
                 try { 
                     await deleteDoc(doc(db,`artifacts/${appId}/users/${currentUserId}/pedidos`,docId));
@@ -1039,7 +1096,7 @@
                     updateClientModalMarker(location);
                     saveData(location);
                 }, () => {
-                    alert('No se pudo encontrar la dirección. Por favor, márcala manually en el mapa y haz clic en Guardar.');
+                    alert('No se pudo encontrar la dirección. Por favor, márcala manualmente en el mapa y haz clic en Guardar.');
                 });
             }
         }
@@ -1078,8 +1135,9 @@
             const clientToDelete = allClients.find(c => c.id === docId);
             if (!clientToDelete) return;
 
-            if (confirm(`¿Estás seguro de que quieres eliminar a ${clientToDelete.cliente}? Esta acción no se puede deshacer.`)) {
-                try { 
+            if (confirm(`¿Estás seguro de que quieres eliminar a ${clientToDelete.cliente}? Esta acción también eliminará su historial de compras.`)) {
+                try {
+                    // This could be enhanced with a batch delete of the subcollection for larger datasets
                     await deleteDoc(doc(db, `artifacts/${appId}/users/${currentUserId}/clients`, docId));
                 } catch(e) { 
                     console.error("Error al eliminar el cliente:", e);
@@ -1130,9 +1188,10 @@
             const client = allClients.find(c => c.id === clientId);
             if (!client) return;
 
-            selectedClientIdForPurchase = clientId;
+            activePurchaseContext.clientId = clientId;
             document.getElementById('add-purchase-modal-title').textContent = `Agregar Compra a ${client.cliente}`;
             ui.addPurchaseForm.reset();
+            document.getElementById('purchaseDateInput').value = new Date().toISOString().slice(0, 10);
             
             ui.addPurchaseModal.classList.remove('hidden');
             ui.addPurchaseModal.classList.add('flex');
@@ -1148,25 +1207,172 @@
         async function handleSavePurchase(e) {
             e.preventDefault();
             const amount = parseFloat(document.getElementById('purchaseAmountInput').value);
+            const date = document.getElementById('purchaseDateInput').value;
             
-            if (isNaN(amount) || amount <= 0) {
-                alert("Por favor, ingresa un importe válido.");
+            if (isNaN(amount) || amount <= 0 || !date) {
+                alert("Por favor, ingresa un importe y fecha válidos.");
                 return;
             }
-            if (!selectedClientIdForPurchase) return;
+            
+            await logPurchase(activePurchaseContext.clientId, amount, date, 'manual');
+            closeAddPurchaseModal();
+        }
 
-            const clientRef = doc(db, `artifacts/${appId}/users/${currentUserId}/clients`, selectedClientIdForPurchase);
-            try {
-                await updateDoc(clientRef, {
-                    totalSpent: increment(amount),
-                    purchaseCount: increment(1)
+        async function openPurchaseHistoryModal(clientId) {
+            const client = allClients.find(c => c.id === clientId);
+            if (!client) return;
+            activePurchaseContext.clientId = clientId;
+            document.getElementById('purchase-history-modal-title').textContent = `Historial de ${client.cliente}`;
+            
+            const purchasesRef = collection(db, `artifacts/${appId}/users/${currentUserId}/clients/${clientId}/purchases`);
+            const q = query(purchasesRef, orderBy("date", "desc"));
+            const snapshot = await getDocs(q);
+            const purchases = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+            
+            renderPurchaseHistory(purchases);
+
+            const modal = ui.purchaseHistoryModal;
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => {
+                modal.querySelector('.bg-white').classList.remove('opacity-0', '-translate-y-10');
+            }, 10);
+        }
+
+        function renderPurchaseHistory(purchases) {
+             const container = ui.purchaseHistoryListContainer;
+             container.innerHTML = '';
+             if(purchases.length === 0) {
+                container.innerHTML = `<p class="text-center text-gray-500">No hay compras registradas.</p>`;
+                return;
+             }
+
+             const table = document.createElement('table');
+             table.className = "min-w-full divide-y divide-gray-200";
+             table.innerHTML = `
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Importe</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200"></tbody>
+             `;
+
+             const tbody = table.querySelector('tbody');
+             purchases.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">${p.date}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${formatCurrency(p.amount)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${p.type === 'order' ? 'Pedido' : 'Manual'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                        <button data-id="${p.id}" class="edit-purchase-btn text-indigo-600 hover:text-indigo-900">Editar</button>
+                        <button data-id="${p.id}" class="delete-purchase-btn text-red-600 hover:text-red-900">Eliminar</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+             });
+             container.appendChild(table);
+
+             container.querySelectorAll('.edit-purchase-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const purchase = purchases.find(p => p.id === btn.dataset.id);
+                    openEditPurchaseModal(purchase);
                 });
-                closeAddPurchaseModal();
+             });
+             container.querySelectorAll('.delete-purchase-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                     const purchase = purchases.find(p => p.id === btn.dataset.id);
+                    handleDeletePurchase(purchase);
+                });
+             });
+        }
+        
+        function closePurchaseHistoryModal() {
+            const modal = ui.purchaseHistoryModal;
+            modal.querySelector('.bg-white').classList.add('opacity-0', '-translate-y-10');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function openEditPurchaseModal(purchase) {
+             activePurchaseContext.purchaseId = purchase.id;
+             activePurchaseContext.oldAmount = purchase.amount;
+
+             document.getElementById('editPurchaseId').value = purchase.id;
+             document.getElementById('editPurchaseDateInput').value = purchase.date;
+             document.getElementById('editPurchaseAmountInput').value = purchase.amount;
+             
+             const modal = ui.editPurchaseModal;
+             modal.classList.remove('hidden'); modal.classList.add('flex');
+             setTimeout(() => {
+                modal.querySelector('#edit-purchase-modal-content').classList.remove('opacity-0', '-translate-y-10');
+            }, 10);
+        }
+        function closeEditPurchaseModal() {
+            const modal = ui.editPurchaseModal;
+            modal.querySelector('#edit-purchase-modal-content').classList.add('opacity-0', '-translate-y-10');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+        async function handleUpdatePurchase(e) {
+            e.preventDefault();
+            const newAmount = parseFloat(document.getElementById('editPurchaseAmountInput').value);
+            const newDate = document.getElementById('editPurchaseDateInput').value;
+
+            if (isNaN(newAmount) || newAmount <= 0 || !newDate) {
+                 alert("Por favor, ingresa un importe y fecha válidos.");
+                return;
+            }
+
+            const { clientId, purchaseId, oldAmount } = activePurchaseContext;
+            const clientRef = doc(db, `artifacts/${appId}/users/${currentUserId}/clients/${clientId}`);
+            const purchaseRef = doc(clientRef, "purchases", purchaseId);
+
+            const batch = writeBatch(db);
+            // 1. Actualizar el documento de la compra
+            batch.update(purchaseRef, { amount: newAmount, date: newDate });
+
+            // 2. Ajustar las estadísticas en el documento del cliente
+            const amountDifference = newAmount - oldAmount;
+            batch.update(clientRef, { totalSpent: increment(amountDifference) });
+            
+            try {
+                await batch.commit();
+                closeEditPurchaseModal();
+                await openPurchaseHistoryModal(clientId); // Refresh history
             } catch (error) {
-                console.error("Error al agregar la compra:", error);
-                alert("No se pudo registrar la compra.");
+                console.error("Error al actualizar la compra:", error);
+                alert("Error al guardar los cambios.");
             }
         }
+        async function handleDeletePurchase(purchase) {
+            if (!purchase) return;
+            if (confirm(`¿Seguro que quieres eliminar la compra del ${purchase.date} por ${formatCurrency(purchase.amount)}?`)) {
+                 const { clientId } = activePurchaseContext;
+                 const clientRef = doc(db, `artifacts/${appId}/users/${currentUserId}/clients/${clientId}`);
+                 const purchaseRef = doc(clientRef, "purchases", purchase.id);
+
+                 const batch = writeBatch(db);
+                 // 1. Eliminar el documento de la compra
+                 batch.delete(purchaseRef);
+
+                 // 2. Ajustar las estadísticas en el documento del cliente
+                 batch.update(clientRef, {
+                    totalSpent: increment(-purchase.amount),
+                    purchaseCount: increment(-1)
+                 });
+                 
+                 try {
+                    await batch.commit();
+                    await openPurchaseHistoryModal(clientId); // Refresh
+                 } catch (error) {
+                    console.error("Error al eliminar compra:", error);
+                    alert("No se pudo eliminar la compra.");
+                 }
+            }
+        }
+
         function setupEventListeners() {
             ui.loginForm.addEventListener('submit', handleLogin);
             ui.logoutBtn.addEventListener('click', handleLogout);
@@ -1184,13 +1390,12 @@
                 const editBtn = e.target.closest('.edit-client-btn');
                 const deleteBtn = e.target.closest('.delete-client-btn');
                 const addPurchaseBtn = e.target.closest('.add-purchase-btn');
-                if (editBtn) {
-                    openClientModalInMode('edit', editBtn.dataset.id);
-                } else if (deleteBtn) {
-                    handleDeleteClient(deleteBtn.dataset.id);
-                } else if (addPurchaseBtn) {
-                    openAddPurchaseModal(addPurchaseBtn.dataset.id);
-                }
+                const historyBtn = e.target.closest('.view-history-btn');
+                
+                if (editBtn) openClientModalInMode('edit', editBtn.dataset.id);
+                else if (deleteBtn) handleDeleteClient(deleteBtn.dataset.id);
+                else if (addPurchaseBtn) openAddPurchaseModal(addPurchaseBtn.dataset.id);
+                else if (historyBtn) openPurchaseHistoryModal(historyBtn.dataset.id);
             });
             ui.searchClientAddressBtn.addEventListener('click', () => geocodeSearch(document.getElementById('clientAddressInput').value, clientModalMap, updateClientModalMarker));
             
@@ -1213,6 +1418,13 @@
             ui.addPurchaseForm.addEventListener('submit', handleSavePurchase);
             ui.cancelAddPurchaseBtn.addEventListener('click', closeAddPurchaseModal);
             ui.addPurchaseModal.addEventListener('click', (e) => { if (e.target.id === 'add-purchase-modal') closeAddPurchaseModal(); });
+
+            ui.closePurchaseHistoryBtn.addEventListener('click', closePurchaseHistoryModal);
+            ui.purchaseHistoryModal.addEventListener('click', (e) => { if(e.target.id === 'purchase-history-modal') closePurchaseHistoryModal(); });
+            ui.editPurchaseForm.addEventListener('submit', handleUpdatePurchase);
+            ui.cancelEditPurchaseBtn.addEventListener('click', closeEditPurchaseModal);
+            ui.editPurchaseModal.addEventListener('click', (e) => { if(e.target.id === 'edit-purchase-modal') closeEditPurchaseModal(); });
+
             
             ui.tabLogistics.addEventListener('click', () => switchTab('logistics'));
             ui.tabClients.addEventListener('click', () => switchTab('clients'));
@@ -1281,3 +1493,4 @@
     </script>
 </body>
 </html>
+
