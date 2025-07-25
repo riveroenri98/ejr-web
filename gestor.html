@@ -322,6 +322,26 @@
                 </div>
             </div>
         </div>
+         <div id="add-purchase-modal" class="fixed inset-0 z-40 hidden items-center justify-center p-4 modal-backdrop">
+            <div id="add-purchase-modal-content" class="bg-white rounded-xl shadow-2xl w-full max-w-md transform transition-all opacity-0 -translate-y-10">
+                <form id="add-purchase-form" class="p-6 sm:p-8">
+                    <h2 id="add-purchase-modal-title" class="text-2xl font-bold text-gray-900 mb-6">Agregar Compra</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="purchaseAmountInput" class="block text-sm font-medium text-gray-700">Importe de la Compra</label>
+                            <div class="relative mt-1">
+                                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
+                                <input type="number" id="purchaseAmountInput" class="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="0.00" step="0.01" min="0.01" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8 flex justify-end space-x-3">
+                        <button type="button" id="cancel-add-purchase-btn" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">Cancelar</button>
+                        <button type="submit" class="inline-flex justify-center py-2 px-4 border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700">Guardar Compra</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
     
     <!-- Firebase SDKs -->
@@ -350,6 +370,7 @@
         let currentUserId = null, ordersUnsubscribe = null, clientsUnsubscribe = null;
         let allOrders = [], allClients = [];
         let modalLatLng = null, startPointLatLng = null, clientModalLatLng = null, startPoint = null;
+        let selectedClientIdForPurchase = null;
         const appId = "gestor-envios-super21"; // ID estático para la app
 
         const ui = {
@@ -405,6 +426,9 @@
             tabClients: document.getElementById('tab-clients'),
             logisticsView: document.getElementById('logistics-view'), 
             clientsView: document.getElementById('clients-view'),
+            addPurchaseModal: document.getElementById('add-purchase-modal'),
+            addPurchaseForm: document.getElementById('add-purchase-form'),
+            cancelAddPurchaseBtn: document.getElementById('cancel-add-purchase-btn'),
         };
         
         // --- LLAMADA A LA API DE GEMINI ---
@@ -623,6 +647,7 @@
                             </div>
                         </div>
                         <div class="flex-shrink-0 flex items-center space-x-2 text-sm">
+                            <button class="add-purchase-btn font-medium text-green-600 hover:text-green-900" data-id="${client.id}">+ Compra</button>
                             <button class="edit-client-btn font-medium text-indigo-600 hover:text-indigo-900" data-id="${client.id}">Editar</button>
                             <span class="text-gray-300">|</span>
                             <button class="delete-client-btn font-medium text-red-600 hover:text-red-900" data-id="${client.id}">Eliminar</button>
@@ -1083,6 +1108,47 @@
             document.querySelectorAll('.edit-btn').forEach(b => b.addEventListener('click', (e) => openModalInMode('edit', e.currentTarget.dataset.id)));
             document.querySelectorAll('.delete-btn').forEach(b => b.addEventListener('click', (e) => handleDelete(e.currentTarget.dataset.id)));
         }
+        function openAddPurchaseModal(clientId) {
+            const client = allClients.find(c => c.id === clientId);
+            if (!client) return;
+
+            selectedClientIdForPurchase = clientId;
+            document.getElementById('add-purchase-modal-title').textContent = `Agregar Compra a ${client.cliente}`;
+            ui.addPurchaseForm.reset();
+            
+            ui.addPurchaseModal.classList.remove('hidden');
+            ui.addPurchaseModal.classList.add('flex');
+            setTimeout(() => {
+                ui.addPurchaseModal.querySelector('#add-purchase-modal-content').classList.remove('opacity-0', '-translate-y-10');
+            }, 10);
+        }
+        function closeAddPurchaseModal() {
+            const modal = document.getElementById('add-purchase-modal');
+            modal.querySelector('#add-purchase-modal-content').classList.add('opacity-0', '-translate-y-10');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+        async function handleSavePurchase(e) {
+            e.preventDefault();
+            const amount = parseFloat(document.getElementById('purchaseAmountInput').value);
+            
+            if (isNaN(amount) || amount <= 0) {
+                alert("Por favor, ingresa un importe válido.");
+                return;
+            }
+            if (!selectedClientIdForPurchase) return;
+
+            const clientRef = doc(db, `artifacts/${appId}/users/${currentUserId}/clients`, selectedClientIdForPurchase);
+            try {
+                await updateDoc(clientRef, {
+                    totalSpent: increment(amount),
+                    purchaseCount: increment(1)
+                });
+                closeAddPurchaseModal();
+            } catch (error) {
+                console.error("Error al agregar la compra:", error);
+                alert("No se pudo registrar la compra.");
+            }
+        }
         function setupEventListeners() {
             ui.loginForm.addEventListener('submit', handleLogin);
             ui.logoutBtn.addEventListener('click', handleLogout);
@@ -1099,10 +1165,13 @@
             ui.clientsList.addEventListener('click', (e) => {
                 const editBtn = e.target.closest('.edit-client-btn');
                 const deleteBtn = e.target.closest('.delete-client-btn');
+                const addPurchaseBtn = e.target.closest('.add-purchase-btn');
                 if (editBtn) {
                     openClientModalInMode('edit', editBtn.dataset.id);
                 } else if (deleteBtn) {
                     handleDeleteClient(deleteBtn.dataset.id);
+                } else if (addPurchaseBtn) {
+                    openAddPurchaseModal(addPurchaseBtn.dataset.id);
                 }
             });
             ui.searchClientAddressBtn.addEventListener('click', () => geocodeSearch(document.getElementById('clientAddressInput').value, clientModalMap, updateClientModalMarker));
@@ -1122,6 +1191,10 @@
                 ui.confirmationMessage.select();
                 document.execCommand('copy');
             });
+
+            ui.addPurchaseForm.addEventListener('submit', handleSavePurchase);
+            ui.cancelAddPurchaseBtn.addEventListener('click', closeAddPurchaseModal);
+            ui.addPurchaseModal.addEventListener('click', (e) => { if (e.target.id === 'add-purchase-modal') closeAddPurchaseModal(); });
             
             ui.tabLogistics.addEventListener('click', () => switchTab('logistics'));
             ui.tabClients.addEventListener('click', () => switchTab('clients'));
