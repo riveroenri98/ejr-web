@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Envíos con Google Maps</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner { border-top-color: #4f46e5; animation: spin 1s linear infinite; }
+        .modal-backdrop { background-color: rgba(0, 0, 0, 0.5); }
+        .ai-spinner { border-top-color: #10b981; animation: spin 0.8s linear infinite; }
+        
+        #main-map, #modal-map, #start-point-map, #clients-heatmap, #client-modal-map { 
+            width: 100%; 
+            border-radius: 0.75rem; 
+            border: 1px solid #d1d5db; 
+            background-color: #e5e7eb; /* Color de fondo mientras carga el mapa */
+        }
+        #main-map, #clients-heatmap { height: 65vh; min-height: 500px; }
+        #modal-map, #start-point-map, #client-modal-map { height: 300px; }
+        .nav-tab[aria-selected="true"] {
+            background-color: #4f46e5;
+            color: white;
+        }
+        .nav-tab {
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        @media (max-width: 768px) {
+            .table-responsive thead { display: none; }
+            .table-responsive tr { display: block; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+            .table-responsive td { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; text-align: right; border-bottom: 1px solid #eee; }
+            .table-responsive td:last-child { border-bottom: none; }
+            .table-responsive td::before { content: attr(data-label); font-weight: 600; margin-right: 1rem; text-align: left; }
+        }
+    </style>
+</head>
+<body class="antialiased text-gray-800">
+
+    <!-- Pantalla de Login -->
+    <div id="login-screen" class="fixed inset-0 bg-gray-100 flex items-center justify-center z-50">
+        <div class="w-full max-w-md p-8 space-y-8 bg-white shadow-xl rounded-2xl">
+            <div>
+                <h2 class="text-3xl font-extrabold text-center text-gray-900">Iniciar Sesión</h2>
+                <p class="mt-2 text-center text-sm text-gray-600">Accede a tu panel de gestión</p>
+            </div>
+            <form id="login-form" class="mt-8 space-y-6">
+                <div class="rounded-md shadow-sm -space-y-px">
+                    <div>
+                        <label for="email-address" class="sr-only">Correo electrónico</label>
+                        <input id="email-address" name="email" type="email" autocomplete="email" required class="relative block w-full px-3 py-3 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Correo electrónico">
+                    </div>
+                    <div>
+                        <label for="password" class="sr-only">Contraseña</label>
+                        <input id="password" name="password" type="password" autocomplete="current-password" required class="relative block w-full px-3 py-3 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Contraseña">
+                    </div>
+                </div>
+                <div id="login-error" class="text-sm text-red-600 font-medium hidden"></div>
+                <div>
+                    <button type="submit" class="relative flex justify-center w-full px-4 py-3 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md group hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Entrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="loading-overlay" class="fixed inset-0 bg-white/70 backdrop-blur-sm flex-col justify-center items-center z-50 hidden">
+        <div class="ai-spinner w-10 h-10 rounded-full border-4 border-gray-200"></div>
+        <p class="mt-4 text-gray-700 font-medium">Procesando con IA...</p>
+    </div>
+
+    <div id="app" class="min-h-screen p-4 sm:p-6 lg:p-8 hidden">
+        <div id="initial-loading-screen" class="fixed inset-0 bg-white flex flex-col justify-center items-center z-50">
+            <div class="spinner w-12 h-12 rounded-full border-4 border-gray-200"></div>
+            <p class="mt-4 text-gray-600">Cargando tu gestor de envíos...</p>
+        </div>
+
+        <div id="app-content" class="max-w-screen-2xl mx-auto hidden">
+             <header class="mb-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">Panel Logístico y CRM con IA</h1>
+                        <p class="mt-1 text-gray-500">Gestiona tus pedidos y analiza tu base de clientes.</p>
+                    </div>
+                    <div>
+                        <button id="logout-btn" class="bg-red-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors">Cerrar Sesión</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Pestañas de Navegación -->
+            <div class="mb-6">
+                <div class="border-b border-gray-200">
+                    <nav class="-mb-px flex space-x-4" aria-label="Tabs">
+                        <button id="tab-logistics" class="nav-tab whitespace-nowrap py-3 px-4 border-b-2 font-medium text-sm rounded-t-lg" aria-selected="true">Logística y Rutas</button>
+                        <button id="tab-clients" class="nav-tab whitespace-nowrap py-3 px-4 border-b-2 font-medium text-sm rounded-t-lg bg-white text-gray-500 hover:text-gray-700 hover:bg-gray-50" aria-selected="false">Clientes</button>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Contenido de Logística -->
+            <div id="logistics-view">
+                 <div class="flex flex-wrap items-center gap-x-3 gap-y-2 mb-4">
+                     <button id="set-start-point-btn" class="flex items-center justify-center bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg>
+                        Definir Inicio
+                     </button>
+                     <button id="generate-route-btn" class="flex items-center justify-center bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M18 10c-2.4 0-4.7.9-6.5 2.5a12.4 12.4 0 0 0-6.5 7.5"/><path d="M18 10V4.5a2.5 2.5 0 0 0-5 0V10"/><path d="M12 22a2 2 0 1 0 4 0 2 2 0 1 0-4 0Z"/><path d="M16 4.5a2.5 2.5 0 0 0-5 0V10"/><path d="M10 22a2 2 0 1 0 4 0 2 2 0 1 0-4 0Z"/><path d="M18 10h1a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-1"/><path d="M6 10H5a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1"/></svg>
+                        Crear Hoja de Ruta
+                    </button>
+                    <button id="add-order-btn" class="flex items-center justify-center bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        Agregar Pedido
+                    </button>
+                </div>
+                 <div class="mb-4 text-sm text-gray-600 bg-gray-100 p-2 rounded-md flex items-center justify-between">
+                    <p><span class="font-semibold">Punto de partida:</span> <span id="start-point-display" class="italic">No definido</span></p>
+                    <p><span class="font-semibold">Usuario:</span> <span id="user-email-display"></span></p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 lg:gap-8">
+                    <div class="flex flex-col">
+                         <main class="bg-white rounded-xl shadow-lg overflow-hidden flex-grow">
+                            <div id="order-list-container" class="overflow-x-auto h-full">
+                                <div id="empty-state" class="text-center p-12 hidden">
+                                    <h3 class="mt-4 text-xl font-semibold text-gray-800">No hay pedidos todavía</h3>
+                                    <p class="mt-1 text-gray-500">Haz clic en "Agregar Pedido" para empezar.</p>
+                                </div>
+                                <table class="min-w-full divide-y divide-gray-200 table-responsive">
+                                    <thead class="bg-gray-50"><tr><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Detalle del Pedido</th><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th><th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th></tr></thead>
+                                    <tbody id="order-list" class="bg-white divide-y divide-gray-200"></tbody>
+                                </table>
+                            </div>
+                        </main>
+                    </div>
+                    <div class="mt-8 lg:mt-0 space-y-4">
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-700 mb-2">Mapa de Entregas</h3>
+                            <div id="main-map" class="shadow-lg"></div>
+                        </div>
+                        <div id="route-itinerary-container" class="hidden">
+                            <h3 class="text-lg font-medium text-gray-700 mb-2">Hoja de Ruta Detallada</h3>
+                            <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm max-h-60 overflow-y-auto">
+                                <ol id="route-itinerary-list" class="space-y-3 text-sm"></ol>
+                            </div>
+                        </div>
+                        <div id="ai-summary-container" class="hidden">
+                             <div class="flex justify-between items-center mb-2">
+                                <h3 class="text-lg font-medium text-gray-700">Análisis de Ruta por IA</h3>
+                                <button id="get-ai-route-summary-btn" class="flex items-center justify-center bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors text-sm">
+                                    ✨ Analizar Ruta
+                                </button>
+                            </div>
+                            <div id="ai-route-summary-content" class="bg-gray-50 p-4 rounded-lg border border-gray-200 text-sm text-gray-600 min-h-[100px] whitespace-pre-wrap"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contenido de Clientes -->
+            <div id="clients-view" class="hidden">
+                <div class="mb-4 flex flex-wrap gap-3">
+                     <button id="add-client-btn" class="flex items-center justify-center bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                        Agregar Cliente
+                    </button>
+                    <button id="analyze-clients-btn" class="flex items-center justify-center bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                         ✨ Analizar Zona de Clientes
+                    </button>
+                </div>
+                 <div id="client-analysis-container" class="mb-6 hidden">
+                    <h3 class="text-lg font-medium text-gray-700 mb-2">Análisis de Clientes por IA</h3>
+                    <div id="client-analysis-content" class="bg-gray-50 p-4 rounded-lg border border-gray-200 text-sm text-gray-600 min-h-[100px] whitespace-pre-wrap"></div>
+                 </div>
+                 <div class="grid grid-cols-1 lg:grid-cols-2 lg:gap-8">
+                     <div class="flex flex-col">
+                         <h3 class="text-lg font-medium text-gray-700 mb-2">Base de Datos de Clientes</h3>
+                         <main class="bg-white rounded-xl shadow-lg overflow-hidden flex-grow">
+                             <div id="clients-list-container" class="overflow-auto" style="height: 65vh;">
+                                <div id="clients-empty-state" class="text-center p-12 hidden">
+                                    <h3 class="mt-4 text-xl font-semibold text-gray-800">No hay clientes guardados</h3>
+                                    <p class="mt-1 text-gray-500">Agrega un pedido o un cliente nuevo para empezar.</p>
+                                </div>
+                                <ul id="clients-list" class="divide-y divide-gray-200"></ul>
+                            </div>
+                         </main>
+                     </div>
+                     <div class="mt-8 lg:mt-0">
+                         <h3 class="text-lg font-medium text-gray-700 mb-2">Mapa de Concentración de Clientes</h3>
+                         <div id="clients-heatmap" class="shadow-lg"></div>
+                     </div>
+                 </div>
+            </div>
+
+        </div>
+
+        <!-- MODALES -->
+        <div id="order-modal" class="fixed inset-0 z-40 hidden items-center justify-center p-4 modal-backdrop">
+             <div id="order-modal-content" class="bg-white rounded-xl shadow-2xl w-full max-w-3xl transform transition-all opacity-0 -translate-y-10 max-h-[90vh] overflow-y-auto">
+                <form id="order-form" class="p-6 sm:p-8">
+                     <h2 id="order-modal-title" class="text-2xl font-bold text-gray-900 mb-6">Agregar Nuevo Pedido</h2>
+                    <input type="hidden" id="order-id">
+                    <div class="grid grid-cols-1 gap-x-6 gap-y-8">
+                        <div class="space-y-5">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div><label for="pedidoIdInput" class="block text-sm font-medium text-gray-700">N° de Pedido</label><input type="text" id="pedidoIdInput" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Ej: #1024" required></div>
+                                <div><label for="clienteInput" class="block text-sm font-medium text-gray-700">Nombre del Cliente</label><input type="text" id="clienteInput" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Ej: Ana Pérez" required></div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between items-center">
+                                    <label for="direccionInput" class="block text-sm font-medium text-gray-700">Dirección / Instrucciones de Envío</label>
+                                    <button type="button" id="improve-instructions-btn" class="text-sm text-indigo-600 font-semibold hover:text-indigo-800">✨ Mejorar Instrucciones</button>
+                                </div>
+                                <textarea id="direccionInput" rows="3" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Calle Falsa 123, Springfield. Tocar timbre A." required></textarea>
+                            </div>
+                             <div>
+                                <label for="productosInput" class="block text-sm font-medium text-gray-700">Productos y Cantidades</label>
+                                <textarea id="productosInput" rows="4" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Ej:&#10;- 2x Camiseta Talla M&#10;- 1x Taza con logo"></textarea>
+                            </div>
+                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div><label for="estadoInput" class="block text-sm font-medium text-gray-700">Estado</label><select id="estadoInput" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"><option>Pendiente</option><option>En Preparación</option><option>Enviado</option><option>Entregado</option></select></div>
+                                 <div><label for="trackingInput" class="block text-sm font-medium text-gray-700">N° Seguimiento</label><input type="text" id="trackingInput" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Opcional"></div>
+                            </div>
+                             <div id="confirmation-message-container" class="hidden">
+                                <div class="flex justify-between items-center">
+                                    <label for="confirmationMessage" class="block text-sm font-medium text-gray-700">Mensaje de Confirmación (Generado por IA)</label>
+                                     <button type="button" id="copy-confirmation-btn" class="text-sm text-indigo-600 font-semibold hover:text-indigo-800">Copiar</button>
+                                </div>
+                                 <textarea id="confirmationMessage" rows="3" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Marcar Ubicación</label>
+                             <div class="flex items-center gap-2 mb-2">
+                                <p class="text-xs text-gray-500 flex-grow">Usa el campo 'Dirección' y 'Buscar' o haz clic en el mapa.</p>
+                                <button type="button" id="search-address-btn" class="bg-indigo-100 text-indigo-700 font-semibold py-1 px-3 rounded-md hover:bg-indigo-200 text-sm whitespace-nowrap">Buscar</button>
+                            </div>
+                            <div id="modal-map"></div>
+                        </div>
+                    </div>
+                    <div class="mt-8 flex justify-between items-center">
+                        <button type="button" id="generate-confirmation-btn" class="flex items-center justify-center bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors text-sm">
+                            ✨ Generar Mensaje de Confirmación
+                        </button>
+                        <div class="flex space-x-3">
+                            <button type="button" id="cancel-order-btn" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">Cancelar</button>
+                            <button type="submit" id="save-order-btn" class="inline-flex justify-center py-2 px-4 border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">Guardar</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div id="client-modal" class="fixed inset-0 z-40 hidden items-center justify-center p-4 modal-backdrop">
+             <div id="client-modal-content" class="bg-white rounded-xl shadow-2xl w-full max-w-2xl transform transition-all opacity-0 -translate-y-10 max-h-[90vh] overflow-y-auto">
+                <form id="client-form" class="p-6 sm:p-8">
+                     <h2 id="client-modal-title" class="text-2xl font-bold text-gray-900 mb-6">Agregar Nuevo Cliente</h2>
+                     <div class="space-y-6">
+                        <div>
+                             <label for="clientNameInput" class="block text-sm font-medium text-gray-700">Nombre del Cliente</label>
+                             <input type="text" id="clientNameInput" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
+                        </div>
+                        <div>
+                            <label for="clientAddressInput" class="block text-sm font-medium text-gray-700">Dirección</label>
+                            <textarea id="clientAddressInput" rows="2" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required></textarea>
+                        </div>
+                         <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Marcar Ubicación</label>
+                             <div class="flex items-center gap-2 mb-2">
+                                <p class="text-xs text-gray-500 flex-grow">Usa el campo 'Dirección' y 'Buscar' o haz clic en el mapa.</p>
+                                <button type="button" id="search-client-address-btn" class="bg-indigo-100 text-indigo-700 font-semibold py-1 px-3 rounded-md hover:bg-indigo-200 text-sm whitespace-nowrap">Buscar</button>
+                            </div>
+                            <div id="client-modal-map"></div>
+                        </div>
+                    </div>
+                    <div class="mt-8 flex justify-end space-x-3">
+                        <button type="button" id="cancel-client-btn" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">Cancelar</button>
+                        <button type="submit" class="inline-flex justify-center py-2 px-4 border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">Guardar Cliente</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div id="start-point-modal" class="fixed inset-0 z-40 hidden items-center justify-center p-4 modal-backdrop">
+            <div id="start-point-modal-content" class="bg-white rounded-xl shadow-2xl w-full max-w-2xl transform transition-all opacity-0 -translate-y-10">
+                <div class="p-6 sm:p-8">
+                     <h2 class="text-2xl font-bold text-gray-900 mb-6">Definir Punto de Partida</h2>
+                     <div class="space-y-4">
+                        <div>
+                            <label for="start-address-input" class="block text-sm font-medium text-gray-700">Buscar Dirección de Inicio</label>
+                            <div class="mt-1 flex gap-2">
+                                <input type="text" id="start-address-input" class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Ej: Mi oficina, Av. Principal 500">
+                                <button type="button" id="search-start-address-btn" class="bg-blue-100 text-blue-700 font-semibold py-1 px-3 rounded-md hover:bg-blue-200 text-sm whitespace-nowrap">Buscar</button>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">O haz clic en el mapa para marcar la ubicación.</p>
+                            <div id="start-point-map" class="mt-2"></div>
+                        </div>
+                     </div>
+                     <div class="mt-8 flex justify-end space-x-3">
+                        <button type="button" id="cancel-start-point-btn" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">Cancelar</button>
+                        <button type="button" id="save-start-point-btn" class="inline-flex justify-center py-2 px-4 border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">Guardar Inicio</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, collection, addDoc, onSnapshot, updateDoc, deleteDoc, query, serverTimestamp, orderBy, where, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // --- CONFIGURACIÓN ---
+        const firebaseConfig = {
+  apiKey: "AIzaSy...",
+  authDomain: "tu-proyecto.firebaseapp.com",
+  projectId: "tu-proyecto",
+  storageBucket: "tu-proyecto.appspot.com",
+  messagingSenderId: "1234567890",
+  appId: "1:1234567890:web:abcdef123456"
+};
+   
+
+        const Maps_API_KEY = "AIzaSyD9d0wzamU3rHdnfjVHeT0ZQWBz1-1bvd8"; 
+
+        // --- VARIABLES GLOBALES ---
+        let db, auth, mainMap, modalMap, startPointMap, clientsHeatmap, clientModalMap, heatmap, geocoder;
+        let modalMarker, startPointMarker, clientModalMarker, directionsService, directionsRenderer;
+        let mainMapMarkers = [];
+        let infoWindow;
+        let currentUserId = null, ordersUnsubscribe = null, clientsUnsubscribe = null;
+        let allOrders = [], allClients = [];
+        let modalLatLng = null, startPointLatLng = null, clientModalLatLng = null, startPoint = null;
+        const appId = "gestor-envios-super21"; // ID estático para la app
+
+        const ui = {
+            loginScreen: document.getElementById('login-screen'),
+            loginForm: document.getElementById('login-form'),
+            loginError: document.getElementById('login-error'),
+            app: document.getElementById('app'),
+            logoutBtn: document.getElementById('logout-btn'),
+            userEmailDisplay: document.getElementById('user-email-display'),
+            loadingOverlay: document.getElementById('loading-overlay'),
+            initialLoadingScreen: document.getElementById('initial-loading-screen'), 
+            appContent: document.getElementById('app-content'),
+            orderList: document.getElementById('order-list'), 
+            emptyState: document.getElementById('empty-state'),
+            clientsList: document.getElementById('clients-list'), 
+            clientsEmptyState: document.getElementById('clients-empty-state'),
+            startPointDisplay: document.getElementById('start-point-display'),
+            orderModal: document.getElementById('order-modal'), 
+            orderModalContent: document.getElementById('order-modal-content'),
+            orderForm: document.getElementById('order-form'), 
+            orderModalTitle: document.getElementById('order-modal-title'),
+            addOrderBtn: document.getElementById('add-order-btn'), 
+            cancelOrderBtn: document.getElementById('cancel-order-btn'),
+            saveOrderBtn: document.getElementById('save-order-btn'), 
+            searchAddressBtn: document.getElementById('search-address-btn'),
+            clientModal: document.getElementById('client-modal'), 
+            clientModalContent: document.getElementById('client-modal-content'),
+            clientForm: document.getElementById('client-form'), 
+            addClientBtn: document.getElementById('add-client-btn'),
+            cancelClientBtn: document.getElementById('cancel-client-btn'),
+            searchClientAddressBtn: document.getElementById('search-client-address-btn'),
+            analyzeClientsBtn: document.getElementById('analyze-clients-btn'),
+            clientAnalysisContainer: document.getElementById('client-analysis-container'),
+            clientAnalysisContent: document.getElementById('client-analysis-content'),
+            improveInstructionsBtn: document.getElementById('improve-instructions-btn'),
+            generateRouteBtn: document.getElementById('generate-route-btn'),
+            routeItineraryContainer: document.getElementById('route-itinerary-container'),
+            routeItineraryList: document.getElementById('route-itinerary-list'),
+            aiSummaryContainer: document.getElementById('ai-summary-container'),
+            getAiRouteSummaryBtn: document.getElementById('get-ai-route-summary-btn'),
+            aiRouteSummaryContent: document.getElementById('ai-route-summary-content'),
+            confirmationMessageContainer: document.getElementById('confirmation-message-container'),
+            generateConfirmationBtn: document.getElementById('generate-confirmation-btn'),
+            copyConfirmationBtn: document.getElementById('copy-confirmation-btn'),
+            confirmationMessage: document.getElementById('confirmationMessage'),
+            startPointModal: document.getElementById('start-point-modal'), 
+            startPointModalContent: document.getElementById('start-point-modal-content'),
+            setStartPointBtn: document.getElementById('set-start-point-btn'), 
+            searchStartAddrBtn: document.getElementById('search-start-address-btn'),
+            cancelStartPointBtn: document.getElementById('cancel-start-point-btn'), 
+            saveStartPointBtn: document.getElementById('save-start-point-btn'),
+            tabLogistics: document.getElementById('tab-logistics'), 
+            tabClients: document.getElementById('tab-clients'),
+            logisticsView: document.getElementById('logistics-view'), 
+            clientsView: document.getElementById('clients-view'),
+        };
+        
+        // --- LLAMADA A LA API DE GEMINI ---
+        async function callGemini(prompt, retries = 3, delay = 1000) {
+            ui.loadingOverlay.classList.remove('hidden'); ui.loadingOverlay.classList.add('flex');
+            const apiKey = ""; 
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const result = await response.json();
+                    if (result.candidates && result.candidates[0]?.content?.parts?.[0]?.text) {
+                         ui.loadingOverlay.classList.add('hidden'); ui.loadingOverlay.classList.remove('flex');
+                        return result.candidates[0].content.parts[0].text;
+                    }
+                    else throw new Error("Respuesta inválida de la API de Gemini.");
+                } catch (error) {
+                    console.error(`Attempt ${i + 1} failed:`, error);
+                    if (i === retries - 1) { 
+                        console.error('No se pudo obtener una respuesta de la IA.'); 
+                        ui.loadingOverlay.classList.add('hidden'); ui.loadingOverlay.classList.remove('flex');
+                        return null; 
+                    }
+                    await new Promise(res => setTimeout(res, delay)); delay *= 2;
+                }
+            }
+        }
+        
+        // --- INICIALIZACIÓN Y AUTENTICACIÓN ---
+        function setupAuthListener() {
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    currentUserId = user.uid;
+                    ui.userEmailDisplay.textContent = user.email;
+                    ui.loginScreen.classList.add('hidden');
+                    ui.app.classList.remove('hidden');
+                    if (!mainMap) {
+                        runStartupChecks();
+                    } else {
+                        ui.initialLoadingScreen.classList.add('hidden');
+                        ui.appContent.classList.remove('hidden');
+                        listenToOrders();
+                        listenToClients();
+                    }
+                } else {
+                    currentUserId = null;
+                    if (ordersUnsubscribe) ordersUnsubscribe();
+                    if (clientsUnsubscribe) clientsUnsubscribe();
+                    ui.loginScreen.classList.remove('hidden');
+                    ui.app.classList.add('hidden');
+                    ui.initialLoadingScreen.classList.remove('hidden');
+                    ui.appContent.classList.add('hidden');
+                }
+            });
+        }
+        
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = ui.loginForm['email-address'].value;
+            const password = ui.loginForm.password.value;
+            ui.loginError.classList.add('hidden');
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                console.error("Error de inicio de sesión:", error.code);
+                ui.loginError.textContent = "Correo o contraseña incorrectos.";
+                ui.loginError.classList.remove('hidden');
+            }
+        }
+
+        function handleLogout() {
+            signOut(auth).catch(error => console.error("Error al cerrar sesión:", error));
+        }
+
+        function initializeGoogleMapsServices() {
+            geocoder = new google.maps.Geocoder();
+            directionsService = new google.maps.DirectionsService();
+            directionsRenderer = new google.maps.DirectionsRenderer({ suppressMarkers: true, polylineOptions: { strokeColor: '#4f46e5', strokeWeight: 5, strokeOpacity: 0.8 }});
+            infoWindow = new google.maps.InfoWindow();
+        }
+
+        function initializeMaps() {
+            const mapOptions = { center: { lat: -34.6037, lng: -58.3816 }, zoom: 12, mapTypeControl: false, streetViewControl: false };
+            mainMap = new google.maps.Map(document.getElementById('main-map'), mapOptions);
+            directionsRenderer.setMap(mainMap);
+            clientsHeatmap = new google.maps.Map(document.getElementById('clients-heatmap'), mapOptions);
+        }
+
+        // --- LÓGICA DE DATOS (FIRESTORE) ---
+        function listenToOrders() {
+             if (ordersUnsubscribe) ordersUnsubscribe();
+            const q = query(collection(db, `artifacts/${appId}/users/${currentUserId}/pedidos`), orderBy("timestamp", "desc"));
+            ordersUnsubscribe = onSnapshot(q, (querySnapshot) => {
+                allOrders = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderOrders();
+                updateMainMapMarkers();
+            }, (error) => console.error("Error al escuchar pedidos:", error));
+        }
+        function listenToClients() {
+            if (clientsUnsubscribe) clientsUnsubscribe();
+            const q = query(collection(db, `artifacts/${appId}/users/${currentUserId}/clients`), orderBy("firstSeen", "desc"));
+            clientsUnsubscribe = onSnapshot(q, (querySnapshot) => {
+                allClients = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderClientsList();
+                renderClientsHeatmap();
+            }, (error) => console.error("Error al escuchar clientes:", error));
+        }
+        async function saveOrUpdateClient(clientData) {
+            if (!currentUserId || !clientData.cliente || !clientData.latitude) return;
+            const clientsRef = collection(db, `artifacts/${appId}/users/${currentUserId}/clients`);
+            const q = query(clientsRef, where("cliente", "==", clientData.cliente));
+            
+            const querySnapshot = await getDocs(q);
+            if (querySnapshot.empty) {
+                await addDoc(clientsRef, {
+                    cliente: clientData.cliente,
+                    direccion: clientData.direccion,
+                    latitude: clientData.latitude,
+                    longitude: clientData.longitude,
+                    firstSeen: serverTimestamp()
+                });
+            } else {
+                const docRef = querySnapshot.docs[0].ref;
+                if(doc.data().direccion !== clientData.direccion) {
+                    await updateDoc(docRef, { 
+                        direccion: clientData.direccion,
+                        latitude: clientData.latitude,
+                        longitude: clientData.longitude
+                    });
+                }
+            }
+        }
+
+        // --- RENDERIZADO Y UI ---
+        const getStatusColors = (status) => {
+            switch (status) {
+                case 'Pendiente': return { bg: 'bg-yellow-100', text: 'text-yellow-800' };
+                case 'En Preparación': return { bg: 'bg-blue-100', text: 'text-blue-800' };
+                case 'Enviado': return { bg: 'bg-green-100', text: 'text-green-800' };
+                case 'Entregado': return { bg: 'bg-purple-100', text: 'text-purple-800' };
+                default: return { bg: 'bg-gray-100', text: 'text-gray-800' };
+            }
+        };
+        function renderOrders() {
+             ui.orderList.innerHTML = '';
+            const hasOrders = allOrders.length > 0;
+            ui.emptyState.classList.toggle('hidden', hasOrders);
+            ui.orderList.closest('table').classList.toggle('hidden', !hasOrders);
+
+            allOrders.forEach(order => {
+                const colors = getStatusColors(order.estado);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                <td data-label="Detalle del Pedido" class="px-6 py-4 align-top">
+                    <div class="text-sm font-semibold text-gray-900">${order.cliente}</div>
+                    <div class="text-xs text-gray-500">${order.pedidoId || ''}</div>
+                    <div class="text-xs text-gray-600 mt-1">${order.direccion}</div>
+                    ${order.productos ? `<div class="mt-2 text-xs text-gray-700 bg-gray-50 p-2 rounded-md border border-gray-200 whitespace-pre-wrap">${order.productos}</div>` : ''}
+                </td>
+                <td data-label="Estado" class="px-6 py-4 align-top whitespace-nowrap"><span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${colors.bg} ${colors.text}">${order.estado}</span></td>
+                <td data-label="Acciones" class="px-6 py-4 align-top whitespace-nowrap text-right text-sm font-medium"><div class="flex items-center space-x-2 justify-end"><button class="edit-btn text-indigo-600 hover:text-indigo-900" data-id="${order.id}">Editar</button><span class="text-gray-300">|</span><button class="delete-btn text-red-600 hover:text-red-900" data-id="${order.id}">Eliminar</button></div></td>`;
+                ui.orderList.appendChild(tr);
+            });
+            addTableButtonListeners();
+        }
+        function renderClientsList() {
+            ui.clientsList.innerHTML = '';
+            const hasClients = allClients.length > 0;
+            ui.clientsEmptyState.classList.toggle('hidden', hasClients);
+            ui.clientsList.classList.toggle('hidden', !hasClients);
+            
+            allClients.forEach(client => {
+                const li = document.createElement('li');
+                li.className = "p-4 hover:bg-gray-50";
+                li.innerHTML = `
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0"><span class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-indigo-100 text-indigo-700 font-bold">${client.cliente.charAt(0)}</span></div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-900 truncate">${client.cliente}</p>
+                            <p class="text-sm text-gray-500 truncate">${client.direccion}</p>
+                        </div>
+                    </div>
+                `;
+                ui.clientsList.appendChild(li);
+            });
+        }
+        function renderClientsHeatmap() {
+             const points = allClients.map(client => new google.maps.LatLng(client.latitude, client.longitude));
+            if (heatmap) {
+                heatmap.setData(points);
+            } else {
+                heatmap = new google.maps.visualization.HeatmapLayer({
+                    data: points,
+                    map: clientsHeatmap,
+                    radius: 30,
+                    opacity: 0.8
+                });
+            }
+        }
+
+        // --- LÓGICA DE GOOGLE MAPS ---
+        function clearRoute() {
+            directionsRenderer.setMap(null);
+            directionsRenderer.setDirections({routes: []});
+            directionsRenderer.setMap(mainMap);
+            ui.routeItineraryContainer.classList.add('hidden');
+            ui.aiSummaryContainer.classList.add('hidden');
+        }
+        function clearMarkers() {
+            mainMapMarkers.forEach(marker => marker.setMap(null));
+            mainMapMarkers = [];
+        }
+        function updateMainMapMarkers() {
+             clearMarkers();
+            const bounds = new google.maps.LatLngBounds();
+            
+            if (startPoint) {
+                const startMarker = new google.maps.Marker({
+                    position: startPoint,
+                    map: mainMap,
+                    icon: { path: google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: '#16a34a', fillOpacity: 1, strokeColor: 'white', strokeWeight: 2 },
+                    title: 'Punto de Partida'
+                });
+                mainMapMarkers.push(startMarker);
+                bounds.extend(startPoint);
+            }
+
+            allOrders.filter(order => order.estado === 'Pendiente' && order.latitude).forEach(order => {
+                const position = new google.maps.LatLng(order.latitude, order.longitude);
+                const marker = new google.maps.Marker({ position, map: mainMap, title: order.cliente });
+                marker.addListener('click', () => { infoWindow.setContent(`<strong>${order.cliente}</strong><br>${order.direccion}`); infoWindow.open(mainMap, marker); });
+                mainMapMarkers.push(marker);
+                bounds.extend(position);
+            });
+            
+            if (mainMapMarkers.length > 0) mainMap.fitBounds(bounds);
+        }
+        function generateRoute() {
+            clearRoute();
+            const pendingOrders = allOrders.filter(order => order.estado === 'Pendiente' && order.latitude);
+            if (pendingOrders.length < 1) { 
+                alert("No hay pedidos pendientes con ubicación para generar una ruta.");
+                return;
+            }
+            if (!startPoint) { 
+                alert("Por favor, define un punto de partida.");
+                return; 
+            }
+
+            const waypoints = pendingOrders.map(order => ({ location: new google.maps.LatLng(order.latitude, order.longitude), stopover: true }));
+            const request = {
+                origin: startPoint,
+                destination: startPoint,
+                waypoints: waypoints,
+                optimizeWaypoints: true,
+                travelMode: google.maps.TravelMode.DRIVING
+            };
+            
+            directionsService.route(request, (result, status) => {
+                if (status === 'OK') {
+                    directionsRenderer.setDirections(result);
+                    displayItinerary(result, pendingOrders);
+                } else { 
+                    console.error('Directions request failed due to ' + status);
+                    alert('Error al generar la ruta: ' + status);
+                }
+            });
+        }
+        function displayItinerary(result, pendingOrders) {
+            ui.routeItineraryList.innerHTML = '';
+            ui.routeItineraryContainer.classList.remove('hidden');
+            ui.aiSummaryContainer.classList.remove('hidden');
+            ui.aiRouteSummaryContent.textContent = 'Haz clic en "Analizar Ruta" para obtener consejos de la IA.';
+
+            const route = result.routes[0];
+            const optimizedOrder = route.waypoint_order;
+
+            const startLi = document.createElement('li');
+            startLi.className = "flex items-start";
+            startLi.innerHTML = `<div class="flex-shrink-0"><span class="flex items-center justify-center h-6 w-6 rounded-full bg-green-500 text-white font-bold text-xs">INICIO</span></div><p class="ml-3 font-semibold text-gray-700">Punto de Partida</p>`;
+            ui.routeItineraryList.appendChild(startLi);
+
+            optimizedOrder.forEach((waypointIndex, i) => {
+                const order = pendingOrders[waypointIndex];
+                const li = document.createElement('li');
+                li.className = "flex items-start";
+                const markerLabel = String.fromCharCode(65 + i);
+                li.innerHTML = `
+                    <div class="flex-shrink-0"><span class="flex items-center justify-center h-6 w-6 rounded-full bg-gray-700 text-white font-bold text-xs">${markerLabel}</span></div>
+                    <div class="ml-3">
+                        <p class="font-semibold text-gray-800">${order.cliente}</p>
+                        <p class="text-gray-500">${order.direccion}</p>
+                    </div>`;
+                ui.routeItineraryList.appendChild(li);
+            });
+        }
+        function geocodeSearch(address, map, callback) {
+             if (!address) return;
+             geocoder.geocode({ 'address': address }, (results, status) => {
+                if (status === 'OK') {
+                    map.setCenter(results[0].geometry.location);
+                    map.setZoom(16);
+                    callback(results[0].geometry.location);
+                } else { 
+                    alert('La dirección no fue encontrada por el siguiente motivo: ' + status);
+                    console.error('Geocode was not successful for the following reason: ' + status);
+                 }
+             });
+        }
+        
+        // --- FUNCIONES DE IA ---
+        async function handleAnalyzeRoute() {
+            const currentRoute = directionsRenderer.getDirections()?.routes[0];
+            if (!currentRoute) { alert("Primero genera una ruta."); return; }
+            const addresses = currentRoute.legs.map(leg => leg.end_address).join('; ');
+            const prompt = `Como experto en logística, analiza la siguiente ruta de entrega en una ciudad: ${addresses}. Proporciona un resumen conciso y 3 consejos prácticos para optimizar el reparto, considerando posibles demoras por tráfico, tipo de zona (residencial/comercial) o secuencia de paradas.`;
+            const summary = await callGemini(prompt);
+            ui.aiRouteSummaryContent.textContent = summary || "No se pudo generar el análisis de la ruta.";
+        }
+
+        async function handleImproveInstructions() {
+            const client = ui.orderForm.clienteInput.value;
+            const address = ui.orderForm.direccionInput.value;
+            if (!client || !address) { alert("Ingresa el nombre del cliente y la dirección primero."); return; }
+            const prompt = `Actúa como un asistente de envíos. Mejora y clarifica las siguientes instrucciones de entrega para un repartidor. Asegúrate de que sean cortas, claras y directas.\nCliente: ${client}\nDirección: ${address}`;
+            const improvedAddress = await callGemini(prompt);
+            if (improvedAddress) ui.orderForm.direccionInput.value = improvedAddress;
+        }
+        
+        async function handleGenerateConfirmation() {
+            const client = ui.orderForm.clienteInput.value;
+            const orderId = ui.orderForm.pedidoIdInput.value;
+            const products = ui.orderForm.productosInput.value;
+            if (!client || !products) { alert("Ingresa el nombre del cliente y los productos primero."); return; }
+            const prompt = `Genera un mensaje de confirmación de pedido corto y amigable para WhatsApp. Debe incluir el nombre del cliente, el ID del pedido (si existe) y un resumen de los productos.\nCliente: ${client}\nID Pedido: ${orderId}\nProductos:\n${products}`;
+            const message = await callGemini(prompt);
+            if(message) {
+                ui.confirmationMessage.value = message;
+                ui.confirmationMessageContainer.classList.remove('hidden');
+            }
+        }
+
+        async function handleAnalyzeClients() {
+            if (allClients.length === 0) { alert("No hay clientes para analizar."); return; }
+            const addressList = allClients.map(c => c.direccion).join('\n');
+            const prompt = `Como analista de negocios, examina la siguiente lista de direcciones de clientes. Identifica patrones, como barrios o zonas de alta concentración. Basado en esto, proporciona un breve análisis de mercado y 2 sugerencias de marketing para este negocio.\n\nDirecciones:\n${addressList}`;
+            const analysis = await callGemini(prompt);
+            if (analysis) {
+                ui.clientAnalysisContent.textContent = analysis;
+                ui.clientAnalysisContainer.classList.remove('hidden');
+            }
+        }
+        
+        // --- LÓGICA DE MODALES ---
+        function setupModalMap(mapContainerId, clickCallback) {
+            const mapOptions = { center: { lat: -34.6037, lng: -58.3816 }, zoom: 12, mapTypeControl: false, streetViewControl: false };
+            const map = new google.maps.Map(document.getElementById(mapContainerId), mapOptions);
+            map.addListener('click', (e) => clickCallback(e.latLng));
+            return map;
+        }
+        
+        function toggleOrderModal(show) {
+            if (show) {
+                ui.confirmationMessageContainer.classList.add('hidden');
+                ui.confirmationMessage.value = '';
+                ui.orderModal.classList.remove('hidden'); ui.orderModal.classList.add('flex');
+                setTimeout(() => {
+                    ui.orderModalContent.classList.remove('opacity-0', '-translate-y-10');
+                    if (!modalMap) modalMap = setupModalMap('modal-map', (latLng) => updateModalMarker(latLng));
+                    google.maps.event.trigger(modalMap, 'resize');
+                }, 10);
+            } else {
+                ui.orderModalContent.classList.add('opacity-0', '-translate-y-10');
+                setTimeout(() => ui.orderModal.classList.add('hidden'), 300);
+            }
+        }
+        function updateModalMarker(latLng) {
+            modalLatLng = latLng;
+            if (modalMarker) modalMarker.setPosition(latLng); else modalMarker = new google.maps.Marker({ position: latLng, map: modalMap });
+        }
+        async function handleSaveOrder(e) {
+            e.preventDefault();
+            const orderDocId = document.getElementById('order-id').value;
+            const data = {
+                pedidoId: document.getElementById('pedidoIdInput').value, cliente: document.getElementById('clienteInput').value,
+                direccion: document.getElementById('direccionInput').value, productos: document.getElementById('productosInput').value, 
+                estado: document.getElementById('estadoInput').value, tracking: document.getElementById('trackingInput').value,
+            };
+            if(modalLatLng) { data.latitude = modalLatLng.lat(); data.longitude = modalLatLng.lng(); }
+            try {
+                if (orderDocId) await updateDoc(doc(db,`artifacts/${appId}/users/${currentUserId}/pedidos`,orderDocId), data);
+                else { data.timestamp = serverTimestamp(); await addDoc(collection(db,`artifacts/${appId}/users/${currentUserId}/pedidos`), data); }
+                if (data.latitude) await saveOrUpdateClient(data);
+                toggleOrderModal(false);
+            } catch (error) { console.error("Error al guardar:", error); alert("Error al guardar el pedido.");}
+        }
+        function openModalInMode(mode, docId = null) {
+            ui.orderForm.reset();
+            if (modalMarker) modalMarker.setMap(null);
+            modalMarker = null;
+            modalLatLng = null;
+
+            if (mode === 'add') {
+                ui.orderModalTitle.textContent = 'Agregar Nuevo Pedido';
+                document.getElementById('order-id').value = '';
+                toggleOrderModal(true);
+            } else if (mode === 'edit' && docId) {
+                ui.orderModalTitle.textContent = 'Editar Pedido';
+                const order = allOrders.find(o => o.id === docId);
+                if (order) {
+                    document.getElementById('order-id').value = order.id;
+                    document.getElementById('pedidoIdInput').value = order.pedidoId || '';
+                    document.getElementById('clienteInput').value = order.cliente || '';
+                    document.getElementById('direccionInput').value = order.direccion || '';
+                    document.getElementById('productosInput').value = order.productos || '';
+                    document.getElementById('estadoInput').value = order.estado || 'Pendiente';
+                    document.getElementById('trackingInput').value = order.tracking || '';
+                    if (order.latitude) {
+                        modalLatLng = new google.maps.LatLng(order.latitude, order.longitude);
+                    }
+                    toggleOrderModal(true);
+                    if (modalLatLng) {
+                        setTimeout(() => {
+                           modalMap.setCenter(modalLatLng);
+                           modalMap.setZoom(16);
+                           updateModalMarker(modalLatLng);
+                        }, 200);
+                    }
+                }
+            }
+        }
+        async function handleDelete(docId) {
+            if (confirm('¿Estás seguro de que quieres eliminar este pedido?')) {
+                try { 
+                    await deleteDoc(doc(db,`artifacts/${appId}/users/${currentUserId}/pedidos`,docId));
+                } catch(e) { 
+                    console.error(e);
+                    alert("Error al eliminar el pedido.");
+                }
+            }
+        }
+        
+        function toggleClientModal(show) {
+             if (show) {
+                ui.clientModal.classList.remove('hidden'); ui.clientModal.classList.add('flex');
+                setTimeout(() => {
+                    ui.clientModalContent.classList.remove('opacity-0', '-translate-y-10');
+                    if (!clientModalMap) clientModalMap = setupModalMap('client-modal-map', (latLng) => updateClientModalMarker(latLng));
+                    google.maps.event.trigger(clientModalMap, 'resize');
+                }, 10);
+            } else {
+                ui.clientModalContent.classList.add('opacity-0', '-translate-y-10');
+                setTimeout(() => ui.clientModal.classList.add('hidden'), 300);
+            }
+        }
+        function updateClientModalMarker(latLng) {
+            clientModalLatLng = latLng;
+            if (clientModalMarker) clientModalMarker.setPosition(latLng); 
+            else clientModalMarker = new google.maps.Marker({ position: latLng, map: clientModalMap });
+        }
+        async function handleSaveClient(e) {
+            e.preventDefault();
+            const clientName = document.getElementById('clientNameInput').value;
+            const clientAddress = document.getElementById('clientAddressInput').value;
+
+            if(!clientName || !clientAddress) { 
+                alert("Nombre y dirección son requeridos."); 
+                return;
+            }
+
+            const saveData = async (location) => {
+                 await saveOrUpdateClient({ cliente: clientName, direccion: clientAddress, latitude: location.lat(), longitude: location.lng() });
+                 toggleClientModal(false);
+            }
+
+            if (!clientModalLatLng) {
+                geocoder.geocode({ 'address': clientAddress }, async (results, status) => {
+                    if (status === 'OK') {
+                        await saveData(results[0].geometry.location);
+                    } else {
+                        alert('No se pudo encontrar la dirección. Por favor, márcala en el mapa.');
+                    }
+                });
+            } else {
+                await saveData(clientModalLatLng);
+            }
+        }
+        function openClientModal() {
+            ui.clientForm.reset();
+            if (clientModalMarker) clientModalMarker.setMap(null);
+            clientModalMarker = null;
+            clientModalLatLng = null;
+            toggleClientModal(true);
+        }
+        
+        function toggleStartPointModal(show) {
+            if (show) {
+                ui.startPointModal.classList.remove('hidden'); ui.startPointModal.classList.add('flex');
+                setTimeout(() => {
+                    ui.startPointModalContent.classList.remove('opacity-0', '-translate-y-10');
+                    if (!startPointMap) startPointMap = setupModalMap('start-point-map', (latLng) => updateStartPointMarker(latLng));
+                    google.maps.event.trigger(startPointMap, 'resize');
+                    if (startPointLatLng) {
+                        startPointMap.setCenter(startPointLatLng);
+                        startPointMap.setZoom(16);
+                        updateStartPointMarker(startPointLatLng);
+                    }
+                }, 10);
+            } else {
+                ui.startPointModalContent.classList.add('opacity-0', '-translate-y-10');
+                setTimeout(() => ui.startPointModal.classList.add('hidden'), 300);
+            }
+        }
+        function updateStartPointMarker(latLng) {
+            startPointLatLng = latLng;
+            if (startPointMarker) startPointMarker.setPosition(latLng);
+            else startPointMarker = new google.maps.Marker({ position: latLng, map: startPointMap });
+        }
+        async function handleSaveStartPoint() {
+            if (!startPointLatLng) { alert("Marca un punto de partida en el mapa."); return; }
+            startPoint = { lat: startPointLatLng.lat(), lng: startPointLatLng.lng() };
+            geocoder.geocode({ 'location': startPoint }, (results, status) => {
+                ui.startPointDisplay.textContent = (status === 'OK' && results[0]) ? results[0].formatted_address : `Lat: ${startPoint.lat.toFixed(4)}, Lng: ${startPoint.lng.toFixed(4)}`;
+            });
+            updateMainMapMarkers();
+            toggleStartPointModal(false);
+        }
+
+        // --- MANEJADORES DE EVENTOS ---
+        function addTableButtonListeners() {
+            document.querySelectorAll('.edit-btn').forEach(b => b.addEventListener('click', (e) => openModalInMode('edit', e.currentTarget.dataset.id)));
+            document.querySelectorAll('.delete-btn').forEach(b => b.addEventListener('click', (e) => handleDelete(e.currentTarget.dataset.id)));
+        }
+        function setupEventListeners() {
+            ui.loginForm.addEventListener('submit', handleLogin);
+            ui.logoutBtn.addEventListener('click', handleLogout);
+            ui.addOrderBtn.addEventListener('click', () => openModalInMode('add'));
+            ui.cancelOrderBtn.addEventListener('click', () => toggleOrderModal(false));
+            ui.orderModal.addEventListener('click', (e) => { if (e.target === ui.orderModal) toggleOrderModal(false); });
+            ui.orderForm.addEventListener('submit', handleSaveOrder);
+            ui.searchAddressBtn.addEventListener('click', () => geocodeSearch(document.getElementById('direccionInput').value, modalMap, updateModalMarker));
+
+            ui.addClientBtn.addEventListener('click', openClientModal);
+            ui.cancelClientBtn.addEventListener('click', () => toggleClientModal(false));
+            ui.clientModal.addEventListener('click', (e) => { if (e.target === ui.clientModal) toggleClientModal(false); });
+            ui.clientForm.addEventListener('submit', handleSaveClient);
+            ui.searchClientAddressBtn.addEventListener('click', () => geocodeSearch(document.getElementById('clientAddressInput').value, clientModalMap, updateClientModalMarker));
+            
+            ui.setStartPointBtn.addEventListener('click', () => toggleStartPointModal(true));
+            ui.cancelStartPointBtn.addEventListener('click', () => toggleStartPointModal(false));
+            ui.startPointModal.addEventListener('click', (e) => { if (e.target === ui.startPointModal) toggleStartPointModal(false); });
+            ui.saveStartPointBtn.addEventListener('click', handleSaveStartPoint);
+            ui.searchStartAddrBtn.addEventListener('click', () => geocodeSearch(document.getElementById('start-address-input').value, startPointMap, updateStartPointMarker));
+
+            ui.improveInstructionsBtn.addEventListener('click', handleImproveInstructions);
+            ui.generateRouteBtn.addEventListener('click', generateRoute);
+            ui.getAiRouteSummaryBtn.addEventListener('click', handleAnalyzeRoute);
+            ui.analyzeClientsBtn.addEventListener('click', handleAnalyzeClients);
+            ui.generateConfirmationBtn.addEventListener('click', handleGenerateConfirmation);
+            ui.copyConfirmationBtn.addEventListener('click', () => {
+                ui.confirmationMessage.select();
+                document.execCommand('copy');
+            });
+            
+            ui.tabLogistics.addEventListener('click', () => switchTab('logistics'));
+            ui.tabClients.addEventListener('click', () => switchTab('clients'));
+        }
+        
+        function switchTab(tabName) {
+            if (tabName === 'logistics') {
+                ui.logisticsView.classList.remove('hidden'); ui.clientsView.classList.add('hidden');
+                ui.tabLogistics.setAttribute('aria-selected', 'true'); ui.tabClients.setAttribute('aria-selected', 'false');
+                ui.tabLogistics.classList.add('bg-indigo-600', 'text-white'); ui.tabClients.classList.remove('bg-indigo-600', 'text-white');
+                google.maps.event.trigger(mainMap, 'resize');
+            } else {
+                ui.clientsView.classList.remove('hidden'); ui.logisticsView.classList.add('hidden');
+                ui.tabClients.setAttribute('aria-selected', 'true'); ui.tabLogistics.setAttribute('aria-selected', 'false');
+                ui.tabClients.classList.add('bg-indigo-600', 'text-white'); ui.tabLogistics.classList.remove('bg-indigo-600', 'text-white');
+                google.maps.event.trigger(clientsHeatmap, 'resize');
+            }
+        }
+        
+        // --- FUNCIÓN DE INICIO GLOBAL Y VERIFICACIÓN ---
+        window.initApp = function() {
+            initializeGoogleMapsServices();
+            initializeMaps();
+            setupEventListeners();
+            ui.initialLoadingScreen.classList.add('hidden');
+            ui.appContent.classList.remove('hidden');
+            listenToOrders();
+            listenToClients();
+        };
+
+        function runStartupChecks() {
+            if (Maps_API_KEY.includes("TU_API_KEY")) {
+                ui.initialLoadingScreen.innerHTML = `<div class="text-center p-8 max-w-md mx-auto"><h2 class="text-2xl font-bold text-red-600 mb-2">Error de Configuración de Mapas</h2><p class="text-gray-700">La clave de API de Google Maps no es válida.</p></div>`;
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${Maps_API_KEY}&callback=initApp&libraries=places,routes,visualization&v=weekly`;
+            script.async = true;
+            document.head.appendChild(script);
+        }
+
+        function main() {
+            if (!firebaseConfig || Object.keys(firebaseConfig).length < 5 || (firebaseConfig.apiKey && firebaseConfig.apiKey.includes("PEGA AQUÍ"))) {
+                ui.loginScreen.innerHTML = `<div class="text-center p-8 max-w-lg mx-auto"><h2 class="text-2xl font-bold text-red-600 mb-2">Error Crítico de Configuración</h2><p class="text-gray-700">La configuración de Firebase no se ha agregado al archivo <code class='bg-red-100 text-red-800 p-1 rounded'>gestor.html</code>. La aplicación no puede iniciarse.</p><p class="mt-2 text-sm text-gray-500">Por favor, copia la configuración desde tu proyecto de Firebase y pégala en el lugar indicado en el código.</p></div>`;
+                return;
+            }
+
+            try {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                setupAuthListener();
+            } catch (error) {
+                console.error("Error inicializando Firebase:", error);
+                ui.loginScreen.innerHTML = `<div class="text-center p-8 max-w-lg mx-auto"><h2 class="text-2xl font-bold text-red-600 mb-2">Error de Firebase</h2><p class="text-gray-700">No se pudo inicializar Firebase. Revisa la consola para ver los detalles del error. Es muy probable que la clave de API sea inválida o que el dominio no esté autorizado.</p></div>`;
+            }
+        }
+
+        main();
+
+    </script>
+</body>
+</html>
