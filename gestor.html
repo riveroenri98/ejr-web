@@ -324,15 +324,14 @@
         
         // --- CONFIGURACIÓN ---
         const firebaseConfig = {
-  apiKey: "AIzaSy...",
-  authDomain: "tu-proyecto.firebaseapp.com",
-  projectId: "tu-proyecto",
-  storageBucket: "tu-proyecto.appspot.com",
-  messagingSenderId: "1234567890",
-  appId: "1:1234567890:web:abcdef123456"
-};
-   
-
+  apiKey: "AIzaSyAJbCC1pR-CQTpOXBicC59Jqm32Rr7q9M8",
+  authDomain: "sistemafidelidad-super-21.firebaseapp.com",
+  projectId: "sistemafidelidad-super-21",
+  storageBucket: "sistemafidelidad-super-21.firebasestorage.app",
+  messagingSenderId: "221163223090",
+  appId: "1:221163223090:web:ffe60b7a75758d591c242b",
+  measurementId: "G-79RSPJE5L8"
+}; 
         const Maps_API_KEY = "AIzaSyD9d0wzamU3rHdnfjVHeT0ZQWBz1-1bvd8"; 
 
         // --- VARIABLES GLOBALES ---
@@ -466,7 +465,21 @@
                 await signInWithEmailAndPassword(auth, email, password);
             } catch (error) {
                 console.error("Error de inicio de sesión:", error.code);
-                ui.loginError.textContent = "Correo o contraseña incorrectos.";
+                let errorMessage = "Error desconocido. Revisa la consola para más detalles.";
+                switch (error.code) {
+                    case 'auth/user-not-found':
+                    case 'auth/invalid-email':
+                        errorMessage = "No se encontró ningún usuario con este correo electrónico.";
+                        break;
+                    case 'auth/wrong-password':
+                    case 'auth/invalid-credential':
+                        errorMessage = "La contraseña es incorrecta. Por favor, inténtalo de nuevo.";
+                        break;
+                    case 'auth/operation-not-allowed':
+                         errorMessage = "El inicio de sesión por correo/contraseña no está habilitado en Firebase.";
+                         break;
+                }
+                ui.loginError.textContent = errorMessage;
                 ui.loginError.classList.remove('hidden');
             }
         }
