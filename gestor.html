@@ -217,6 +217,13 @@
                                 <div><label for="pedidoIdInput" class="block text-sm font-medium text-gray-700">N° de Pedido</label><input type="text" id="pedidoIdInput" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Ej: #1024" required></div>
                                 <div><label for="clienteInput" class="block text-sm font-medium text-gray-700">Nombre del Cliente</label><input type="text" id="clienteInput" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Ej: Ana Pérez" required></div>
                             </div>
+                             <div>
+                                <label for="importeInput" class="block text-sm font-medium text-gray-700">Importe Total de la Compra</label>
+                                <div class="relative mt-1">
+                                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
+                                    <input type="number" id="importeInput" class="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="0.00" step="0.01" min="0">
+                                </div>
+                            </div>
                             <div>
                                 <div class="flex justify-between items-center">
                                     <label for="direccionInput" class="block text-sm font-medium text-gray-700">Dirección / Instrucciones de Envío</label>
@@ -321,24 +328,24 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, collection, addDoc, onSnapshot, updateDoc, deleteDoc, query, serverTimestamp, orderBy, where, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, collection, addDoc, onSnapshot, updateDoc, deleteDoc, query, serverTimestamp, orderBy, where, getDocs, writeBatch, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         // --- CONFIGURACIÓN ---
         const firebaseConfig = {
-  apiKey: "AIzaSyAJbCC1pR-CQTpOXBicC59Jqm32Rr7q9M8",
-  authDomain: "sistemafidelidad-super-21.firebaseapp.com",
-  projectId: "sistemafidelidad-super-21",
-  storageBucket: "sistemafidelidad-super-21.firebasestorage.app",
-  messagingSenderId: "221163223090",
-  appId: "1:221163223090:web:ffe60b7a75758d591c242b",
-  measurementId: "G-79RSPJE5L8"
-};
+          apiKey: "AIzaSyAJbCC1pR-CQTpOXBicC59Jqm32Rr7q9M8",
+          authDomain: "sistemafidelidad-super-21.firebaseapp.com",
+          projectId: "sistemafidelidad-super-21",
+          storageBucket: "sistemafidelidad-super-21.firebasestorage.app",
+          messagingSenderId: "221163223090",
+          appId: "1:221163223090:web:ffe60b7a75758d591c242b",
+          measurementId: "G-79RSPJE5L8"
+        };
         const Maps_API_KEY = "AIzaSyD9d0wzamU3rHdnfjVHeT0ZQWBz1-1bvd8"; 
 
         // --- VARIABLES GLOBALES ---
         let db, auth, mainMap, modalMap, startPointMap, clientsHeatmap, clientModalMap, heatmap, geocoder;
         let modalMarker, startPointMarker, clientModalMarker, directionsService, directionsRenderer;
-        let mainMapMarkers = [];
+        let mainMapMarkers = [], clientMapMarkers = [];
         let infoWindow;
         let currentUserId = null, ordersUnsubscribe = null, clientsUnsubscribe = null;
         let allOrders = [], allClients = [];
@@ -519,34 +526,48 @@
             clientsUnsubscribe = onSnapshot(q, (querySnapshot) => {
                 allClients = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderClientsList();
-                renderClientsHeatmap();
+                renderClientMap();
             }, (error) => console.error("Error al escuchar clientes:", error));
         }
-        async function saveOrUpdateClient(clientData) {
-            if (!currentUserId || !clientData.cliente || !clientData.latitude) return;
+        async function updateClientPurchaseStats(orderData) {
+            if (!currentUserId || !orderData.cliente || !orderData.latitude || !orderData.importe) return;
+
             const clientsRef = collection(db, `artifacts/${appId}/users/${currentUserId}/clients`);
-            const q = query(clientsRef, where("cliente", "==", clientData.cliente));
-            
+            const q = query(clientsRef, where("cliente", "==", orderData.cliente));
             const querySnapshot = await getDocs(q);
+
             if (querySnapshot.empty) {
+                // El cliente es nuevo, se crea con las estadísticas iniciales
                 await addDoc(clientsRef, {
-                    cliente: clientData.cliente,
-                    direccion: clientData.direccion,
-                    latitude: clientData.latitude,
-                    longitude: clientData.longitude,
+                    cliente: orderData.cliente,
+                    direccion: orderData.direccion,
+                    latitude: orderData.latitude,
+                    longitude: orderData.longitude,
+                    totalSpent: orderData.importe,
+                    purchaseCount: 1,
                     firstSeen: serverTimestamp()
                 });
             } else {
+                // El cliente existe, se actualizan las estadísticas
                 const docRef = querySnapshot.docs[0].ref;
-                if(doc.data().direccion !== clientData.direccion) {
-                    await updateDoc(docRef, { 
-                        direccion: clientData.direccion,
-                        latitude: clientData.latitude,
-                        longitude: clientData.longitude
-                    });
+                const clientData = querySnapshot.docs[0].data();
+                
+                const updateData = {
+                    totalSpent: increment(orderData.importe),
+                    purchaseCount: increment(1)
+                };
+
+                // Actualizar dirección solo si cambió
+                if (clientData.direccion !== orderData.direccion) {
+                    updateData.direccion = orderData.direccion;
+                    updateData.latitude = orderData.latitude;
+                    updateData.longitude = orderData.longitude;
                 }
+                
+                await updateDoc(docRef, updateData);
             }
         }
+
 
         // --- RENDERIZADO Y UI ---
         const getStatusColors = (status) => {
@@ -571,6 +592,7 @@
                 <td data-label="Detalle del Pedido" class="px-6 py-4 align-top">
                     <div class="text-sm font-semibold text-gray-900">${order.cliente}</div>
                     <div class="text-xs text-gray-500">${order.pedidoId || ''}</div>
+                    <div class="text-xs font-bold text-green-600">${formatCurrency(order.importe)}</div>
                     <div class="text-xs text-gray-600 mt-1">${order.direccion}</div>
                     ${order.productos ? `<div class="mt-2 text-xs text-gray-700 bg-gray-50 p-2 rounded-md border border-gray-200 whitespace-pre-wrap">${order.productos}</div>` : ''}
                 </td>
@@ -587,6 +609,7 @@
             ui.clientsList.classList.toggle('hidden', !hasClients);
             
             allClients.forEach(client => {
+                const avgPurchase = (client.purchaseCount > 0) ? (client.totalSpent || 0) / client.purchaseCount : 0;
                 const li = document.createElement('li');
                 li.className = "p-4 hover:bg-gray-50";
                 li.innerHTML = `
@@ -596,6 +619,7 @@
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-medium text-gray-900 truncate">${client.cliente}</p>
                                 <p class="text-sm text-gray-500 truncate">${client.direccion}</p>
+                                <p class="text-sm text-green-600 font-semibold truncate">Compra Promedio: ${formatCurrency(avgPurchase)}</p>
                             </div>
                         </div>
                         <div class="flex-shrink-0 flex items-center space-x-2 text-sm">
@@ -608,18 +632,39 @@
                 ui.clientsList.appendChild(li);
             });
         }
-        function renderClientsHeatmap() {
-             const points = allClients.map(client => new google.maps.LatLng(client.latitude, client.longitude));
+        function renderClientMap() {
+             clientMapMarkers.forEach(marker => marker.setMap(null));
+             clientMapMarkers = [];
+             
+             const points = allClients.filter(c => c.latitude).map(client => new google.maps.LatLng(client.latitude, client.longitude));
+             
             if (heatmap) {
                 heatmap.setData(points);
-            } else {
+            } else if (points.length > 0) {
                 heatmap = new google.maps.visualization.HeatmapLayer({
-                    data: points,
-                    map: clientsHeatmap,
-                    radius: 30,
-                    opacity: 0.8
+                    data: points, map: clientsHeatmap, radius: 30, opacity: 0.8
                 });
             }
+
+            allClients.forEach(client => {
+                if (!client.latitude) return;
+                const avgPurchase = (client.purchaseCount > 0) ? (client.totalSpent || 0) / client.purchaseCount : 0;
+                const position = new google.maps.LatLng(client.latitude, client.longitude);
+                const marker = new google.maps.Marker({ position, map: clientsHeatmap, title: client.cliente });
+                
+                const contentString = `
+                    <div class="p-1">
+                        <p class="font-bold">${client.cliente}</p>
+                        <p>${client.direccion}</p>
+                        <p class="font-semibold text-green-600">Promedio: ${formatCurrency(avgPurchase)}</p>
+                    </div>`;
+
+                marker.addListener('click', () => { 
+                    infoWindow.setContent(contentString); 
+                    infoWindow.open(clientsHeatmap, marker); 
+                });
+                clientMapMarkers.push(marker);
+            });
         }
 
         // --- LÓGICA DE GOOGLE MAPS ---
@@ -806,16 +851,32 @@
         async function handleSaveOrder(e) {
             e.preventDefault();
             const orderDocId = document.getElementById('order-id').value;
+            const importe = parseFloat(document.getElementById('importeInput').value) || 0;
             const data = {
-                pedidoId: document.getElementById('pedidoIdInput').value, cliente: document.getElementById('clienteInput').value,
-                direccion: document.getElementById('direccionInput').value, productos: document.getElementById('productosInput').value, 
-                estado: document.getElementById('estadoInput').value, tracking: document.getElementById('trackingInput').value,
+                pedidoId: document.getElementById('pedidoIdInput').value, 
+                cliente: document.getElementById('clienteInput').value,
+                direccion: document.getElementById('direccionInput').value, 
+                productos: document.getElementById('productosInput').value, 
+                estado: document.getElementById('estadoInput').value, 
+                tracking: document.getElementById('trackingInput').value,
+                importe: importe
             };
-            if(modalLatLng) { data.latitude = modalLatLng.lat(); data.longitude = modalLatLng.lng(); }
+            if(modalLatLng) { 
+                data.latitude = modalLatLng.lat(); 
+                data.longitude = modalLatLng.lng(); 
+            }
             try {
-                if (orderDocId) await updateDoc(doc(db,`artifacts/${appId}/users/${currentUserId}/pedidos`,orderDocId), data);
-                else { data.timestamp = serverTimestamp(); await addDoc(collection(db,`artifacts/${appId}/users/${currentUserId}/pedidos`), data); }
-                if (data.latitude) await saveOrUpdateClient(data);
+                if (orderDocId) {
+                    await updateDoc(doc(db,`artifacts/${appId}/users/${currentUserId}/pedidos`,orderDocId), data);
+                } else { 
+                    data.timestamp = serverTimestamp(); 
+                    await addDoc(collection(db,`artifacts/${appId}/users/${currentUserId}/pedidos`), data); 
+                }
+                
+                if (data.latitude && data.importe > 0) {
+                    await updateClientPurchaseStats(data);
+                }
+                
                 toggleOrderModal(false);
             } catch (error) { console.error("Error al guardar:", error); alert("Error al guardar el pedido.");}
         }
@@ -836,6 +897,7 @@
                     document.getElementById('order-id').value = order.id;
                     document.getElementById('pedidoIdInput').value = order.pedidoId || '';
                     document.getElementById('clienteInput').value = order.cliente || '';
+                    document.getElementById('importeInput').value = order.importe || '';
                     document.getElementById('direccionInput').value = order.direccion || '';
                     document.getElementById('productosInput').value = order.productos || '';
                     document.getElementById('estadoInput').value = order.estado || 'Pendiente';
@@ -916,6 +978,8 @@
                         await updateDoc(doc(db, `artifacts/${appId}/users/${currentUserId}/clients`, clientId), data);
                     } else {
                         data.firstSeen = serverTimestamp();
+                        data.totalSpent = 0;
+                        data.purchaseCount = 0;
                         await addDoc(collection(db, `artifacts/${appId}/users/${currentUserId}/clients`), data);
                     }
                     toggleClientModal(false);
@@ -932,7 +996,7 @@
                     updateClientModalMarker(location);
                     saveData(location);
                 }, () => {
-                    alert('No se pudo encontrar la dirección. Por favor, márcala manualmente en el mapa y haz clic en Guardar.');
+                    alert('No se pudo encontrar la dirección. Por favor, márcala manually en el mapa y haz clic en Guardar.');
                 });
             }
         }
@@ -1033,10 +1097,12 @@
             ui.clientModal.addEventListener('click', (e) => { if (e.target === ui.clientModal) toggleClientModal(false); });
             ui.clientForm.addEventListener('submit', handleSaveClient);
             ui.clientsList.addEventListener('click', (e) => {
-                if (e.target.classList.contains('edit-client-btn')) {
-                    openClientModalInMode('edit', e.target.dataset.id);
-                } else if (e.target.classList.contains('delete-client-btn')) {
-                    handleDeleteClient(e.target.dataset.id);
+                const editBtn = e.target.closest('.edit-client-btn');
+                const deleteBtn = e.target.closest('.delete-client-btn');
+                if (editBtn) {
+                    openClientModalInMode('edit', editBtn.dataset.id);
+                } else if (deleteBtn) {
+                    handleDeleteClient(deleteBtn.dataset.id);
                 }
             });
             ui.searchClientAddressBtn.addEventListener('click', () => geocodeSearch(document.getElementById('clientAddressInput').value, clientModalMap, updateClientModalMarker));
@@ -1075,6 +1141,10 @@
             }
         }
         
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(value || 0);
+        }
+
         // --- FUNCIÓN DE INICIO GLOBAL Y VERIFICACIÓN ---
         window.initApp = function() {
             initializeGoogleMapsServices();
