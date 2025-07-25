@@ -608,12 +608,11 @@
 
             const batch = writeBatch(db);
             
-            // 1. Agregar el registro de la compra a la subcolección
             const newPurchaseRef = doc(purchasesRef);
             const purchaseData = {
                 amount: amount,
                 date: date,
-                type: type, // 'order' or 'manual'
+                type: type, 
                 createdAt: serverTimestamp()
             };
             if (type === 'order' && sourceId) {
@@ -621,7 +620,6 @@
             }
             batch.set(newPurchaseRef, purchaseData);
 
-            // 2. Actualizar las estadísticas en el documento del cliente
             batch.update(clientRef, {
                 totalSpent: increment(amount),
                 purchaseCount: increment(1)
@@ -636,19 +634,17 @@
             const querySnapshot = await getDocs(q);
 
             if (querySnapshot.empty) {
-                // El cliente es nuevo, se crea
                 const newClientRef = await addDoc(clientsRef, {
                     cliente: orderData.cliente,
                     direccion: orderData.direccion,
                     latitude: orderData.latitude,
                     longitude: orderData.longitude,
-                    totalSpent: 0, // Inicia en 0, logPurchase lo actualizará
-                    purchaseCount: 0, // Inicia en 0, logPurchase lo actualizará
+                    totalSpent: 0, 
+                    purchaseCount: 0, 
                     firstSeen: serverTimestamp()
                 });
                 return newClientRef.id;
             } else {
-                // El cliente existe, se actualiza la dirección si es necesario
                 const docRef = querySnapshot.docs[0].ref;
                 const clientData = querySnapshot.docs[0].data();
                 if (clientData.direccion !== orderData.direccion) {
@@ -660,6 +656,29 @@
                 }
                 return docRef.id;
             }
+        }
+
+        // --- CÁLCULO DE FRECUENCIA ---
+        async function getClientPurchaseHistory(clientId) {
+            const purchasesRef = collection(db, `artifacts/${appId}/users/${currentUserId}/clients/${clientId}/purchases`);
+            const snapshot = await getDocs(query(purchasesRef));
+            return snapshot.docs.map(doc => doc.data());
+        }
+
+        function calculateFrequency(purchases) {
+            if (!purchases || purchases.length < 2) {
+                return null;
+            }
+            const dates = purchases.map(p => new Date(p.date).getTime()).sort((a, b) => a - b);
+            const differences = [];
+            for (let i = 1; i < dates.length; i++) {
+                const diff = dates[i] - dates[i - 1];
+                differences.push(diff);
+            }
+            if (differences.length === 0) return null;
+            const avgMilliseconds = differences.reduce((sum, current) => sum + current, 0) / differences.length;
+            const avgDays = Math.round(avgMilliseconds / (1000 * 60 * 60 * 24));
+            return avgDays;
         }
 
 
@@ -702,8 +721,13 @@
             ui.clientsEmptyState.classList.toggle('hidden', hasClients);
             ui.clientsList.classList.toggle('hidden', !hasClients);
             
-            allClients.forEach(client => {
+            allClients.forEach(async (client) => {
                 const avgPurchase = (client.purchaseCount > 0) ? (client.totalSpent || 0) / client.purchaseCount : 0;
+                
+                const purchases = await getClientPurchaseHistory(client.id);
+                const frequency = calculateFrequency(purchases);
+                const frequencyText = frequency !== null ? `Cada ${frequency} días (aprox)` : 'N/A';
+
                 const li = document.createElement('li');
                 li.className = "p-4 hover:bg-gray-50";
                 li.innerHTML = `
@@ -714,6 +738,7 @@
                                 <p class="text-sm font-medium text-gray-900 truncate">${client.cliente}</p>
                                 <p class="text-sm text-gray-500 truncate">${client.direccion}</p>
                                 <p class="text-sm text-green-600 font-semibold truncate">Compra Promedio: ${formatCurrency(avgPurchase)}</p>
+                                <p class="text-sm text-blue-600 font-semibold truncate">Frecuencia: ${frequencyText}</p>
                             </div>
                         </div>
                         <div class="flex-shrink-0 flex items-center space-x-1 sm:space-x-2 text-sm flex-wrap justify-end">
@@ -748,14 +773,18 @@
                 const position = new google.maps.LatLng(client.latitude, client.longitude);
                 const marker = new google.maps.Marker({ position, map: clientsMap, title: client.cliente });
                 
-                const contentString = `
-                    <div class="p-1">
-                        <p class="font-bold">${client.cliente}</p>
-                        <p>${client.direccion}</p>
-                        <p class="font-semibold text-green-600">Promedio: ${formatCurrency(avgPurchase)}</p>
-                    </div>`;
+                marker.addListener('click', async () => { 
+                    const purchases = await getClientPurchaseHistory(client.id);
+                    const frequency = calculateFrequency(purchases);
+                    const frequencyText = frequency !== null ? `Cada ${frequency} días (aprox)` : 'N/A';
 
-                marker.addListener('click', () => { 
+                    const contentString = `
+                        <div class="p-1">
+                            <p class="font-bold">${client.cliente}</p>
+                            <p>${client.direccion}</p>
+                            <p class="font-semibold text-green-600">Promedio: ${formatCurrency(avgPurchase)}</p>
+                            <p class="font-semibold text-blue-600">Frecuencia: ${frequencyText}</p>
+                        </div>`;
                     infoWindow.setContent(contentString); 
                     infoWindow.open(clientsMap, marker); 
                 });
