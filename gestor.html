@@ -264,6 +264,7 @@
         <div id="client-modal" class="fixed inset-0 z-40 hidden items-center justify-center p-4 modal-backdrop">
              <div id="client-modal-content" class="bg-white rounded-xl shadow-2xl w-full max-w-2xl transform transition-all opacity-0 -translate-y-10 max-h-[90vh] overflow-y-auto">
                 <form id="client-form" class="p-6 sm:p-8">
+                     <input type="hidden" id="clientIdInput">
                      <h2 id="client-modal-title" class="text-2xl font-bold text-gray-900 mb-6">Agregar Nuevo Cliente</h2>
                      <div class="space-y-6">
                         <div>
@@ -331,7 +332,7 @@
   messagingSenderId: "221163223090",
   appId: "1:221163223090:web:ffe60b7a75758d591c242b",
   measurementId: "G-79RSPJE5L8"
-}; 
+};
         const Maps_API_KEY = "AIzaSyD9d0wzamU3rHdnfjVHeT0ZQWBz1-1bvd8"; 
 
         // --- VARIABLES GLOBALES ---
@@ -589,11 +590,18 @@
                 const li = document.createElement('li');
                 li.className = "p-4 hover:bg-gray-50";
                 li.innerHTML = `
-                    <div class="flex items-center space-x-4">
-                        <div class="flex-shrink-0"><span class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-indigo-100 text-indigo-700 font-bold">${client.cliente.charAt(0)}</span></div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-medium text-gray-900 truncate">${client.cliente}</p>
-                            <p class="text-sm text-gray-500 truncate">${client.direccion}</p>
+                    <div class="flex items-center justify-between space-x-4">
+                        <div class="flex-1 min-w-0 flex items-center space-x-4">
+                            <div class="flex-shrink-0"><span class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-indigo-100 text-indigo-700 font-bold">${client.cliente.charAt(0)}</span></div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-gray-900 truncate">${client.cliente}</p>
+                                <p class="text-sm text-gray-500 truncate">${client.direccion}</p>
+                            </div>
+                        </div>
+                        <div class="flex-shrink-0 flex items-center space-x-2 text-sm">
+                            <button class="edit-client-btn font-medium text-indigo-600 hover:text-indigo-900" data-id="${client.id}">Editar</button>
+                            <span class="text-gray-300">|</span>
+                            <button class="delete-client-btn font-medium text-red-600 hover:text-red-900" data-id="${client.id}">Eliminar</button>
                         </div>
                     </div>
                 `;
@@ -710,15 +718,16 @@
                 ui.routeItineraryList.appendChild(li);
             });
         }
-        function geocodeSearch(address, map, callback) {
+        function geocodeSearch(address, map, successCallback, failureCallback = null) {
              if (!address) return;
              geocoder.geocode({ 'address': address }, (results, status) => {
                 if (status === 'OK') {
                     map.setCenter(results[0].geometry.location);
                     map.setZoom(16);
-                    callback(results[0].geometry.location);
+                    successCallback(results[0].geometry.location);
                 } else { 
-                    alert('La dirección no fue encontrada por el siguiente motivo: ' + status);
+                    if (failureCallback) failureCallback();
+                    else alert('La dirección no fue encontrada por el siguiente motivo: ' + status);
                     console.error('Geocode was not successful for the following reason: ' + status);
                  }
              });
@@ -876,39 +885,102 @@
         }
         async function handleSaveClient(e) {
             e.preventDefault();
-            const clientName = document.getElementById('clientNameInput').value;
-            const clientAddress = document.getElementById('clientAddressInput').value;
+            const clientId = document.getElementById('clientIdInput').value;
+            const clientName = document.getElementById('clientNameInput').value.trim();
+            const clientAddress = document.getElementById('clientAddressInput').value.trim();
 
             if(!clientName || !clientAddress) { 
                 alert("Nombre y dirección son requeridos."); 
                 return;
             }
 
-            const saveData = async (location) => {
-                 await saveOrUpdateClient({ cliente: clientName, direccion: clientAddress, latitude: location.lat(), longitude: location.lng() });
-                 toggleClientModal(false);
+            const q = query(collection(db, `artifacts/${appId}/users/${currentUserId}/clients`), where("cliente", "==", clientName));
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                const existingClient = querySnapshot.docs[0];
+                if (!clientId || (clientId && existingClient.id !== clientId)) {
+                    alert(`Error: Ya existe un cliente con el nombre "${clientName}".`);
+                    return;
+                }
             }
 
-            if (!clientModalLatLng) {
-                geocoder.geocode({ 'address': clientAddress }, async (results, status) => {
-                    if (status === 'OK') {
-                        await saveData(results[0].geometry.location);
+            const saveData = async (location) => {
+                const data = {
+                    cliente: clientName,
+                    direccion: clientAddress,
+                    latitude: location.lat(),
+                    longitude: location.lng(),
+                };
+                try {
+                    if (clientId) {
+                        await updateDoc(doc(db, `artifacts/${appId}/users/${currentUserId}/clients`, clientId), data);
                     } else {
-                        alert('No se pudo encontrar la dirección. Por favor, márcala en el mapa.');
+                        data.firstSeen = serverTimestamp();
+                        await addDoc(collection(db, `artifacts/${appId}/users/${currentUserId}/clients`), data);
                     }
-                });
-            } else {
+                    toggleClientModal(false);
+                } catch (error) {
+                    console.error("Error al guardar cliente:", error);
+                    alert("Error al guardar el cliente.");
+                }
+            };
+
+            if (clientModalLatLng) {
                 await saveData(clientModalLatLng);
+            } else {
+                geocodeSearch(clientAddress, clientModalMap, (location) => {
+                    updateClientModalMarker(location);
+                    saveData(location);
+                }, () => {
+                    alert('No se pudo encontrar la dirección. Por favor, márcala manualmente en el mapa y haz clic en Guardar.');
+                });
             }
         }
-        function openClientModal() {
+        function openClientModalInMode(mode, docId = null) {
             ui.clientForm.reset();
+            document.getElementById('clientIdInput').value = '';
             if (clientModalMarker) clientModalMarker.setMap(null);
             clientModalMarker = null;
             clientModalLatLng = null;
-            toggleClientModal(true);
+
+            if (mode === 'add') {
+                document.getElementById('client-modal-title').textContent = 'Agregar Nuevo Cliente';
+                toggleClientModal(true);
+            } else if (mode === 'edit' && docId) {
+                document.getElementById('client-modal-title').textContent = 'Editar Cliente';
+                const client = allClients.find(c => c.id === docId);
+                if (client) {
+                    document.getElementById('clientIdInput').value = client.id;
+                    document.getElementById('clientNameInput').value = client.cliente;
+                    document.getElementById('clientAddressInput').value = client.direccion;
+                    if (client.latitude && client.longitude) {
+                        clientModalLatLng = new google.maps.LatLng(client.latitude, client.longitude);
+                    }
+                    toggleClientModal(true);
+                    if (clientModalLatLng) {
+                         setTimeout(() => {
+                           clientModalMap.setCenter(clientModalLatLng);
+                           clientModalMap.setZoom(16);
+                           updateClientModalMarker(clientModalLatLng);
+                        }, 200);
+                    }
+                }
+            }
         }
-        
+        async function handleDeleteClient(docId) {
+            const clientToDelete = allClients.find(c => c.id === docId);
+            if (!clientToDelete) return;
+
+            if (confirm(`¿Estás seguro de que quieres eliminar a ${clientToDelete.cliente}? Esta acción no se puede deshacer.`)) {
+                try { 
+                    await deleteDoc(doc(db, `artifacts/${appId}/users/${currentUserId}/clients`, docId));
+                } catch(e) { 
+                    console.error("Error al eliminar el cliente:", e);
+                    alert("Error al eliminar el cliente.");
+                }
+            }
+        }
+
         function toggleStartPointModal(show) {
             if (show) {
                 ui.startPointModal.classList.remove('hidden'); ui.startPointModal.classList.add('flex');
@@ -956,10 +1028,17 @@
             ui.orderForm.addEventListener('submit', handleSaveOrder);
             ui.searchAddressBtn.addEventListener('click', () => geocodeSearch(document.getElementById('direccionInput').value, modalMap, updateModalMarker));
 
-            ui.addClientBtn.addEventListener('click', openClientModal);
+            ui.addClientBtn.addEventListener('click', () => openClientModalInMode('add'));
             ui.cancelClientBtn.addEventListener('click', () => toggleClientModal(false));
             ui.clientModal.addEventListener('click', (e) => { if (e.target === ui.clientModal) toggleClientModal(false); });
             ui.clientForm.addEventListener('submit', handleSaveClient);
+            ui.clientsList.addEventListener('click', (e) => {
+                if (e.target.classList.contains('edit-client-btn')) {
+                    openClientModalInMode('edit', e.target.dataset.id);
+                } else if (e.target.classList.contains('delete-client-btn')) {
+                    handleDeleteClient(e.target.dataset.id);
+                }
+            });
             ui.searchClientAddressBtn.addEventListener('click', () => geocodeSearch(document.getElementById('clientAddressInput').value, clientModalMap, updateClientModalMarker));
             
             ui.setStartPointBtn.addEventListener('click', () => toggleStartPointModal(true));
