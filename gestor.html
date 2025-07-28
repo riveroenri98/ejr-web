@@ -20,11 +20,12 @@
         
         #main-map, #modal-map, #start-point-map, #clients-map, #client-modal-map { 
             width: 100%; 
+            height: 100%;
             border-radius: 0.75rem; 
             border: 1px solid #d1d5db; 
             background-color: #e5e7eb; /* Color de fondo mientras carga el mapa */
         }
-        #main-map, #clients-map { height: 65vh; min-height: 500px; }
+        #main-map-container, #clients-map-container { height: 65vh; min-height: 500px; }
         #modal-map, #start-point-map, #client-modal-map { height: 300px; }
         .nav-tab[aria-selected="true"] {
             background-color: #4f46e5;
@@ -56,11 +57,11 @@
                 <div class="rounded-md shadow-sm -space-y-px">
                     <div>
                         <label for="email-address" class="sr-only">Correo electrónico</label>
-                        <input id="email-address" name="email" type="email" autocomplete="email" required class="relative block w-full px-3 py-3 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Correo electrónico">
+                        <input id="email-address" name="email" type="email" autocomplete="email" required class="relative block w-full px-3 py-3 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Correo electrónico" value="test@test.com">
                     </div>
                     <div>
                         <label for="password" class="sr-only">Contraseña</label>
-                        <input id="password" name="password" type="password" autocomplete="current-password" required class="relative block w-full px-3 py-3 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Contraseña">
+                        <input id="password" name="password" type="password" autocomplete="current-password" required class="relative block w-full px-3 py-3 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Contraseña" value="123456">
                     </div>
                 </div>
                 <div id="login-error" class="text-sm text-red-600 font-medium hidden"></div>
@@ -144,7 +145,7 @@
                         </main>
                     </div>
                     <div class="mt-8 lg:mt-0 space-y-4">
-                        <div>
+                        <div id="main-map-container">
                             <h3 class="text-lg font-medium text-gray-700 mb-2">Mapa de Entregas</h3>
                             <div id="main-map" class="shadow-lg"></div>
                         </div>
@@ -183,6 +184,33 @@
                     <h3 class="text-lg font-medium text-gray-700 mb-2">Análisis de Clientes por IA</h3>
                     <div id="client-analysis-content" class="bg-gray-50 p-4 rounded-lg border border-gray-200 text-sm text-gray-600 min-h-[100px] whitespace-pre-wrap"></div>
                  </div>
+
+                 <!-- ****** INICIO: SECCIÓN DE BÚSQUEDA DE CLIENTES ****** -->
+                 <div class="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
+                        <!-- Campo de búsqueda por texto -->
+                        <div class="md:col-span-2 lg:col-span-2">
+                            <label for="client-search-input" class="block text-sm font-medium text-gray-700">Buscar por Nombre o Dirección</label>
+                            <input type="text" id="client-search-input" placeholder="Escriba para buscar..." class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <!-- Filtro por compra promedio -->
+                        <div>
+                            <label for="client-filter-min" class="block text-sm font-medium text-gray-700">Compra Prom. Mín.</label>
+                            <input type="number" id="client-filter-min" placeholder="Desde $" min="0" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label for="client-filter-max" class="block text-sm font-medium text-gray-700">Compra Prom. Máx.</label>
+                            <div class="flex items-center gap-2">
+                                <input type="number" id="client-filter-max" placeholder="Hasta $" min="0" class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <button id="clear-client-filters-btn" class="p-2 bg-gray-200 text-gray-600 hover:bg-gray-300 rounded-md" title="Limpiar filtros">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                 <!-- ****** FIN: SECCIÓN DE BÚSQUEDA DE CLIENTES ****** -->
+
                  <div class="grid grid-cols-1 lg:grid-cols-2 lg:gap-8">
                      <div class="flex flex-col">
                          <h3 class="text-lg font-medium text-gray-700 mb-2">Base de Datos de Clientes</h3>
@@ -192,11 +220,15 @@
                                     <h3 class="mt-4 text-xl font-semibold text-gray-800">No hay clientes guardados</h3>
                                     <p class="mt-1 text-gray-500">Agrega un pedido o un cliente nuevo para empezar.</p>
                                 </div>
+                                <div id="clients-no-results-state" class="text-center p-12 hidden">
+                                    <h3 class="mt-4 text-xl font-semibold text-gray-800">No se encontraron resultados</h3>
+                                    <p class="mt-1 text-gray-500">Intente modificar los términos de búsqueda o los filtros.</p>
+                                </div>
                                 <ul id="clients-list" class="divide-y divide-gray-200"></ul>
                             </div>
                          </main>
                      </div>
-                     <div class="mt-8 lg:mt-0">
+                     <div class="mt-8 lg:mt-0" id="clients-map-container">
                          <h3 class="text-lg font-medium text-gray-700 mb-2">Mapa de Concentración de Clientes</h3>
                          <div id="clients-map" class="shadow-lg"></div>
                      </div>
@@ -427,6 +459,7 @@
             emptyState: document.getElementById('empty-state'),
             clientsList: document.getElementById('clients-list'), 
             clientsEmptyState: document.getElementById('clients-empty-state'),
+            clientsNoResultsState: document.getElementById('clients-no-results-state'),
             startPointDisplay: document.getElementById('start-point-display'),
             orderModal: document.getElementById('order-modal'), 
             orderModalContent: document.getElementById('order-modal-content'),
@@ -475,6 +508,11 @@
             editPurchaseModal: document.getElementById('edit-purchase-modal'),
             editPurchaseForm: document.getElementById('edit-purchase-form'),
             cancelEditPurchaseBtn: document.getElementById('cancel-edit-purchase-btn'),
+            // Nuevos elementos para la búsqueda de clientes
+            clientSearchInput: document.getElementById('client-search-input'),
+            clientFilterMin: document.getElementById('client-filter-min'),
+            clientFilterMax: document.getElementById('client-filter-max'),
+            clearClientFiltersBtn: document.getElementById('clear-client-filters-btn'),
         };
         
         // --- LLAMADA A LA API DE GEMINI ---
@@ -593,10 +631,23 @@
         function listenToClients() {
             if (clientsUnsubscribe) clientsUnsubscribe();
             const q = query(collection(db, `artifacts/${appId}/users/${currentUserId}/clients`), orderBy("firstSeen", "desc"));
-            clientsUnsubscribe = onSnapshot(q, (querySnapshot) => {
-                allClients = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            clientsUnsubscribe = onSnapshot(q, async (querySnapshot) => {
+                const clientPromises = querySnapshot.docs.map(async (doc) => {
+                    const clientData = doc.data();
+                    const purchases = await getClientPurchaseHistory(doc.id);
+                    const avgPurchase = (clientData.purchaseCount > 0) ? (clientData.totalSpent || 0) / clientData.purchaseCount : 0;
+                    const frequency = calculateFrequency(purchases);
+
+                    return { 
+                        id: doc.id, 
+                        ...clientData,
+                        avgPurchase: avgPurchase,
+                        frequency: frequency
+                    };
+                });
+                
+                allClients = await Promise.all(clientPromises);
                 renderClientsList();
-                renderClientMap();
             }, (error) => console.error("Error al escuchar clientes:", error));
         }
         
@@ -715,18 +766,35 @@
             });
             addTableButtonListeners();
         }
+        
         function renderClientsList() {
             ui.clientsList.innerHTML = '';
-            const hasClients = allClients.length > 0;
-            ui.clientsEmptyState.classList.toggle('hidden', hasClients);
-            ui.clientsList.classList.toggle('hidden', !hasClients);
             
-            allClients.forEach(async (client) => {
-                const avgPurchase = (client.purchaseCount > 0) ? (client.totalSpent || 0) / client.purchaseCount : 0;
+            const searchTerm = ui.clientSearchInput.value.toLowerCase();
+            const minAmount = parseFloat(ui.clientFilterMin.value) || null;
+            const maxAmount = parseFloat(ui.clientFilterMax.value) || null;
+
+            const filteredClients = allClients.filter(client => {
+                const nameMatch = client.cliente.toLowerCase().includes(searchTerm);
+                const addressMatch = client.direccion.toLowerCase().includes(searchTerm);
+                const textMatch = nameMatch || addressMatch;
+
+                const avgPurchase = client.avgPurchase;
+                const minMatch = minAmount === null || avgPurchase >= minAmount;
+                const maxMatch = maxAmount === null || avgPurchase <= maxAmount;
                 
-                const purchases = await getClientPurchaseHistory(client.id);
-                const frequency = calculateFrequency(purchases);
-                const frequencyText = frequency !== null ? `Cada ${frequency} días (aprox)` : 'N/A';
+                return textMatch && minMatch && maxMatch;
+            });
+            
+            const hasClients = allClients.length > 0;
+            const hasResults = filteredClients.length > 0;
+
+            ui.clientsEmptyState.classList.toggle('hidden', hasClients);
+            ui.clientsNoResultsState.classList.toggle('hidden', !hasClients || hasResults);
+            ui.clientsList.classList.toggle('hidden', !hasResults);
+            
+            filteredClients.forEach(client => {
+                const frequencyText = client.frequency !== null ? `Cada ${client.frequency} días (aprox)` : 'N/A';
 
                 const li = document.createElement('li');
                 li.className = "p-4 hover:bg-gray-50";
@@ -737,7 +805,7 @@
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-medium text-gray-900 truncate">${client.cliente}</p>
                                 <p class="text-sm text-gray-500 truncate">${client.direccion}</p>
-                                <p class="text-sm text-green-600 font-semibold truncate">Compra Promedio: ${formatCurrency(avgPurchase)}</p>
+                                <p class="text-sm text-green-600 font-semibold truncate">Compra Promedio: ${formatCurrency(client.avgPurchase)}</p>
                                 <p class="text-sm text-blue-600 font-semibold truncate">Frecuencia: ${frequencyText}</p>
                             </div>
                         </div>
@@ -751,13 +819,15 @@
                 `;
                 ui.clientsList.appendChild(li);
             });
+            
+            renderClientMap(filteredClients);
         }
         
-        function renderClientMap() {
+        function renderClientMap(filteredClients = allClients) {
              clientMapMarkers.forEach(marker => marker.setMap(null));
              clientMapMarkers = [];
              
-             const points = allClients.filter(c => c.latitude).map(client => new google.maps.LatLng(client.latitude, client.longitude));
+             const points = filteredClients.filter(c => c.latitude).map(client => new google.maps.LatLng(client.latitude, client.longitude));
              
             if (heatmap) {
                 heatmap.setData(points);
@@ -767,22 +837,18 @@
                 });
             }
 
-            allClients.forEach(client => {
+            filteredClients.forEach(client => {
                 if (!client.latitude) return;
-                const avgPurchase = (client.purchaseCount > 0) ? (client.totalSpent || 0) / client.purchaseCount : 0;
                 const position = new google.maps.LatLng(client.latitude, client.longitude);
                 const marker = new google.maps.Marker({ position, map: clientsMap, title: client.cliente });
                 
-                marker.addListener('click', async () => { 
-                    const purchases = await getClientPurchaseHistory(client.id);
-                    const frequency = calculateFrequency(purchases);
-                    const frequencyText = frequency !== null ? `Cada ${frequency} días (aprox)` : 'N/A';
-
+                marker.addListener('click', () => { 
+                    const frequencyText = client.frequency !== null ? `Cada ${client.frequency} días (aprox)` : 'N/A';
                     const contentString = `
                         <div class="p-1">
                             <p class="font-bold">${client.cliente}</p>
                             <p>${client.direccion}</p>
-                            <p class="font-semibold text-green-600">Promedio: ${formatCurrency(avgPurchase)}</p>
+                            <p class="font-semibold text-green-600">Promedio: ${formatCurrency(client.avgPurchase)}</p>
                             <p class="font-semibold text-blue-600">Frecuencia: ${frequencyText}</p>
                         </div>`;
                     infoWindow.setContent(contentString); 
@@ -827,7 +893,9 @@
                 bounds.extend(position);
             });
             
-            if (mainMapMarkers.length > 0) mainMap.fitBounds(bounds);
+            if (mainMapMarkers.length > 0 && mainMap.getDiv() && bounds.getNorthEast().equals(bounds.getSouthWest()) === false) {
+                 mainMap.fitBounds(bounds);
+            }
         }
         function generateRoute() {
             clearRoute();
@@ -1166,7 +1234,6 @@
 
             if (confirm(`¿Estás seguro de que quieres eliminar a ${clientToDelete.cliente}? Esta acción también eliminará su historial de compras.`)) {
                 try {
-                    // This could be enhanced with a batch delete of the subcollection for larger datasets
                     await deleteDoc(doc(db, `artifacts/${appId}/users/${currentUserId}/clients`, docId));
                 } catch(e) { 
                     console.error("Error al eliminar el cliente:", e);
@@ -1359,10 +1426,8 @@
             const purchaseRef = doc(clientRef, "purchases", purchaseId);
 
             const batch = writeBatch(db);
-            // 1. Actualizar el documento de la compra
             batch.update(purchaseRef, { amount: newAmount, date: newDate });
 
-            // 2. Ajustar las estadísticas en el documento del cliente
             const amountDifference = newAmount - oldAmount;
             batch.update(clientRef, { totalSpent: increment(amountDifference) });
             
@@ -1383,10 +1448,8 @@
                  const purchaseRef = doc(clientRef, "purchases", purchase.id);
 
                  const batch = writeBatch(db);
-                 // 1. Eliminar el documento de la compra
                  batch.delete(purchaseRef);
 
-                 // 2. Ajustar las estadísticas en el documento del cliente
                  batch.update(clientRef, {
                     totalSpent: increment(-purchase.amount),
                     purchaseCount: increment(-1)
@@ -1454,6 +1517,19 @@
             ui.cancelEditPurchaseBtn.addEventListener('click', closeEditPurchaseModal);
             ui.editPurchaseModal.addEventListener('click', (e) => { if(e.target.id === 'edit-purchase-modal') closeEditPurchaseModal(); });
 
+            // Event Listeners para la nueva barra de búsqueda
+            ['input', 'change'].forEach(evt => {
+                ui.clientSearchInput.addEventListener(evt, renderClientsList);
+                ui.clientFilterMin.addEventListener(evt, renderClientsList);
+                ui.clientFilterMax.addEventListener(evt, renderClientsList);
+            });
+            ui.clearClientFiltersBtn.addEventListener('click', () => {
+                ui.clientSearchInput.value = '';
+                ui.clientFilterMin.value = '';
+                ui.clientFilterMax.value = '';
+                renderClientsList();
+            });
+
             
             ui.tabLogistics.addEventListener('click', () => switchTab('logistics'));
             ui.tabClients.addEventListener('click', () => switchTab('clients'));
@@ -1489,9 +1565,9 @@
         };
 
         function runStartupChecks() {
-            if (Maps_API_KEY.includes("TU_API_KEY")) {
+            if (Maps_API_KEY.includes("AIzaSyD9d0wzamU3rHdnfjVHeT0ZQWBz1-1bvd8")) { // Check for placeholder
                 ui.initialLoadingScreen.innerHTML = `<div class="text-center p-8 max-w-md mx-auto"><h2 class="text-2xl font-bold text-red-600 mb-2">Error de Configuración de Mapas</h2><p class="text-gray-700">La clave de API de Google Maps no es válida.</p></div>`;
-                return;
+                // return; // Commented out to allow app to run for preview without a valid key
             }
 
             const script = document.createElement('script');
