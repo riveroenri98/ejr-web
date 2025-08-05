@@ -276,7 +276,7 @@
                             </div>
                              <div>
                                 <label for="productosInput" class="block text-sm font-medium text-gray-700">Productos y Cantidades</label>
-                                <textarea id="productosInput" rows="4" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Ej:&#10;- 2x Camiseta Talla M&#10;- 1x Taza con logo"></textarea>
+                                <textarea id="productosInput" rows="4" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Pegue aquí el pedido completo del cliente..."></textarea>
                             </div>
                              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div><label for="estadoInput" class="block text-sm font-medium text-gray-700">Estado</label><select id="estadoInput" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"><option>Pendiente</option><option>En Preparación</option><option>Enviado</option><option>Entregado</option></select></div>
@@ -376,7 +376,7 @@
                         </div>
                         <div>
                             <label for="purchaseProductsInput" class="block text-sm font-medium text-gray-700">Productos y Cantidades</label>
-                            <textarea id="purchaseProductsInput" rows="5" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Formato: Cantidad x Nombre @ Precio Unitario&#10;Ej:&#10;2 x Camiseta Talla M @ 500&#10;1 x Taza con logo @ 300"></textarea>
+                            <textarea id="purchaseProductsInput" rows="5" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Pegue aquí el pedido completo del cliente..."></textarea>
                             <p class="mt-1 text-xs text-gray-500">El importe total se calculará automáticamente desde aquí.</p>
                         </div>
                         <div>
@@ -1054,15 +1054,26 @@
         async function handleSaveOrder(e) {
             e.preventDefault();
             const orderDocId = document.getElementById('order-id').value;
-            const importe = parseFloat(document.getElementById('importeInput').value) || 0;
+             const productsText = document.getElementById('productosInput').value;
+            const { products, totalAmount } = parseProductsInput(productsText);
+
+            let importeFinal = totalAmount;
+            // Si no se pudieron parsear productos, usar el importe manual
+            if (importeFinal === 0) {
+                importeFinal = parseFloat(document.getElementById('importeInput').value) || 0;
+            } else {
+                // Actualizar el campo de importe si se calculó desde los productos
+                document.getElementById('importeInput').value = importeFinal.toFixed(2);
+            }
+
             const data = {
                 pedidoId: document.getElementById('pedidoIdInput').value, 
                 cliente: document.getElementById('clienteInput').value,
                 direccion: document.getElementById('direccionInput').value, 
-                productos: document.getElementById('productosInput').value, 
+                productos: formatProductsToText(products), // Guardar el formato limpio
                 estado: document.getElementById('estadoInput').value, 
                 tracking: document.getElementById('trackingInput').value,
-                importe: importe
+                importe: importeFinal
             };
             if(modalLatLng) { 
                 data.latitude = modalLatLng.lat(); 
@@ -1080,7 +1091,6 @@
                 
                 if (data.latitude && data.importe > 0) {
                     const clientId = await findOrCreateClientForOrder(data);
-                    const { products } = parseProductsInput(data.productos);
                     await logPurchase(clientId, data.importe, new Date().toISOString().split('T')[0], 'order', products, savedOrderId);
                 }
                 
@@ -1674,31 +1684,38 @@
             const products = [];
             let totalAmount = 0;
 
-            lines.forEach(line => {
-                try {
-                    const parts = line.split('@');
-                    if (parts.length !== 2) return;
-                    const price = parseFloat(parts[1].trim());
-                    
-                    const firstPart = parts[0].split('x');
-                    const quantity = parseInt(firstPart[0].trim(), 10);
-                    const name = firstPart.slice(1).join('x').trim();
+            // Regex para capturar: ➡️ 1 x Nombre del Producto ($1234.56)
+            const productRegex = /➡️\s*(\d+)\s*x\s*(.*?)\s*\(\$([\d,.]+)\)/;
 
-                    if (!isNaN(quantity) && !isNaN(price) && name) {
-                        products.push({ name, quantity, price });
-                        totalAmount += quantity * price;
+            lines.forEach(line => {
+                const match = line.match(productRegex);
+                if (match) {
+                    try {
+                        const quantity = parseInt(match[1], 10);
+                        const name = match[2].trim();
+                        // El precio capturado es el total de la línea (cantidad * precio unitario)
+                        const lineTotalPrice = parseFloat(match[3].replace(/\./g, '').replace(',', '.'));
+                        
+                        if (!isNaN(quantity) && !isNaN(lineTotalPrice) && name && quantity > 0) {
+                            // Calcular el precio unitario
+                            const price = lineTotalPrice / quantity;
+                            products.push({ name, quantity, price });
+                            totalAmount += lineTotalPrice;
+                        }
+                    } catch (e) {
+                        console.warn("Línea de producto mal formateada:", line, e);
                     }
-                } catch (e) {
-                    console.warn("Línea de producto mal formateada:", line);
                 }
             });
             
             return { products, totalAmount };
         }
 
+
         function formatProductsToText(products) {
             if (!products || products.length === 0) return '';
-            return products.map(p => `${p.quantity} x ${p.name} @ ${p.price}`).join('\n');
+            // Formato simple para la base de datos, ya que el parseo ahora es más robusto
+            return products.map(p => `${p.quantity} x ${p.name} @ ${p.price.toFixed(2)}`).join('\n');
         }
 
         async function updateRankings() {
