@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor de Envíos con Google Maps</title>
+    <title>Gestor de Envíos y CRM con Ranking de Productos</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Inter -->
@@ -20,12 +20,11 @@
         
         #main-map, #modal-map, #start-point-map, #clients-map, #client-modal-map { 
             width: 100%; 
-            height: 100%;
             border-radius: 0.75rem; 
             border: 1px solid #d1d5db; 
             background-color: #e5e7eb; /* Color de fondo mientras carga el mapa */
         }
-        #main-map-container, #clients-map-container { height: 65vh; min-height: 500px; }
+        #main-map, #clients-map { height: 65vh; min-height: 500px; }
         #modal-map, #start-point-map, #client-modal-map { height: 300px; }
         .nav-tab[aria-selected="true"] {
             background-color: #4f46e5;
@@ -57,11 +56,11 @@
                 <div class="rounded-md shadow-sm -space-y-px">
                     <div>
                         <label for="email-address" class="sr-only">Correo electrónico</label>
-                        <input id="email-address" name="email" type="email" autocomplete="email" required class="relative block w-full px-3 py-3 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Correo electrónico" value="test@test.com">
+                        <input id="email-address" name="email" type="email" autocomplete="email" required class="relative block w-full px-3 py-3 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Correo electrónico">
                     </div>
                     <div>
                         <label for="password" class="sr-only">Contraseña</label>
-                        <input id="password" name="password" type="password" autocomplete="current-password" required class="relative block w-full px-3 py-3 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Contraseña" value="123456">
+                        <input id="password" name="password" type="password" autocomplete="current-password" required class="relative block w-full px-3 py-3 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Contraseña">
                     </div>
                 </div>
                 <div id="login-error" class="text-sm text-red-600 font-medium hidden"></div>
@@ -104,6 +103,7 @@
                     <nav class="-mb-px flex space-x-4" aria-label="Tabs">
                         <button id="tab-logistics" class="nav-tab whitespace-nowrap py-3 px-4 border-b-2 font-medium text-sm rounded-t-lg" aria-selected="true">Logística y Rutas</button>
                         <button id="tab-clients" class="nav-tab whitespace-nowrap py-3 px-4 border-b-2 font-medium text-sm rounded-t-lg bg-white text-gray-500 hover:text-gray-700 hover:bg-gray-50" aria-selected="false">Clientes</button>
+                        <button id="tab-analysis" class="nav-tab whitespace-nowrap py-3 px-4 border-b-2 font-medium text-sm rounded-t-lg bg-white text-gray-500 hover:text-gray-700 hover:bg-gray-50" aria-selected="false">Análisis</button>
                     </nav>
                 </div>
             </div>
@@ -145,7 +145,7 @@
                         </main>
                     </div>
                     <div class="mt-8 lg:mt-0 space-y-4">
-                        <div id="main-map-container">
+                        <div>
                             <h3 class="text-lg font-medium text-gray-700 mb-2">Mapa de Entregas</h3>
                             <div id="main-map" class="shadow-lg"></div>
                         </div>
@@ -184,47 +184,6 @@
                     <h3 class="text-lg font-medium text-gray-700 mb-2">Análisis de Clientes por IA</h3>
                     <div id="client-analysis-content" class="bg-gray-50 p-4 rounded-lg border border-gray-200 text-sm text-gray-600 min-h-[100px] whitespace-pre-wrap"></div>
                  </div>
-
-                 <!-- ****** INICIO: SECCIÓN DE ALERTAS DE CLIENTES ****** -->
-                 <div id="client-alerts-container" class="mb-6 hidden">
-                    <h3 class="text-lg font-medium text-gray-700 mb-2">Alertas de Clientes</h3>
-                    <div id="client-alerts-content" class="space-y-3">
-                        <!-- Las alertas se inyectarán aquí dinámicamente -->
-                    </div>
-                </div>
-                 <!-- ****** FIN: SECCIÓN DE ALERTAS DE CLIENTES ****** -->
-
-
-                 <!-- ****** INICIO: SECCIÓN DE BÚSQUEDA DE CLIENTES ****** -->
-                 <div class="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
-                        <div class="lg:col-span-2">
-                            <label for="client-search-input" class="block text-sm font-medium text-gray-700">Buscar por Nombre o Dirección</label>
-                            <input type="text" id="client-search-input" placeholder="Escriba para buscar..." class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                        </div>
-                        <div>
-                            <label for="client-filter-zone" class="block text-sm font-medium text-gray-700">Zona</label>
-                            <select id="client-filter-zone" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                                <option value="">Todas</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="client-filter-min" class="block text-sm font-medium text-gray-700">Compra Prom. Mín.</label>
-                            <input type="number" id="client-filter-min" placeholder="Desde $" min="0" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                        </div>
-                        <div>
-                            <label for="client-filter-max" class="block text-sm font-medium text-gray-700">Compra Prom. Máx.</label>
-                            <div class="flex items-center gap-2">
-                                <input type="number" id="client-filter-max" placeholder="Hasta $" min="0" class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                                <button id="clear-client-filters-btn" class="p-2 bg-gray-200 text-gray-600 hover:bg-gray-300 rounded-md" title="Limpiar filtros">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                 <!-- ****** FIN: SECCIÓN DE BÚSQUEDA DE CLIENTES ****** -->
-
                  <div class="grid grid-cols-1 lg:grid-cols-2 lg:gap-8">
                      <div class="flex flex-col">
                          <h3 class="text-lg font-medium text-gray-700 mb-2">Base de Datos de Clientes</h3>
@@ -234,20 +193,58 @@
                                     <h3 class="mt-4 text-xl font-semibold text-gray-800">No hay clientes guardados</h3>
                                     <p class="mt-1 text-gray-500">Agrega un pedido o un cliente nuevo para empezar.</p>
                                 </div>
-                                <div id="clients-no-results-state" class="text-center p-12 hidden">
-                                    <h3 class="mt-4 text-xl font-semibold text-gray-800">No se encontraron resultados</h3>
-                                    <p class="mt-1 text-gray-500">Intente modificar los términos de búsqueda o los filtros.</p>
-                                </div>
                                 <ul id="clients-list" class="divide-y divide-gray-200"></ul>
                             </div>
                          </main>
                      </div>
-                     <div class="mt-8 lg:mt-0" id="clients-map-container">
+                     <div class="mt-8 lg:mt-0">
                          <h3 class="text-lg font-medium text-gray-700 mb-2">Mapa de Concentración de Clientes</h3>
                          <div id="clients-map" class="shadow-lg"></div>
                      </div>
                  </div>
             </div>
+            
+            <!-- Contenido de Análisis -->
+            <div id="analysis-view" class="hidden">
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Análisis de Rendimiento Global</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <h3 class="font-semibold text-xl mb-4 text-gray-800 flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-purple-600" viewBox="0 0 20 20" fill="currentColor"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" /><path fill-rule="evenodd" d="M4 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 00-2 0v4a1 1 0 102 0V9zm4 0a1 1 0 10-2 0v4a1 1 0 102 0V9zm2-2a1 1 0 100 2h.01a1 1 0 100-2H13z" clip-rule="evenodd" /></svg>
+                                Ranking de Productos
+                            </h3>
+                            <div class="space-y-6">
+                                <div>
+                                    <h4 class="font-medium text-lg mb-3 text-gray-700">🏆 Top 5 por Cantidad Vendida</h4>
+                                    <div id="ranking-by-quantity" class="space-y-3"></div>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-lg mb-3 text-gray-700">💰 Top 5 por Ingresos Generados</h4>
+                                    <div id="ranking-by-revenue" class="space-y-3"></div>
+                                </div>
+                            </div>
+                        </div>
+                         <div>
+                            <h3 class="font-semibold text-xl mb-4 text-gray-800 flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-teal-600" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg>
+                                Ranking de Clientes
+                            </h3>
+                            <div class="space-y-6">
+                                <div>
+                                    <h4 class="font-medium text-lg mb-3 text-gray-700">⭐ Top 5 por Gasto Total</h4>
+                                    <div id="ranking-clients-by-spent" class="space-y-3"></div>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-lg mb-3 text-gray-700">🛒 Top 5 por N° de Compras</h4>
+                                    <div id="ranking-clients-by-purchases" class="space-y-3"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
 
         </div>
 
@@ -328,10 +325,6 @@
                             <label for="clientAddressInput" class="block text-sm font-medium text-gray-700">Dirección</label>
                             <textarea id="clientAddressInput" rows="2" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required></textarea>
                         </div>
-                        <div>
-                            <label for="clientZoneInput" class="block text-sm font-medium text-gray-700">Zona (Ej: Microcentro, Palermo)</label>
-                            <input type="text" id="clientZoneInput" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Asigne una zona a este cliente">
-                        </div>
                          <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Marcar Ubicación</label>
                              <div class="flex items-center gap-2 mb-2">
@@ -373,7 +366,7 @@
             </div>
         </div>
         <div id="add-purchase-modal" class="fixed inset-0 z-40 hidden items-center justify-center p-4 modal-backdrop">
-            <div id="add-purchase-modal-content" class="bg-white rounded-xl shadow-2xl w-full max-w-md transform transition-all opacity-0 -translate-y-10">
+            <div id="add-purchase-modal-content" class="bg-white rounded-xl shadow-2xl w-full max-w-lg transform transition-all opacity-0 -translate-y-10 max-h-[90vh] overflow-y-auto">
                 <form id="add-purchase-form" class="p-6 sm:p-8">
                     <h2 id="add-purchase-modal-title" class="text-2xl font-bold text-gray-900 mb-6">Agregar Compra</h2>
                     <div class="space-y-4">
@@ -382,10 +375,15 @@
                             <input type="date" id="purchaseDateInput" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                         </div>
                         <div>
-                            <label for="purchaseAmountInput" class="block text-sm font-medium text-gray-700">Importe de la Compra</label>
+                            <label for="purchaseProductsInput" class="block text-sm font-medium text-gray-700">Productos y Cantidades</label>
+                            <textarea id="purchaseProductsInput" rows="5" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Formato: Cantidad x Nombre @ Precio Unitario&#10;Ej:&#10;2 x Camiseta Talla M @ 500&#10;1 x Taza con logo @ 300"></textarea>
+                            <p class="mt-1 text-xs text-gray-500">El importe total se calculará automáticamente desde aquí.</p>
+                        </div>
+                        <div>
+                            <label for="purchaseAmountInput" class="block text-sm font-medium text-gray-700">Importe Total (calculado)</label>
                             <div class="relative mt-1">
                                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
-                                <input type="number" id="purchaseAmountInput" class="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="0.00" step="0.01" min="0.01" required>
+                                <input type="number" id="purchaseAmountInput" class="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-100" placeholder="0.00" step="0.01" min="0" readonly>
                             </div>
                         </div>
                     </div>
@@ -408,7 +406,7 @@
             </div>
         </div>
         <div id="edit-purchase-modal" class="fixed inset-0 z-40 hidden items-center justify-center p-4 modal-backdrop">
-            <div id="edit-purchase-modal-content" class="bg-white rounded-xl shadow-2xl w-full max-w-md transform transition-all opacity-0 -translate-y-10">
+            <div id="edit-purchase-modal-content" class="bg-white rounded-xl shadow-2xl w-full max-w-lg transform transition-all opacity-0 -translate-y-10 max-h-[90vh] overflow-y-auto">
                 <form id="edit-purchase-form" class="p-6 sm:p-8">
                     <h2 class="text-2xl font-bold text-gray-900 mb-6">Editar Compra</h2>
                     <input type="hidden" id="editPurchaseId">
@@ -418,10 +416,14 @@
                             <input type="date" id="editPurchaseDateInput" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                         </div>
                         <div>
-                            <label for="editPurchaseAmountInput" class="block text-sm font-medium text-gray-700">Importe de la Compra</label>
+                            <label for="editPurchaseProductsInput" class="block text-sm font-medium text-gray-700">Productos y Cantidades</label>
+                            <textarea id="editPurchaseProductsInput" rows="5" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Formato: Cantidad x Nombre @ Precio Unitario"></textarea>
+                        </div>
+                        <div>
+                            <label for="editPurchaseAmountInput" class="block text-sm font-medium text-gray-700">Importe Total (calculado)</label>
                             <div class="relative mt-1">
                                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
-                                <input type="number" id="editPurchaseAmountInput" class="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="0.00" step="0.01" min="0.01" required>
+                                <input type="number" id="editPurchaseAmountInput" class="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-100" placeholder="0.00" step="0.01" min="0" readonly>
                             </div>
                         </div>
                     </div>
@@ -432,13 +434,32 @@
                 </form>
             </div>
         </div>
+        <!-- Modal de Ranking de Productos por Cliente -->
+        <div id="client-ranking-modal" class="fixed inset-0 z-40 hidden items-center justify-center p-4 modal-backdrop">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl transform transition-all opacity-0 -translate-y-10 max-h-[90vh] flex flex-col">
+                <h2 id="client-ranking-modal-title" class="text-2xl font-bold text-gray-900 p-6 border-b">Ranking de Productos</h2>
+                <div class="p-6 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="font-semibold text-lg mb-3 text-gray-800">🏆 Top por Cantidad Vendida</h3>
+                        <ol id="client-ranking-by-quantity" class="list-decimal list-inside space-y-2"></ol>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-lg mb-3 text-gray-800">💰 Top por Ingresos Generados</h3>
+                        <ol id="client-ranking-by-revenue" class="list-decimal list-inside space-y-2"></ol>
+                    </div>
+                </div>
+                <div class="p-4 bg-gray-50 border-t flex justify-end">
+                    <button type="button" id="close-client-ranking-modal-btn" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">Cerrar</button>
+                </div>
+            </div>
+        </div>
     </div>
     
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, collection, addDoc, onSnapshot, updateDoc, deleteDoc, query, serverTimestamp, orderBy, where, getDocs, writeBatch, increment, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, collection, addDoc, onSnapshot, updateDoc, deleteDoc, query, serverTimestamp, orderBy, where, getDocs, writeBatch, increment, getDoc, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         // --- CONFIGURACIÓN ---
         const firebaseConfig = {
@@ -460,7 +481,7 @@
         let currentUserId = null, ordersUnsubscribe = null, clientsUnsubscribe = null;
         let allOrders = [], allClients = [];
         let modalLatLng = null, startPointLatLng = null, clientModalLatLng = null, startPoint = null;
-        let activePurchaseContext = {}; // { clientId, purchaseId, oldAmount }
+        let activePurchaseContext = {}; // { clientId, purchaseId, oldPurchaseData }
         const appId = "gestor-envios-super21"; 
 
         const ui = {
@@ -477,7 +498,6 @@
             emptyState: document.getElementById('empty-state'),
             clientsList: document.getElementById('clients-list'), 
             clientsEmptyState: document.getElementById('clients-empty-state'),
-            clientsNoResultsState: document.getElementById('clients-no-results-state'),
             startPointDisplay: document.getElementById('start-point-display'),
             orderModal: document.getElementById('order-modal'), 
             orderModalContent: document.getElementById('order-modal-content'),
@@ -515,8 +535,10 @@
             saveStartPointBtn: document.getElementById('save-start-point-btn'),
             tabLogistics: document.getElementById('tab-logistics'), 
             tabClients: document.getElementById('tab-clients'),
+            tabAnalysis: document.getElementById('tab-analysis'),
             logisticsView: document.getElementById('logistics-view'), 
             clientsView: document.getElementById('clients-view'),
+            analysisView: document.getElementById('analysis-view'),
             addPurchaseModal: document.getElementById('add-purchase-modal'),
             addPurchaseForm: document.getElementById('add-purchase-form'),
             cancelAddPurchaseBtn: document.getElementById('cancel-add-purchase-btn'),
@@ -526,13 +548,15 @@
             editPurchaseModal: document.getElementById('edit-purchase-modal'),
             editPurchaseForm: document.getElementById('edit-purchase-form'),
             cancelEditPurchaseBtn: document.getElementById('cancel-edit-purchase-btn'),
-            clientAlertsContainer: document.getElementById('client-alerts-container'),
-            clientAlertsContent: document.getElementById('client-alerts-content'),
-            clientSearchInput: document.getElementById('client-search-input'),
-            clientFilterMin: document.getElementById('client-filter-min'),
-            clientFilterMax: document.getElementById('client-filter-max'),
-            clientFilterZone: document.getElementById('client-filter-zone'),
-            clearClientFiltersBtn: document.getElementById('clear-client-filters-btn'),
+            rankingByQuantity: document.getElementById('ranking-by-quantity'),
+            rankingByRevenue: document.getElementById('ranking-by-revenue'),
+            rankingClientsBySpent: document.getElementById('ranking-clients-by-spent'),
+            rankingClientsByPurchases: document.getElementById('ranking-clients-by-purchases'),
+            clientRankingModal: document.getElementById('client-ranking-modal'),
+            clientRankingModalTitle: document.getElementById('client-ranking-modal-title'),
+            clientRankingByQuantity: document.getElementById('client-ranking-by-quantity'),
+            clientRankingByRevenue: document.getElementById('client-ranking-by-revenue'),
+            closeClientRankingModalBtn: document.getElementById('close-client-ranking-modal-btn'),
         };
         
         // --- LLAMADA A LA API DE GEMINI ---
@@ -650,58 +674,35 @@
         }
         function listenToClients() {
             if (clientsUnsubscribe) clientsUnsubscribe();
-            const q = query(collection(db, `artifacts/${appId}/users/${currentUserId}/clients`), orderBy("firstSeen", "desc"));
-            clientsUnsubscribe = onSnapshot(q, async (querySnapshot) => {
-                const clientPromises = querySnapshot.docs.map(async (doc) => {
-                    const clientData = doc.data();
-                    const purchases = await getClientPurchaseHistory(doc.id);
-                    const avgPurchase = (clientData.purchaseCount > 0) ? (clientData.totalSpent || 0) / clientData.purchaseCount : 0;
-                    const frequency = calculateFrequency(purchases);
-                    const lastPurchase = purchases.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
-                    const lastPurchaseDate = lastPurchase ? lastPurchase.date : null;
-
-                    return { 
-                        id: doc.id, 
-                        ...clientData,
-                        avgPurchase: avgPurchase,
-                        frequency: frequency,
-                        lastPurchaseDate: lastPurchaseDate
-                    };
-                });
-                
-                allClients = await Promise.all(clientPromises);
-                populateZoneFilter();
-                checkPurchaseAlerts();
+            const q = query(collection(db, `artifacts/${appId}/users/${currentUserId}/clients`));
+            clientsUnsubscribe = onSnapshot(q, (querySnapshot) => {
+                allClients = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderClientsList();
+                renderClientMap();
+                updateRankings(); // Actualizar rankings cuando cambian los clientes
             }, (error) => console.error("Error al escuchar clientes:", error));
         }
         
-        async function logPurchase(clientId, amount, date, type, sourceId = null) {
-            if (!clientId || !amount || !date || !type) return;
-
-            const clientRef = doc(db, `artifacts/${appId}/users/${currentUserId}/clients/${clientId}`);
-            const purchasesRef = collection(clientRef, "purchases");
+        async function updateProductStats(products, operation = 'add') {
+            if (!products || products.length === 0) return;
 
             const batch = writeBatch(db);
-            
-            const newPurchaseRef = doc(purchasesRef);
-            const purchaseData = {
-                amount: amount,
-                date: date,
-                type: type, 
-                createdAt: serverTimestamp()
-            };
-            if (type === 'order' && sourceId) {
-                purchaseData.orderId = sourceId;
-            }
-            batch.set(newPurchaseRef, purchaseData);
+            const multiplier = operation === 'add' ? 1 : -1;
 
-            batch.update(clientRef, {
-                totalSpent: increment(amount),
-                purchaseCount: increment(1)
+            products.forEach(product => {
+                const sanitizedName = product.name.trim().toLowerCase().replace(/\s+/g, '-');
+                if (!sanitizedName) return;
+                const productRef = doc(db, `artifacts/${appId}/users/${currentUserId}/products/${sanitizedName}`);
+                
+                batch.set(productRef, {
+                    name: product.name.trim(),
+                    totalQuantitySold: increment(product.quantity * multiplier),
+                    totalRevenue: increment(product.quantity * product.price * multiplier)
+                }, { merge: true });
             });
 
             await batch.commit();
+            updateRankings(); // Actualizar rankings después de cambiar productos
         }
 
         async function findOrCreateClientForOrder(orderData) {
@@ -715,7 +716,6 @@
                     direccion: orderData.direccion,
                     latitude: orderData.latitude,
                     longitude: orderData.longitude,
-                    zona: '',
                     totalSpent: 0, 
                     purchaseCount: 0, 
                     firstSeen: serverTimestamp()
@@ -738,8 +738,8 @@
         // --- CÁLCULO DE FRECUENCIA ---
         async function getClientPurchaseHistory(clientId) {
             const purchasesRef = collection(db, `artifacts/${appId}/users/${currentUserId}/clients/${clientId}/purchases`);
-            const snapshot = await getDocs(query(purchasesRef));
-            return snapshot.docs.map(doc => doc.data());
+            const snapshot = await getDocs(query(purchasesRef, orderBy("date", "desc")));
+            return snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
         }
 
         function calculateFrequency(purchases) {
@@ -792,51 +792,18 @@
             });
             addTableButtonListeners();
         }
-        
-        function populateZoneFilter() {
-            const zones = [...new Set(allClients.map(c => c.zona).filter(Boolean))];
-            const currentVal = ui.clientFilterZone.value;
-            ui.clientFilterZone.innerHTML = '<option value="">Todas las Zonas</option>';
-            zones.sort().forEach(zone => {
-                const option = document.createElement('option');
-                option.value = zone;
-                option.textContent = zone;
-                ui.clientFilterZone.appendChild(option);
-            });
-            ui.clientFilterZone.value = currentVal;
-        }
-
         function renderClientsList() {
             ui.clientsList.innerHTML = '';
-            
-            const searchTerm = ui.clientSearchInput.value.toLowerCase();
-            const minAmount = parseFloat(ui.clientFilterMin.value) || null;
-            const maxAmount = parseFloat(ui.clientFilterMax.value) || null;
-            const selectedZone = ui.clientFilterZone.value;
-
-            const filteredClients = allClients.filter(client => {
-                const nameMatch = client.cliente.toLowerCase().includes(searchTerm);
-                const addressMatch = client.direccion.toLowerCase().includes(searchTerm);
-                const textMatch = nameMatch || addressMatch;
-
-                const zoneMatch = !selectedZone || client.zona === selectedZone;
-
-                const avgPurchase = client.avgPurchase;
-                const minMatch = minAmount === null || avgPurchase >= minAmount;
-                const maxMatch = maxAmount === null || avgPurchase <= maxAmount;
-                
-                return textMatch && minMatch && maxMatch && zoneMatch;
-            });
-            
             const hasClients = allClients.length > 0;
-            const hasResults = filteredClients.length > 0;
-
             ui.clientsEmptyState.classList.toggle('hidden', hasClients);
-            ui.clientsNoResultsState.classList.toggle('hidden', !hasClients || hasResults);
-            ui.clientsList.classList.toggle('hidden', !hasResults);
+            ui.clientsList.classList.toggle('hidden', !hasClients);
             
-            filteredClients.forEach(client => {
-                const frequencyText = client.frequency !== null ? `Cada ${client.frequency} días (aprox)` : 'N/A';
+            allClients.forEach(async (client) => {
+                const avgPurchase = (client.purchaseCount > 0) ? (client.totalSpent || 0) / client.purchaseCount : 0;
+                
+                const purchases = await getClientPurchaseHistory(client.id);
+                const frequency = calculateFrequency(purchases);
+                const frequencyText = frequency !== null ? `Cada ${frequency} días (aprox)` : 'N/A';
 
                 const li = document.createElement('li');
                 li.className = "p-4 hover:bg-gray-50";
@@ -845,15 +812,16 @@
                         <div class="flex-1 min-w-0 flex items-center space-x-4">
                             <div class="flex-shrink-0"><span class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-indigo-100 text-indigo-700 font-bold">${client.cliente.charAt(0)}</span></div>
                             <div class="flex-1 min-w-0">
-                                <p class="text-sm font-medium text-gray-900 truncate">${client.cliente} ${client.zona ? `<span class="ml-2 text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">${client.zona}</span>` : ''}</p>
+                                <p class="text-sm font-medium text-gray-900 truncate">${client.cliente}</p>
                                 <p class="text-sm text-gray-500 truncate">${client.direccion}</p>
-                                <p class="text-sm text-green-600 font-semibold truncate">Compra Promedio: ${formatCurrency(client.avgPurchase)}</p>
+                                <p class="text-sm text-green-600 font-semibold truncate">Compra Promedio: ${formatCurrency(avgPurchase)}</p>
                                 <p class="text-sm text-blue-600 font-semibold truncate">Frecuencia: ${frequencyText}</p>
                             </div>
                         </div>
                         <div class="flex-shrink-0 flex items-center space-x-1 sm:space-x-2 text-sm flex-wrap justify-end">
                             <button class="add-purchase-btn font-medium text-green-600 hover:text-green-900 p-1" data-id="${client.id}">+ Compra</button>
                             <button class="view-history-btn font-medium text-gray-600 hover:text-gray-900 p-1" data-id="${client.id}">Historial</button>
+                            <button class="client-ranking-btn font-medium text-purple-600 hover:text-purple-900 p-1" data-id="${client.id}">Ranking</button>
                             <button class="edit-client-btn font-medium text-indigo-600 hover:text-indigo-900 p-1" data-id="${client.id}">Editar</button>
                             <button class="delete-client-btn font-medium text-red-600 hover:text-red-900 p-1" data-id="${client.id}">Eliminar</button>
                         </div>
@@ -861,15 +829,13 @@
                 `;
                 ui.clientsList.appendChild(li);
             });
-            
-            renderClientMap(filteredClients);
         }
         
-        function renderClientMap(filteredClients = allClients) {
+        function renderClientMap() {
              clientMapMarkers.forEach(marker => marker.setMap(null));
              clientMapMarkers = [];
              
-             const points = filteredClients.filter(c => c.latitude).map(client => new google.maps.LatLng(client.latitude, client.longitude));
+             const points = allClients.filter(c => c.latitude).map(client => new google.maps.LatLng(client.latitude, client.longitude));
              
             if (heatmap) {
                 heatmap.setData(points);
@@ -879,19 +845,22 @@
                 });
             }
 
-            filteredClients.forEach(client => {
+            allClients.forEach(client => {
                 if (!client.latitude) return;
+                const avgPurchase = (client.purchaseCount > 0) ? (client.totalSpent || 0) / client.purchaseCount : 0;
                 const position = new google.maps.LatLng(client.latitude, client.longitude);
                 const marker = new google.maps.Marker({ position, map: clientsMap, title: client.cliente });
                 
-                marker.addListener('click', () => { 
-                    const frequencyText = client.frequency !== null ? `Cada ${client.frequency} días (aprox)` : 'N/A';
+                marker.addListener('click', async () => { 
+                    const purchases = await getClientPurchaseHistory(client.id);
+                    const frequency = calculateFrequency(purchases);
+                    const frequencyText = frequency !== null ? `Cada ${frequency} días (aprox)` : 'N/A';
+
                     const contentString = `
                         <div class="p-1">
                             <p class="font-bold">${client.cliente}</p>
                             <p>${client.direccion}</p>
-                             <p class="font-semibold text-gray-600">Zona: ${client.zona || 'N/A'}</p>
-                            <p class="font-semibold text-green-600">Promedio: ${formatCurrency(client.avgPurchase)}</p>
+                            <p class="font-semibold text-green-600">Promedio: ${formatCurrency(avgPurchase)}</p>
                             <p class="font-semibold text-blue-600">Frecuencia: ${frequencyText}</p>
                         </div>`;
                     infoWindow.setContent(contentString); 
@@ -936,9 +905,7 @@
                 bounds.extend(position);
             });
             
-            if (mainMapMarkers.length > 0 && mainMap.getDiv() && bounds.getNorthEast().equals(bounds.getSouthWest()) === false) {
-                 mainMap.fitBounds(bounds);
-            }
+            if (mainMapMarkers.length > 0) mainMap.fitBounds(bounds);
         }
         function generateRoute() {
             clearRoute();
@@ -1048,8 +1015,8 @@
 
         async function handleAnalyzeClients() {
             if (allClients.length === 0) { alert("No hay clientes para analizar."); return; }
-            const clientInfo = allClients.map(c => `${c.direccion} (Zona: ${c.zona || 'N/A'})`).join('\n');
-            const prompt = `Como analista de negocios, examina la siguiente lista de clientes con sus direcciones y zonas. Identifica patrones, como barrios o zonas de alta concentración. Basado en esto, proporciona un breve análisis de mercado y 2 sugerencias de marketing para este negocio.\n\nClientes:\n${clientInfo}`;
+            const addressList = allClients.map(c => c.direccion).join('\n');
+            const prompt = `Como analista de negocios, examina la siguiente lista de direcciones de clientes. Identifica patrones, como barrios o zonas de alta concentración. Basado en esto, proporciona un breve análisis de mercado y 2 sugerencias de marketing para este negocio.\n\nDirecciones:\n${addressList}`;
             const analysis = await callGemini(prompt);
             if (analysis) {
                 ui.clientAnalysisContent.textContent = analysis;
@@ -1113,7 +1080,8 @@
                 
                 if (data.latitude && data.importe > 0) {
                     const clientId = await findOrCreateClientForOrder(data);
-                    await logPurchase(clientId, data.importe, new Date().toISOString().split('T')[0], 'order', savedOrderId);
+                    const { products } = parseProductsInput(data.productos);
+                    await logPurchase(clientId, data.importe, new Date().toISOString().split('T')[0], 'order', products, savedOrderId);
                 }
                 
                 toggleOrderModal(false);
@@ -1156,6 +1124,7 @@
             }
         }
         async function handleDelete(docId) {
+            // Note: Deleting an order does not automatically reverse the purchase stats. This could be a future enhancement.
             if (confirm('¿Estás seguro de que quieres eliminar este pedido?')) {
                 try { 
                     await deleteDoc(doc(db,`artifacts/${appId}/users/${currentUserId}/pedidos`,docId));
@@ -1189,7 +1158,6 @@
             const clientId = document.getElementById('clientIdInput').value;
             const clientName = document.getElementById('clientNameInput').value.trim();
             const clientAddress = document.getElementById('clientAddressInput').value.trim();
-            const clientZone = document.getElementById('clientZoneInput').value.trim();
 
             if(!clientName || !clientAddress) { 
                 alert("Nombre y dirección son requeridos."); 
@@ -1210,9 +1178,8 @@
                 const data = {
                     cliente: clientName,
                     direccion: clientAddress,
-                    zona: clientZone,
-                    latitude: location ? location.lat() : null,
-                    longitude: location ? location.lng() : null,
+                    latitude: location.lat(),
+                    longitude: location.lng(),
                 };
                 try {
                     if (clientId) {
@@ -1236,10 +1203,8 @@
                 geocodeSearch(clientAddress, clientModalMap, (location) => {
                     updateClientModalMarker(location);
                     saveData(location);
-                }, async () => {
-                    if(confirm('No se pudo encontrar la dirección. ¿Desea guardar el cliente sin ubicación en el mapa?')) {
-                        await saveData(null);
-                    }
+                }, () => {
+                    alert('No se pudo encontrar la dirección. Por favor, márcala manualmente en el mapa y haz clic en Guardar.');
                 });
             }
         }
@@ -1260,7 +1225,6 @@
                     document.getElementById('clientIdInput').value = client.id;
                     document.getElementById('clientNameInput').value = client.cliente;
                     document.getElementById('clientAddressInput').value = client.direccion;
-                    document.getElementById('clientZoneInput').value = client.zona || '';
                     if (client.latitude && client.longitude) {
                         clientModalLatLng = new google.maps.LatLng(client.latitude, client.longitude);
                     }
@@ -1279,11 +1243,38 @@
             const clientToDelete = allClients.find(c => c.id === docId);
             if (!clientToDelete) return;
 
-            if (confirm(`¿Estás seguro de que quieres eliminar a ${clientToDelete.cliente}? Esta acción también eliminará su historial de compras.`)) {
+            if (confirm(`¿Estás seguro de que quieres eliminar a ${clientToDelete.cliente}? Esta acción también eliminará su historial de compras y afectará las estadísticas de productos.`)) {
                 try {
-                    await deleteDoc(doc(db, `artifacts/${appId}/users/${currentUserId}/clients`, docId));
+                    await runTransaction(db, async (transaction) => {
+                        const clientRef = doc(db, `artifacts/${appId}/users/${currentUserId}/clients`, docId);
+                        
+                        // Revertir estadísticas de productos de todas las compras de este cliente
+                        const purchasesRef = collection(clientRef, "purchases");
+                        const purchasesSnapshot = await getDocs(query(purchasesRef));
+
+                        for (const purchaseDoc of purchasesSnapshot.docs) {
+                            const purchaseData = purchaseDoc.data();
+                            if (purchaseData.products && purchaseData.products.length > 0) {
+                                purchaseData.products.forEach(product => {
+                                    const sanitizedName = product.name.trim().toLowerCase().replace(/\s+/g, '-');
+                                    if (!sanitizedName) return;
+                                    const productRef = doc(db, `artifacts/${appId}/users/${currentUserId}/products/${sanitizedName}`);
+                                    transaction.set(productRef, {
+                                        totalQuantitySold: increment(-product.quantity),
+                                        totalRevenue: increment(-(product.quantity * product.price))
+                                    }, { merge: true });
+                                });
+                            }
+                            // Eliminar el documento de la compra
+                            transaction.delete(purchaseDoc.ref);
+                        }
+                        
+                        // Finalmente, eliminar el cliente
+                        transaction.delete(clientRef);
+                    });
+                    console.log("Cliente y sus datos asociados eliminados correctamente.");
                 } catch(e) { 
-                    console.error("Error al eliminar el cliente:", e);
+                    console.error("Error al eliminar el cliente y sus datos:", e);
                     alert("Error al eliminar el cliente.");
                 }
             }
@@ -1322,67 +1313,6 @@
             toggleStartPointModal(false);
         }
 
-        // --- SISTEMA DE ALERTAS ---
-        function checkPurchaseAlerts() {
-            const alerts = [];
-            const today = new Date();
-            today.setHours(0, 0, 0, 0); 
-
-            allClients.forEach(client => {
-                if (client.frequency && client.lastPurchaseDate) {
-                    const lastPurchase = new Date(client.lastPurchaseDate);
-                    const nextPurchaseDate = new Date(lastPurchase.getTime());
-                    nextPurchaseDate.setDate(nextPurchaseDate.getDate() + client.frequency);
-
-                    const diffTime = nextPurchaseDate - today;
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                    if (diffDays <= 3) {
-                        alerts.push({ client, diffDays });
-                    }
-                }
-            });
-            renderPurchaseAlerts(alerts);
-        }
-        
-        function renderPurchaseAlerts(alerts) {
-            ui.clientAlertsContent.innerHTML = '';
-            if (alerts.length === 0) {
-                ui.clientAlertsContainer.classList.add('hidden');
-                return;
-            }
-
-            ui.clientAlertsContainer.classList.remove('hidden');
-            alerts.sort((a,b) => a.diffDays - b.diffDays).forEach(alert => {
-                const { client, diffDays } = alert;
-                let message = '';
-                let bgColor = 'bg-yellow-100';
-                let textColor = 'text-yellow-800';
-
-                if (diffDays <= 0) {
-                    message = `Ya pasaron ${Math.abs(diffDays)} días de su próxima compra estimada. ¡Es un buen momento para contactar!`;
-                    bgColor = 'bg-red-100';
-                    textColor = 'text-red-800';
-                } else {
-                    message = `Se estima que volverá a comprar en ${diffDays} día(s).`;
-                }
-
-                const alertEl = document.createElement('div');
-                alertEl.className = `p-4 rounded-lg flex items-start gap-4 ${bgColor} ${textColor}`;
-                alertEl.innerHTML = `
-                    <div>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    </div>
-                    <div>
-                        <p class="font-bold">${client.cliente}</p>
-                        <p class="text-sm">${message}</p>
-                        <p class="text-xs mt-1">Frecuencia: cada ${client.frequency} días. Última compra: ${client.lastPurchaseDate}</p>
-                    </div>`;
-                ui.clientAlertsContent.appendChild(alertEl);
-            });
-        }
-
-
         // --- MANEJADORES DE EVENTOS ---
         function addTableButtonListeners() {
             document.querySelectorAll('.edit-btn').forEach(b => b.addEventListener('click', (e) => openModalInMode('edit', e.currentTarget.dataset.id)));
@@ -1410,16 +1340,50 @@
         }
         async function handleSavePurchase(e) {
             e.preventDefault();
-            const amount = parseFloat(document.getElementById('purchaseAmountInput').value);
-            const date = document.getElementById('purchaseDateInput').value;
             
-            if (isNaN(amount) || amount <= 0 || !date) {
-                alert("Por favor, ingresa un importe y fecha válidos.");
+            const date = document.getElementById('purchaseDateInput').value;
+            const productsText = document.getElementById('purchaseProductsInput').value;
+            
+            const { products, totalAmount } = parseProductsInput(productsText);
+            
+            if (products.length === 0 || totalAmount <= 0 || !date) {
+                alert("Por favor, ingresa una fecha y una lista de productos válida.");
                 return;
             }
             
-            await logPurchase(activePurchaseContext.clientId, amount, date, 'manual');
+            await logPurchase(activePurchaseContext.clientId, totalAmount, date, 'manual', products);
             closeAddPurchaseModal();
+        }
+
+        async function logPurchase(clientId, amount, date, type, products = [], sourceId = null) {
+            if (!clientId || !amount || !date || !type) return;
+
+            const batch = writeBatch(db);
+            const clientRef = doc(db, `artifacts/${appId}/users/${currentUserId}/clients/${clientId}`);
+            const purchasesRef = collection(clientRef, "purchases");
+
+            const newPurchaseRef = doc(purchasesRef);
+            const purchaseData = {
+                amount: amount,
+                date: date,
+                type: type, 
+                createdAt: serverTimestamp()
+            };
+            if (products.length > 0) {
+                purchaseData.products = products;
+            }
+            if (type === 'order' && sourceId) {
+                purchaseData.orderId = sourceId;
+            }
+            batch.set(newPurchaseRef, purchaseData);
+
+            batch.update(clientRef, {
+                totalSpent: increment(amount),
+                purchaseCount: increment(1)
+            });
+            
+            await batch.commit();
+            await updateProductStats(products, 'add');
         }
 
         async function openPurchaseHistoryModal(clientId) {
@@ -1428,11 +1392,7 @@
             activePurchaseContext.clientId = clientId;
             document.getElementById('purchase-history-modal-title').textContent = `Historial de ${client.cliente}`;
             
-            const purchasesRef = collection(db, `artifacts/${appId}/users/${currentUserId}/clients/${clientId}/purchases`);
-            const q = query(purchasesRef, orderBy("date", "desc"));
-            const snapshot = await getDocs(q);
-            const purchases = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-            
+            const purchases = await getClientPurchaseHistory(clientId);
             renderPurchaseHistory(purchases);
 
             const modal = ui.purchaseHistoryModal;
@@ -1450,35 +1410,32 @@
                 return;
              }
 
-             const table = document.createElement('table');
-             table.className = "min-w-full divide-y divide-gray-200";
-             table.innerHTML = `
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Importe</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200"></tbody>
-             `;
-
-             const tbody = table.querySelector('tbody');
+             const list = document.createElement('ul');
+             list.className = "divide-y divide-gray-200";
+             
              purchases.forEach(p => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">${p.date}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${formatCurrency(p.amount)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${p.type === 'order' ? 'Pedido' : 'Manual'}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                        <button data-id="${p.id}" class="edit-purchase-btn text-indigo-600 hover:text-indigo-900">Editar</button>
-                        <button data-id="${p.id}" class="delete-purchase-btn text-red-600 hover:text-red-900">Eliminar</button>
-                    </td>
+                const li = document.createElement('li');
+                li.className = "py-4";
+                const productsHtml = p.products ? p.products.map(prod => 
+                    `<li class="text-xs text-gray-600 ml-4">${prod.quantity} x ${prod.name} (${formatCurrency(prod.price)})</li>`
+                ).join('') : '';
+
+                li.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-sm text-gray-800 font-medium">${p.date}</p>
+                            <p class="text-lg font-bold text-green-600">${formatCurrency(p.amount)}</p>
+                            ${p.products ? `<ul class="mt-2 list-disc list-inside">${productsHtml}</ul>` : ''}
+                        </div>
+                        <div class="flex-shrink-0 flex items-center space-x-2">
+                            <button data-id="${p.id}" class="edit-purchase-btn text-indigo-600 hover:text-indigo-900 p-1">Editar</button>
+                            <button data-id="${p.id}" class="delete-purchase-btn text-red-600 hover:text-red-900 p-1">Eliminar</button>
+                        </div>
+                    </div>
                 `;
-                tbody.appendChild(tr);
+                list.appendChild(li);
              });
-             container.appendChild(table);
+             container.appendChild(list);
 
              container.querySelectorAll('.edit-purchase-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -1488,7 +1445,7 @@
              });
              container.querySelectorAll('.delete-purchase-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
-                     const purchase = purchases.find(p => p.id === btn.dataset.id);
+                    const purchase = purchases.find(p => p.id === btn.dataset.id);
                     handleDeletePurchase(purchase);
                 });
              });
@@ -1502,11 +1459,12 @@
 
         function openEditPurchaseModal(purchase) {
              activePurchaseContext.purchaseId = purchase.id;
-             activePurchaseContext.oldAmount = purchase.amount;
+             activePurchaseContext.oldPurchaseData = purchase;
 
              document.getElementById('editPurchaseId').value = purchase.id;
              document.getElementById('editPurchaseDateInput').value = purchase.date;
-             document.getElementById('editPurchaseAmountInput').value = purchase.amount;
+             document.getElementById('editPurchaseProductsInput').value = formatProductsToText(purchase.products);
+             document.getElementById('editPurchaseAmountInput').value = purchase.amount.toFixed(2);
              
              const modal = ui.editPurchaseModal;
              modal.classList.remove('hidden'); modal.classList.add('flex');
@@ -1521,28 +1479,55 @@
         }
         async function handleUpdatePurchase(e) {
             e.preventDefault();
-            const newAmount = parseFloat(document.getElementById('editPurchaseAmountInput').value);
+            const { clientId, purchaseId, oldPurchaseData } = activePurchaseContext;
             const newDate = document.getElementById('editPurchaseDateInput').value;
+            const newProductsText = document.getElementById('editPurchaseProductsInput').value;
+            const { products: newProducts, totalAmount: newAmount } = parseProductsInput(newProductsText);
 
-            if (isNaN(newAmount) || newAmount <= 0 || !newDate) {
+            if (newProducts.length === 0 || newAmount <= 0 || !newDate) {
                  alert("Por favor, ingresa un importe y fecha válidos.");
                 return;
             }
 
-            const { clientId, purchaseId, oldAmount } = activePurchaseContext;
-            const clientRef = doc(db, `artifacts/${appId}/users/${currentUserId}/clients/${clientId}`);
-            const purchaseRef = doc(clientRef, "purchases", purchaseId);
-
-            const batch = writeBatch(db);
-            batch.update(purchaseRef, { amount: newAmount, date: newDate });
-
-            const amountDifference = newAmount - oldAmount;
-            batch.update(clientRef, { totalSpent: increment(amountDifference) });
-            
             try {
-                await batch.commit();
+                await runTransaction(db, async (transaction) => {
+                    const clientRef = doc(db, `artifacts/${appId}/users/${currentUserId}/clients/${clientId}`);
+                    const purchaseRef = doc(clientRef, "purchases", purchaseId);
+
+                    // 1. Actualizar el documento de compra
+                    transaction.update(purchaseRef, { date: newDate, products: newProducts, amount: newAmount });
+
+                    // 2. Ajustar las estadísticas del cliente
+                    const amountDifference = newAmount - oldPurchaseData.amount;
+                    transaction.update(clientRef, { totalSpent: increment(amountDifference) });
+                    
+                    // 3. Revertir estadísticas de productos antiguos
+                    if (oldPurchaseData.products) {
+                        oldPurchaseData.products.forEach(product => {
+                            const sanitizedName = product.name.trim().toLowerCase().replace(/\s+/g, '-');
+                            const productRef = doc(db, `artifacts/${appId}/users/${currentUserId}/products/${sanitizedName}`);
+                            transaction.set(productRef, {
+                                totalQuantitySold: increment(-product.quantity),
+                                totalRevenue: increment(-(product.quantity * product.price))
+                            }, { merge: true });
+                        });
+                    }
+                    
+                    // 4. Aplicar estadísticas de nuevos productos
+                    newProducts.forEach(product => {
+                        const sanitizedName = product.name.trim().toLowerCase().replace(/\s+/g, '-');
+                        const productRef = doc(db, `artifacts/${appId}/users/${currentUserId}/products/${sanitizedName}`);
+                        transaction.set(productRef, {
+                            name: product.name.trim(),
+                            totalQuantitySold: increment(product.quantity),
+                            totalRevenue: increment(product.quantity * product.price)
+                        }, { merge: true });
+                    });
+                });
+                
                 closeEditPurchaseModal();
                 await openPurchaseHistoryModal(clientId); // Refresh history
+                await updateRankings();
             } catch (error) {
                 console.error("Error al actualizar la compra:", error);
                 alert("Error al guardar los cambios.");
@@ -1556,8 +1541,10 @@
                  const purchaseRef = doc(clientRef, "purchases", purchase.id);
 
                  const batch = writeBatch(db);
+                 // 1. Eliminar el documento de la compra
                  batch.delete(purchaseRef);
 
+                 // 2. Ajustar las estadísticas en el documento del cliente
                  batch.update(clientRef, {
                     totalSpent: increment(-purchase.amount),
                     purchaseCount: increment(-1)
@@ -1565,6 +1552,7 @@
                  
                  try {
                     await batch.commit();
+                    await updateProductStats(purchase.products, 'subtract');
                     await openPurchaseHistoryModal(clientId); // Refresh
                  } catch (error) {
                     console.error("Error al eliminar compra:", error);
@@ -1591,11 +1579,13 @@
                 const deleteBtn = e.target.closest('.delete-client-btn');
                 const addPurchaseBtn = e.target.closest('.add-purchase-btn');
                 const historyBtn = e.target.closest('.view-history-btn');
+                const rankingBtn = e.target.closest('.client-ranking-btn');
                 
                 if (editBtn) openClientModalInMode('edit', editBtn.dataset.id);
                 else if (deleteBtn) handleDeleteClient(deleteBtn.dataset.id);
                 else if (addPurchaseBtn) openAddPurchaseModal(addPurchaseBtn.dataset.id);
                 else if (historyBtn) openPurchaseHistoryModal(historyBtn.dataset.id);
+                else if (rankingBtn) showClientProductRanking(rankingBtn.dataset.id);
             });
             ui.searchClientAddressBtn.addEventListener('click', () => geocodeSearch(document.getElementById('clientAddressInput').value, clientModalMap, updateClientModalMarker));
             
@@ -1616,51 +1606,195 @@
             });
 
             ui.addPurchaseForm.addEventListener('submit', handleSavePurchase);
+            document.getElementById('purchaseProductsInput').addEventListener('input', (e) => {
+                const { totalAmount } = parseProductsInput(e.target.value);
+                document.getElementById('purchaseAmountInput').value = totalAmount.toFixed(2);
+            });
             ui.cancelAddPurchaseBtn.addEventListener('click', closeAddPurchaseModal);
             ui.addPurchaseModal.addEventListener('click', (e) => { if (e.target.id === 'add-purchase-modal') closeAddPurchaseModal(); });
 
             ui.closePurchaseHistoryBtn.addEventListener('click', closePurchaseHistoryModal);
             ui.purchaseHistoryModal.addEventListener('click', (e) => { if(e.target.id === 'purchase-history-modal') closePurchaseHistoryModal(); });
+            
             ui.editPurchaseForm.addEventListener('submit', handleUpdatePurchase);
+            document.getElementById('editPurchaseProductsInput').addEventListener('input', (e) => {
+                const { totalAmount } = parseProductsInput(e.target.value);
+                document.getElementById('editPurchaseAmountInput').value = totalAmount.toFixed(2);
+            });
             ui.cancelEditPurchaseBtn.addEventListener('click', closeEditPurchaseModal);
             ui.editPurchaseModal.addEventListener('click', (e) => { if(e.target.id === 'edit-purchase-modal') closeEditPurchaseModal(); });
-
-            // Event Listeners para la nueva barra de búsqueda
-            ['input', 'change'].forEach(evt => {
-                ui.clientSearchInput.addEventListener(evt, renderClientsList);
-                ui.clientFilterMin.addEventListener(evt, renderClientsList);
-                ui.clientFilterMax.addEventListener(evt, renderClientsList);
-                ui.clientFilterZone.addEventListener(evt, renderClientsList);
-            });
-            ui.clearClientFiltersBtn.addEventListener('click', () => {
-                ui.clientSearchInput.value = '';
-                ui.clientFilterMin.value = '';
-                ui.clientFilterMax.value = '';
-                ui.clientFilterZone.value = '';
-                renderClientsList();
-            });
 
             
             ui.tabLogistics.addEventListener('click', () => switchTab('logistics'));
             ui.tabClients.addEventListener('click', () => switchTab('clients'));
+            ui.tabAnalysis.addEventListener('click', () => switchTab('analysis'));
+
+            ui.closeClientRankingModalBtn.addEventListener('click', closeClientRankingModal);
+            ui.clientRankingModal.addEventListener('click', (e) => { if(e.target.id === 'client-ranking-modal') closeClientRankingModal(); });
         }
         
         function switchTab(tabName) {
+            ui.logisticsView.classList.add('hidden');
+            ui.clientsView.classList.add('hidden');
+            ui.analysisView.classList.add('hidden');
+
+            ui.tabLogistics.setAttribute('aria-selected', 'false');
+            ui.tabClients.setAttribute('aria-selected', 'false');
+            ui.tabAnalysis.setAttribute('aria-selected', 'false');
+            ui.tabLogistics.classList.remove('bg-indigo-600', 'text-white');
+            ui.tabClients.classList.remove('bg-indigo-600', 'text-white');
+            ui.tabAnalysis.classList.remove('bg-indigo-600', 'text-white');
+
             if (tabName === 'logistics') {
-                ui.logisticsView.classList.remove('hidden'); ui.clientsView.classList.add('hidden');
-                ui.tabLogistics.setAttribute('aria-selected', 'true'); ui.tabClients.setAttribute('aria-selected', 'false');
-                ui.tabLogistics.classList.add('bg-indigo-600', 'text-white'); ui.tabClients.classList.remove('bg-indigo-600', 'text-white');
+                ui.logisticsView.classList.remove('hidden');
+                ui.tabLogistics.setAttribute('aria-selected', 'true');
+                ui.tabLogistics.classList.add('bg-indigo-600', 'text-white');
                 google.maps.event.trigger(mainMap, 'resize');
-            } else {
-                ui.clientsView.classList.remove('hidden'); ui.logisticsView.classList.add('hidden');
-                ui.tabClients.setAttribute('aria-selected', 'true'); ui.tabLogistics.setAttribute('aria-selected', 'false');
-                ui.tabClients.classList.add('bg-indigo-600', 'text-white'); ui.tabLogistics.classList.remove('bg-indigo-600', 'text-white');
+            } else if (tabName === 'clients') {
+                ui.clientsView.classList.remove('hidden');
+                ui.tabClients.setAttribute('aria-selected', 'true');
+                ui.tabClients.classList.add('bg-indigo-600', 'text-white');
                 google.maps.event.trigger(clientsMap, 'resize');
+            } else if (tabName === 'analysis') {
+                ui.analysisView.classList.remove('hidden');
+                ui.tabAnalysis.setAttribute('aria-selected', 'true');
+                ui.tabAnalysis.classList.add('bg-indigo-600', 'text-white');
+                updateRankings();
             }
         }
         
         function formatCurrency(value) {
             return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(value || 0);
+        }
+
+        function parseProductsInput(text) {
+            if (!text || !text.trim()) return { products: [], totalAmount: 0 };
+            
+            const lines = text.trim().split('\n');
+            const products = [];
+            let totalAmount = 0;
+
+            lines.forEach(line => {
+                try {
+                    const parts = line.split('@');
+                    if (parts.length !== 2) return;
+                    const price = parseFloat(parts[1].trim());
+                    
+                    const firstPart = parts[0].split('x');
+                    const quantity = parseInt(firstPart[0].trim(), 10);
+                    const name = firstPart.slice(1).join('x').trim();
+
+                    if (!isNaN(quantity) && !isNaN(price) && name) {
+                        products.push({ name, quantity, price });
+                        totalAmount += quantity * price;
+                    }
+                } catch (e) {
+                    console.warn("Línea de producto mal formateada:", line);
+                }
+            });
+            
+            return { products, totalAmount };
+        }
+
+        function formatProductsToText(products) {
+            if (!products || products.length === 0) return '';
+            return products.map(p => `${p.quantity} x ${p.name} @ ${p.price}`).join('\n');
+        }
+
+        async function updateRankings() {
+            // Product Rankings
+            const productsRef = collection(db, `artifacts/${appId}/users/${currentUserId}/products`);
+            const productsSnapshot = await getDocs(productsRef);
+            const products = productsSnapshot.docs.map(doc => doc.data());
+
+            const sortedByQuantity = [...products].sort((a, b) => b.totalQuantitySold - a.totalQuantitySold).slice(0, 5);
+            ui.rankingByQuantity.innerHTML = sortedByQuantity.map((p, i) => `
+                <div class="flex items-center text-sm">
+                    <span class="font-bold text-gray-500 w-6">${i + 1}.</span>
+                    <span class="flex-1 font-medium text-gray-700">${p.name}</span>
+                    <span class="text-blue-600 font-bold">${p.totalQuantitySold} uds.</span>
+                </div>
+            `).join('') || '<p class="text-sm text-gray-500">No hay datos de productos.</p>';
+
+            const sortedByRevenue = [...products].sort((a, b) => b.totalRevenue - a.totalRevenue).slice(0, 5);
+            ui.rankingByRevenue.innerHTML = sortedByRevenue.map((p, i) => `
+                <div class="flex items-center text-sm">
+                    <span class="font-bold text-gray-500 w-6">${i + 1}.</span>
+                    <span class="flex-1 font-medium text-gray-700">${p.name}</span>
+                    <span class="text-green-600 font-bold">${formatCurrency(p.totalRevenue)}</span>
+                </div>
+            `).join('') || '<p class="text-sm text-gray-500">No hay datos de productos.</p>';
+
+            // Client Rankings
+             const sortedBySpent = [...allClients].sort((a, b) => (b.totalSpent || 0) - (a.totalSpent || 0)).slice(0, 5);
+             ui.rankingClientsBySpent.innerHTML = sortedBySpent.map((c, i) => `
+                <div class="flex items-center text-sm">
+                    <span class="font-bold text-gray-500 w-6">${i + 1}.</span>
+                    <span class="flex-1 font-medium text-gray-700">${c.cliente}</span>
+                    <span class="text-green-600 font-bold">${formatCurrency(c.totalSpent)}</span>
+                </div>
+            `).join('') || '<p class="text-sm text-gray-500">No hay datos de clientes.</p>';
+
+            const sortedByPurchases = [...allClients].sort((a, b) => (b.purchaseCount || 0) - (a.purchaseCount || 0)).slice(0, 5);
+             ui.rankingClientsByPurchases.innerHTML = sortedByPurchases.map((c, i) => `
+                <div class="flex items-center text-sm">
+                    <span class="font-bold text-gray-500 w-6">${i + 1}.</span>
+                    <span class="flex-1 font-medium text-gray-700">${c.cliente}</span>
+                    <span class="text-blue-600 font-bold">${c.purchaseCount} compras</span>
+                </div>
+            `).join('') || '<p class="text-sm text-gray-500">No hay datos de clientes.</p>';
+        }
+
+        function closeClientRankingModal() {
+            const modal = ui.clientRankingModal;
+            modal.querySelector('.bg-white').classList.add('opacity-0', '-translate-y-10');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        async function showClientProductRanking(clientId) {
+            const client = allClients.find(c => c.id === clientId);
+            if (!client) return;
+
+            ui.clientRankingModalTitle.textContent = `Ranking de Productos para ${client.cliente}`;
+            
+            const purchases = await getClientPurchaseHistory(clientId);
+            
+            const productStats = {};
+
+            purchases.forEach(p => {
+                if (p.products && Array.isArray(p.products)) {
+                    p.products.forEach(prod => {
+                        const name = prod.name.trim();
+                        if (!productStats[name]) {
+                            productStats[name] = { name: name, totalQuantity: 0, totalRevenue: 0 };
+                        }
+                        productStats[name].totalQuantity += prod.quantity;
+                        productStats[name].totalRevenue += prod.quantity * prod.price;
+                    });
+                }
+            });
+
+            const statsArray = Object.values(productStats);
+
+            // Ranking por cantidad
+            const sortedByQuantity = [...statsArray].sort((a, b) => b.totalQuantity - a.totalQuantity);
+            ui.clientRankingByQuantity.innerHTML = sortedByQuantity.map((p, i) => `
+                <li><span class="font-medium">${i + 1}. ${p.name}</span> - <span class="font-bold text-blue-600">${p.totalQuantity} unidades</span></li>
+            `).join('') || '<p class="text-sm text-gray-500">No hay datos de productos para este cliente.</p>';
+
+            // Ranking por ingresos
+            const sortedByRevenue = [...statsArray].sort((a, b) => b.totalRevenue - a.totalRevenue);
+            ui.clientRankingByRevenue.innerHTML = sortedByRevenue.map((p, i) => `
+                <li><span class="font-medium">${i + 1}. ${p.name}</span> - <span class="font-bold text-green-600">${formatCurrency(p.totalRevenue)}</span></li>
+            `).join('') || '<p class="text-sm text-gray-500">No hay datos de productos para este cliente.</p>';
+            
+            // Abrir el modal
+            const modal = ui.clientRankingModal;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.querySelector('.bg-white').classList.remove('opacity-0', '-translate-y-10');
+            }, 10);
         }
 
         // --- FUNCIÓN DE INICIO GLOBAL Y VERIFICACIÓN ---
@@ -1675,9 +1809,9 @@
         };
 
         function runStartupChecks() {
-            if (Maps_API_KEY.includes("AIzaSyD9d0wzamU3rHdnfjVHeT0ZQWBz1-1bvd8")) { // Check for placeholder
+            if (Maps_API_KEY.includes("TU_API_KEY")) {
                 ui.initialLoadingScreen.innerHTML = `<div class="text-center p-8 max-w-md mx-auto"><h2 class="text-2xl font-bold text-red-600 mb-2">Error de Configuración de Mapas</h2><p class="text-gray-700">La clave de API de Google Maps no es válida.</p></div>`;
-                // return; // Commented out to allow app to run for preview without a valid key
+                return;
             }
 
             const script = document.createElement('script');
