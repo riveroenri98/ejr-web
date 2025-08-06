@@ -150,7 +150,15 @@
                             <div id="main-map" class="shadow-lg"></div>
                         </div>
                         <div id="route-itinerary-container" class="hidden">
-                            <h3 class="text-lg font-medium text-gray-700 mb-2">Hoja de Ruta Detallada</h3>
+                            <div class="flex justify-between items-center mb-2">
+                                <h3 class="text-lg font-medium text-gray-700">Hoja de Ruta Detallada</h3>
+                                <a id="open-gmaps-link" href="#" target="_blank" class="flex items-center justify-center bg-blue-600 text-white font-semibold py-2 px-3 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors text-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                                      <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                                    </svg>
+                                    Abrir en Google Maps
+                                </a>
+                            </div>
                             <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm max-h-60 overflow-y-auto">
                                 <ol id="route-itinerary-list" class="space-y-3 text-sm"></ol>
                             </div>
@@ -618,6 +626,7 @@
             maxAvgPurchaseInput: document.getElementById('max-avg-purchase-input'),
             clearClientFiltersBtn: document.getElementById('clear-client-filters-btn'),
             clientDatalist: document.getElementById('client-datalist'),
+            openGmapsLink: document.getElementById('open-gmaps-link'),
         };
         
         // --- LLAMADA A LA API DE GEMINI ---
@@ -963,6 +972,7 @@
             directionsRenderer.setMap(mainMap);
             ui.routeItineraryContainer.classList.add('hidden');
             ui.aiSummaryContainer.classList.add('hidden');
+            ui.openGmapsLink.href = '#'; // Reset link
         }
         function clearMarkers() {
             mainMapMarkers.forEach(marker => marker.setMap(null));
@@ -1032,6 +1042,15 @@
 
             const route = result.routes[0];
             const optimizedOrder = route.waypoint_order;
+
+            const waypointsInOrder = optimizedOrder.map(index => pendingOrders[index]);
+            const waypointsString = waypointsInOrder
+                .map(order => `${order.latitude},${order.longitude}`)
+                .join('|');
+            
+            const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${startPoint.lat},${startPoint.lng}&destination=${startPoint.lat},${startPoint.lng}&waypoints=${waypointsString}&travelmode=driving`;
+            
+            ui.openGmapsLink.href = googleMapsUrl;
 
             const startLi = document.createElement('li');
             startLi.className = "flex items-start";
