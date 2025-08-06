@@ -1684,7 +1684,7 @@
             const products = [];
             let totalAmount = 0;
 
-            // Regex para capturar: ➡️ 1 x Nombre del Producto ($1234.56)
+            // Regex para capturar: ➡️ 1 x Nombre del Producto ($1234.56) o ($1.234,56)
             const productRegex = /➡️\s*(\d+)\s*x\s*(.*?)\s*\(\$([\d,.]+)\)/;
 
             lines.forEach(line => {
@@ -1693,8 +1693,26 @@
                     try {
                         const quantity = parseInt(match[1], 10);
                         const name = match[2].trim();
-                        // El precio capturado es el total de la línea (cantidad * precio unitario)
-                        const lineTotalPrice = parseFloat(match[3].replace(/\./g, '').replace(',', '.'));
+                        const priceString = match[3];
+
+                        // Lógica mejorada para interpretar el precio, manejando tanto '.' como ',' como separador decimal.
+                        const normalizePrice = (pStr) => {
+                            const lastComma = pStr.lastIndexOf(',');
+                            const lastDot = pStr.lastIndexOf('.');
+
+                            if (lastComma > lastDot) {
+                                // Formato como 1.234,56 (coma es decimal)
+                                return parseFloat(pStr.replace(/\./g, '').replace(',', '.'));
+                            } else if (lastDot > lastComma) {
+                                // Formato como 1,234.56 o 1234.56 (punto es decimal)
+                                return parseFloat(pStr.replace(/,/g, ''));
+                            } else {
+                                // Sin separadores o formato no estándar
+                                return parseFloat(pStr.replace(/,/g, ''));
+                            }
+                        };
+                        
+                        const lineTotalPrice = normalizePrice(priceString);
                         
                         if (!isNaN(quantity) && !isNaN(lineTotalPrice) && name && quantity > 0) {
                             // Calcular el precio unitario
@@ -1858,4 +1876,4 @@
 
     </script>
 </body>
-</html>
+</ht
