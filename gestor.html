@@ -409,7 +409,7 @@
                                 <label for="purchaseAmountInput" class="block text-sm font-medium text-gray-700">Importe Total</label>
                                 <div class="relative mt-1">
                                     <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
-                                    <input type="number" id="purchaseAmountInput" class="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-100" placeholder="0.00" step="0.01" min="0" readonly>
+                                    <input type="number" id="purchaseAmountInput" class="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-50" placeholder="0.00" step="0.01" min="0">
                                 </div>
                             </div>
                             <div>
@@ -458,7 +458,7 @@
                                 <label for="editPurchaseAmountInput" class="block text-sm font-medium text-gray-700">Importe Total</label>
                                 <div class="relative mt-1">
                                     <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
-                                    <input type="number" id="editPurchaseAmountInput" class="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-100" placeholder="0.00" step="0.01" min="0" readonly>
+                                    <input type="number" id="editPurchaseAmountInput" class="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-50" placeholder="0.00" step="0.01" min="0">
                                 </div>
                             </div>
                             <div>
@@ -1123,23 +1123,16 @@
         async function handleSaveOrder(e) {
             e.preventDefault();
             const orderDocId = document.getElementById('order-id').value;
-             const productsText = document.getElementById('productosInput').value;
-            const { products, totalAmount } = parseProductsInput(productsText);
-
-            let importeFinal = totalAmount;
-            // Si no se pudieron parsear productos, usar el importe manual
-            if (importeFinal === 0) {
-                importeFinal = parseFloat(document.getElementById('importeInput').value) || 0;
-            } else {
-                // Actualizar el campo de importe si se calculó desde los productos
-                document.getElementById('importeInput').value = importeFinal.toFixed(2);
-            }
+            const productsText = document.getElementById('productosInput').value;
+            const { products } = parseProductsInput(productsText);
+            
+            const importeFinal = parseFloat(document.getElementById('importeInput').value) || 0;
 
             const data = {
                 pedidoId: document.getElementById('pedidoIdInput').value, 
                 cliente: document.getElementById('clienteInput').value,
                 direccion: document.getElementById('direccionInput').value, 
-                productos: formatProductsToText(products), // Guardar el formato limpio
+                productos: formatProductsToText(products),
                 estado: document.getElementById('estadoInput').value, 
                 tracking: document.getElementById('trackingInput').value,
                 importe: importeFinal
@@ -1160,8 +1153,6 @@
                 
                 if (data.latitude && data.importe > 0) {
                     const clientId = await findOrCreateClientForOrder(data);
-                    // Para pedidos, asumimos que se paga el total al momento de la entrega o después.
-                    // El pago real se registra a través del modal de "+ Compra".
                     await logPurchase(clientId, data.importe, new Date().toISOString().split('T')[0], 'order', products, 0, savedOrderId);
                 }
                 
@@ -1426,11 +1417,11 @@
             const date = document.getElementById('purchaseDateInput').value;
             const productsText = document.getElementById('purchaseProductsInput').value;
             const amountPaid = parseFloat(document.getElementById('purchaseAmountPaidInput').value) || 0;
-
-            const { products, totalAmount } = parseProductsInput(productsText);
+            const { products } = parseProductsInput(productsText);
+            const totalAmount = parseFloat(document.getElementById('purchaseAmountInput').value) || 0;
             
-            if (products.length === 0 || totalAmount <= 0 || !date) {
-                alert("Por favor, ingresa una fecha y una lista de productos válida.");
+            if (totalAmount <= 0 || !date) {
+                alert("Por favor, ingresa una fecha y un importe total válido.");
                 return;
             }
             
@@ -1765,6 +1756,14 @@
                 ui.minAvgPurchaseInput.value = '';
                 ui.maxAvgPurchaseInput.value = '';
                 applyAndRenderClientFilters();
+            });
+
+            // Listener para el modal de pedidos
+            document.getElementById('productosInput').addEventListener('input', (e) => {
+                const { totalAmount } = parseProductsInput(e.target.value);
+                if (totalAmount > 0) {
+                    document.getElementById('importeInput').value = totalAmount.toFixed(2);
+                }
             });
         }
         
