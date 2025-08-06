@@ -753,12 +753,14 @@
 
         async function findOrCreateClientForOrder(orderData) {
             const clientsRef = collection(db, `artifacts/${appId}/users/${currentUserId}/clients`);
-            const q = query(clientsRef, where("cliente", "==", orderData.cliente));
+            const normalizedName = orderData.cliente.toLowerCase().replace(/\s+/g, ' ').trim();
+            const q = query(clientsRef, where("normalizedName", "==", normalizedName));
             const querySnapshot = await getDocs(q);
 
             if (querySnapshot.empty) {
                 const newClientRef = await addDoc(clientsRef, {
-                    cliente: orderData.cliente,
+                    cliente: orderData.cliente.trim(),
+                    normalizedName: normalizedName,
                     direccion: orderData.direccion,
                     latitude: orderData.latitude,
                     longitude: orderData.longitude,
@@ -1236,7 +1238,8 @@
                 return;
             }
 
-            const q = query(collection(db, `artifacts/${appId}/users/${currentUserId}/clients`), where("cliente", "==", clientName));
+            const normalizedName = clientName.toLowerCase().replace(/\s+/g, ' ').trim();
+            const q = query(collection(db, `artifacts/${appId}/users/${currentUserId}/clients`), where("normalizedName", "==", normalizedName));
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) {
                 const existingClient = querySnapshot.docs[0];
@@ -1249,6 +1252,7 @@
             const saveData = async (location) => {
                 const data = {
                     cliente: clientName,
+                    normalizedName: normalizedName,
                     direccion: clientAddress,
                     latitude: location.lat(),
                     longitude: location.lng(),
