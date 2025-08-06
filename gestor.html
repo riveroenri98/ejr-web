@@ -404,11 +404,20 @@
                             <textarea id="purchaseProductsInput" rows="5" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Pegue aquí el pedido completo del cliente..."></textarea>
                             <p class="mt-1 text-xs text-gray-500">El importe total se calculará automáticamente desde aquí.</p>
                         </div>
-                        <div>
-                            <label for="purchaseAmountInput" class="block text-sm font-medium text-gray-700">Importe Total (calculado)</label>
-                            <div class="relative mt-1">
-                                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
-                                <input type="number" id="purchaseAmountInput" class="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-100" placeholder="0.00" step="0.01" min="0" readonly>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="purchaseAmountInput" class="block text-sm font-medium text-gray-700">Importe Total</label>
+                                <div class="relative mt-1">
+                                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
+                                    <input type="number" id="purchaseAmountInput" class="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-100" placeholder="0.00" step="0.01" min="0" readonly>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="purchaseAmountPaidInput" class="block text-sm font-medium text-gray-700">Importe Abonado</label>
+                                <div class="relative mt-1">
+                                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
+                                    <input type="number" id="purchaseAmountPaidInput" class="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="0.00" step="0.01" min="0">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -444,11 +453,20 @@
                             <label for="editPurchaseProductsInput" class="block text-sm font-medium text-gray-700">Productos y Cantidades</label>
                             <textarea id="editPurchaseProductsInput" rows="5" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Formato: Cantidad x Nombre @ Precio Unitario"></textarea>
                         </div>
-                        <div>
-                            <label for="editPurchaseAmountInput" class="block text-sm font-medium text-gray-700">Importe Total (calculado)</label>
-                            <div class="relative mt-1">
-                                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
-                                <input type="number" id="editPurchaseAmountInput" class="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-100" placeholder="0.00" step="0.01" min="0" readonly>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="editPurchaseAmountInput" class="block text-sm font-medium text-gray-700">Importe Total</label>
+                                <div class="relative mt-1">
+                                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
+                                    <input type="number" id="editPurchaseAmountInput" class="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-100" placeholder="0.00" step="0.01" min="0" readonly>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="editPurchaseAmountPaidInput" class="block text-sm font-medium text-gray-700">Importe Abonado</label>
+                                <div class="relative mt-1">
+                                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
+                                    <input type="number" id="editPurchaseAmountPaidInput" class="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="0.00" step="0.01" min="0">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -745,7 +763,8 @@
                     latitude: orderData.latitude,
                     longitude: orderData.longitude,
                     totalSpent: 0, 
-                    purchaseCount: 0, 
+                    purchaseCount: 0,
+                    balance: 0, 
                     firstSeen: serverTimestamp()
                 });
                 return newClientRef.id;
@@ -797,6 +816,14 @@
                 default: return { bg: 'bg-gray-100', text: 'text-gray-800' };
             }
         };
+        const getPaymentStatusColors = (status) => {
+            switch (status) {
+                case 'Pagado': return { bg: 'bg-green-100', text: 'text-green-800' };
+                case 'Pago Parcial': return { bg: 'bg-yellow-100', text: 'text-yellow-800' };
+                case 'Pendiente': return { bg: 'bg-red-100', text: 'text-red-800' };
+                default: return { bg: 'bg-gray-100', text: 'text-gray-800' };
+            }
+        };
         function renderOrders() {
              ui.orderList.innerHTML = '';
             const hasOrders = allOrders.length > 0;
@@ -837,6 +864,8 @@
                     const purchases = await getClientPurchaseHistory(client.id);
                     const frequency = calculateFrequency(purchases);
                     const frequencyText = frequency !== null ? `Cada ${frequency} días (aprox)` : 'N/A';
+                    const balance = client.balance || 0;
+                    const balanceColor = balance > 0 ? 'text-red-600' : 'text-gray-600';
 
                     const li = document.createElement('li');
                     li.className = "p-4 hover:bg-gray-50";
@@ -847,7 +876,10 @@
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm font-medium text-gray-900 truncate">${client.cliente}</p>
                                     <p class="text-sm text-gray-500 truncate">${client.direccion}</p>
-                                    <p class="text-sm text-green-600 font-semibold truncate">Compra Promedio: ${formatCurrency(avgPurchase)}</p>
+                                    <div class="flex flex-wrap gap-x-4 text-sm">
+                                        <p class="text-green-600 font-semibold truncate">Promedio: ${formatCurrency(avgPurchase)}</p>
+                                        <p class="${balanceColor} font-semibold truncate">Saldo Deudor: ${formatCurrency(balance)}</p>
+                                    </div>
                                     <p class="text-sm text-blue-600 font-semibold truncate">Frecuencia: ${frequencyText}</p>
                                 </div>
                             </div>
@@ -1128,7 +1160,9 @@
                 
                 if (data.latitude && data.importe > 0) {
                     const clientId = await findOrCreateClientForOrder(data);
-                    await logPurchase(clientId, data.importe, new Date().toISOString().split('T')[0], 'order', products, savedOrderId);
+                    // Para pedidos, asumimos que se paga el total al momento de la entrega o después.
+                    // El pago real se registra a través del modal de "+ Compra".
+                    await logPurchase(clientId, data.importe, new Date().toISOString().split('T')[0], 'order', products, 0, savedOrderId);
                 }
                 
                 toggleOrderModal(false);
@@ -1235,6 +1269,7 @@
                         data.firstSeen = serverTimestamp();
                         data.totalSpent = 0;
                         data.purchaseCount = 0;
+                        data.balance = 0;
                         await addDoc(collection(db, `artifacts/${appId}/users/${currentUserId}/clients`), data);
                     }
                     toggleClientModal(false);
@@ -1390,7 +1425,8 @@
             
             const date = document.getElementById('purchaseDateInput').value;
             const productsText = document.getElementById('purchaseProductsInput').value;
-            
+            const amountPaid = parseFloat(document.getElementById('purchaseAmountPaidInput').value) || 0;
+
             const { products, totalAmount } = parseProductsInput(productsText);
             
             if (products.length === 0 || totalAmount <= 0 || !date) {
@@ -1398,22 +1434,32 @@
                 return;
             }
             
-            await logPurchase(activePurchaseContext.clientId, totalAmount, date, 'manual', products);
+            await logPurchase(activePurchaseContext.clientId, totalAmount, date, 'manual', products, amountPaid);
             closeAddPurchaseModal();
         }
 
-        async function logPurchase(clientId, amount, date, type, products = [], sourceId = null) {
+        async function logPurchase(clientId, amount, date, type, products = [], amountPaid = amount, sourceId = null) {
             if (!clientId || !amount || !date || !type) return;
 
             const batch = writeBatch(db);
             const clientRef = doc(db, `artifacts/${appId}/users/${currentUserId}/clients/${clientId}`);
             const purchasesRef = collection(clientRef, "purchases");
 
+            const balanceDifference = amount - amountPaid;
+            let status = 'Pendiente';
+            if (balanceDifference <= 0) {
+                status = 'Pagado';
+            } else if (amountPaid > 0) {
+                status = 'Pago Parcial';
+            }
+
             const newPurchaseRef = doc(purchasesRef);
             const purchaseData = {
                 amount: amount,
+                amountPaid: amountPaid,
                 date: date,
                 type: type, 
+                status: status,
                 createdAt: serverTimestamp()
             };
             if (products.length > 0) {
@@ -1426,7 +1472,8 @@
 
             batch.update(clientRef, {
                 totalSpent: increment(amount),
-                purchaseCount: increment(1)
+                purchaseCount: increment(1),
+                balance: increment(balanceDifference)
             });
             
             await batch.commit();
@@ -1466,12 +1513,18 @@
                 const productsHtml = p.products ? p.products.map(prod => 
                     `<li class="text-xs text-gray-600 ml-4">${prod.quantity} x ${prod.name} (${formatCurrency(prod.price)})</li>`
                 ).join('') : '';
+                const paymentStatus = p.status || 'N/A';
+                const colors = getPaymentStatusColors(paymentStatus);
 
                 li.innerHTML = `
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="text-sm text-gray-800 font-medium">${p.date}</p>
+                            <div class="flex items-center gap-3">
+                                <p class="text-sm text-gray-800 font-medium">${p.date}</p>
+                                <span class="px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${colors.bg} ${colors.text}">${paymentStatus}</span>
+                            </div>
                             <p class="text-lg font-bold text-green-600">${formatCurrency(p.amount)}</p>
+                            <p class="text-sm font-medium text-gray-700">Abonado: ${formatCurrency(p.amountPaid)}</p>
                             ${p.products ? `<ul class="mt-2 list-disc list-inside">${productsHtml}</ul>` : ''}
                         </div>
                         <div class="flex-shrink-0 flex items-center space-x-2">
@@ -1512,6 +1565,7 @@
              document.getElementById('editPurchaseDateInput').value = purchase.date;
              document.getElementById('editPurchaseProductsInput').value = formatProductsToText(purchase.products);
              document.getElementById('editPurchaseAmountInput').value = purchase.amount.toFixed(2);
+             document.getElementById('editPurchaseAmountPaidInput').value = purchase.amountPaid.toFixed(2);
              
              const modal = ui.editPurchaseModal;
              modal.classList.remove('hidden'); modal.classList.add('flex');
@@ -1529,6 +1583,7 @@
             const { clientId, purchaseId, oldPurchaseData } = activePurchaseContext;
             const newDate = document.getElementById('editPurchaseDateInput').value;
             const newProductsText = document.getElementById('editPurchaseProductsInput').value;
+            const newAmountPaid = parseFloat(document.getElementById('editPurchaseAmountPaidInput').value) || 0;
             const { products: newProducts, totalAmount: newAmount } = parseProductsInput(newProductsText);
 
             if (newProducts.length === 0 || newAmount <= 0 || !newDate) {
@@ -1541,12 +1596,30 @@
                     const clientRef = doc(db, `artifacts/${appId}/users/${currentUserId}/clients/${clientId}`);
                     const purchaseRef = doc(clientRef, "purchases", purchaseId);
 
+                    // Calcular el nuevo estado de pago
+                    const newBalanceDifference = newAmount - newAmountPaid;
+                    let newStatus = 'Pendiente';
+                    if (newBalanceDifference <= 0) newStatus = 'Pagado';
+                    else if (newAmountPaid > 0) newStatus = 'Pago Parcial';
+
                     // 1. Actualizar el documento de compra
-                    transaction.update(purchaseRef, { date: newDate, products: newProducts, amount: newAmount });
+                    transaction.update(purchaseRef, { 
+                        date: newDate, 
+                        products: newProducts, 
+                        amount: newAmount, 
+                        amountPaid: newAmountPaid,
+                        status: newStatus
+                    });
 
                     // 2. Ajustar las estadísticas del cliente
                     const amountDifference = newAmount - oldPurchaseData.amount;
-                    transaction.update(clientRef, { totalSpent: increment(amountDifference) });
+                    const oldBalanceDifference = oldPurchaseData.amount - (oldPurchaseData.amountPaid || 0);
+                    const balanceAdjustment = newBalanceDifference - oldBalanceDifference;
+                    
+                    transaction.update(clientRef, { 
+                        totalSpent: increment(amountDifference),
+                        balance: increment(balanceAdjustment)
+                    });
                     
                     // 3. Revertir estadísticas de productos antiguos
                     if (oldPurchaseData.products) {
@@ -1587,6 +1660,8 @@
                  const clientRef = doc(db, `artifacts/${appId}/users/${currentUserId}/clients/${clientId}`);
                  const purchaseRef = doc(clientRef, "purchases", purchase.id);
 
+                 const balanceToRevert = purchase.amount - (purchase.amountPaid || 0);
+
                  const batch = writeBatch(db);
                  // 1. Eliminar el documento de la compra
                  batch.delete(purchaseRef);
@@ -1594,7 +1669,8 @@
                  // 2. Ajustar las estadísticas en el documento del cliente
                  batch.update(clientRef, {
                     totalSpent: increment(-purchase.amount),
-                    purchaseCount: increment(-1)
+                    purchaseCount: increment(-1),
+                    balance: increment(-balanceToRevert)
                  });
                  
                  try {
@@ -1656,6 +1732,7 @@
             document.getElementById('purchaseProductsInput').addEventListener('input', (e) => {
                 const { totalAmount } = parseProductsInput(e.target.value);
                 document.getElementById('purchaseAmountInput').value = totalAmount.toFixed(2);
+                document.getElementById('purchaseAmountPaidInput').value = totalAmount.toFixed(2);
             });
             ui.cancelAddPurchaseBtn.addEventListener('click', closeAddPurchaseModal);
             ui.addPurchaseModal.addEventListener('click', (e) => { if (e.target.id === 'add-purchase-modal') closeAddPurchaseModal(); });
