@@ -283,13 +283,26 @@
                         <div class="space-y-5">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div><label for="pedidoIdInput" class="block text-sm font-medium text-gray-700">N° de Pedido</label><input type="text" id="pedidoIdInput" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Ej: #1024" required></div>
-                                <div><label for="clienteInput" class="block text-sm font-medium text-gray-700">Nombre del Cliente</label><input type="text" id="clienteInput" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Ej: Ana Pérez" required></div>
+                                <div>
+                                    <label for="clienteInput" class="block text-sm font-medium text-gray-700">Nombre del Cliente</label>
+                                    <input type="text" id="clienteInput" list="client-datalist" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Seleccione o escriba un cliente" required>
+                                    <datalist id="client-datalist"></datalist>
+                                </div>
                             </div>
-                             <div>
-                                <label for="importeInput" class="block text-sm font-medium text-gray-700">Importe Total de la Compra</label>
-                                <div class="relative mt-1">
-                                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
-                                    <input type="number" id="importeInput" class="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="0.00" step="0.01" min="0">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="importeInput" class="block text-sm font-medium text-gray-700">Importe Total</label>
+                                    <div class="relative mt-1">
+                                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
+                                        <input type="number" id="importeInput" class="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="0.00" step="0.01" min="0">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="orderAmountPaidInput" class="block text-sm font-medium text-gray-700">Importe Abonado</label>
+                                    <div class="relative mt-1">
+                                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
+                                        <input type="number" id="orderAmountPaidInput" class="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="0.00" step="0.01" min="0">
+                                    </div>
                                 </div>
                             </div>
                             <div>
@@ -604,6 +617,7 @@
             minAvgPurchaseInput: document.getElementById('min-avg-purchase-input'),
             maxAvgPurchaseInput: document.getElementById('max-avg-purchase-input'),
             clearClientFiltersBtn: document.getElementById('clear-client-filters-btn'),
+            clientDatalist: document.getElementById('client-datalist'),
         };
         
         // --- LLAMADA A LA API DE GEMINI ---
@@ -724,6 +738,7 @@
             const q = query(collection(db, `artifacts/${appId}/users/${currentUserId}/clients`));
             clientsUnsubscribe = onSnapshot(q, (querySnapshot) => {
                 allClients = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                populateClientDatalist();
                 applyAndRenderClientFilters();
                 updateRankings();
             }, (error) => console.error("Error al escuchar clientes:", error));
@@ -1127,6 +1142,7 @@
             const orderDocId = document.getElementById('order-id').value;
             const productsText = document.getElementById('productosInput').value;
             const { products } = parseProductsInput(productsText);
+            const amountPaid = parseFloat(document.getElementById('orderAmountPaidInput').value) || 0;
             
             const importeFinal = parseFloat(document.getElementById('importeInput').value) || 0;
 
@@ -1155,7 +1171,7 @@
                 
                 if (data.latitude && data.importe > 0) {
                     const clientId = await findOrCreateClientForOrder(data);
-                    await logPurchase(clientId, data.importe, new Date().toISOString().split('T')[0], 'order', products, 0, savedOrderId);
+                    await logPurchase(clientId, data.importe, new Date().toISOString().split('T')[0], 'order', products, amountPaid, savedOrderId);
                 }
                 
                 toggleOrderModal(false);
@@ -1769,6 +1785,21 @@
                     document.getElementById('importeInput').value = totalAmount.toFixed(2);
                 }
             });
+
+            // Listener para autocompletar datos del cliente en modal de pedido
+            document.getElementById('clienteInput').addEventListener('change', (e) => {
+                const selectedClientName = e.target.value;
+                const client = allClients.find(c => c.cliente === selectedClientName);
+                if (client) {
+                    document.getElementById('direccionInput').value = client.direccion;
+                    if (client.latitude && client.longitude) {
+                        const latLng = new google.maps.LatLng(client.latitude, client.longitude);
+                        modalMap.setCenter(latLng);
+                        modalMap.setZoom(16);
+                        updateModalMarker(latLng);
+                    }
+                }
+            });
         }
         
         function switchTab(tabName) {
@@ -1984,6 +2015,15 @@
 
             renderClientsList(filteredClients);
             renderClientMap(filteredClients);
+        }
+        
+        function populateClientDatalist() {
+            ui.clientDatalist.innerHTML = '';
+            allClients.forEach(client => {
+                const option = document.createElement('option');
+                option.value = client.cliente;
+                ui.clientDatalist.appendChild(option);
+            });
         }
 
         // --- FUNCIÓN DE INICIO GLOBAL Y VERIFICACIÓN ---
