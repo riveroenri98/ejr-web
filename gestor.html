@@ -180,6 +180,31 @@
                          ✨ Analizar Zona de Clientes
                     </button>
                 </div>
+                <!-- Barra de Búsqueda y Filtros -->
+                <div class="mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
+                        <!-- Búsqueda por Nombre/Dirección -->
+                        <div class="md:col-span-2 lg:col-span-2">
+                            <label for="client-search-input" class="block text-sm font-medium text-gray-700">Buscar por Nombre o Dirección</label>
+                            <input type="text" id="client-search-input" placeholder="Escriba para buscar..." class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <!-- Filtro por Compra Promedio -->
+                        <div>
+                            <label for="min-avg-purchase-input" class="block text-sm font-medium text-gray-700">Compra Prom. Mín.</label>
+                            <input type="number" id="min-avg-purchase-input" placeholder="Desde $" min="0" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label for="max-avg-purchase-input" class="block text-sm font-medium text-gray-700">Compra Prom. Máx.</label>
+                            <div class="flex items-center">
+                                <input type="number" id="max-avg-purchase-input" placeholder="Hasta $" min="0" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-l-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <button id="clear-client-filters-btn" class="mt-1 px-3 py-2 bg-gray-200 border border-l-0 border-gray-300 rounded-r-md text-gray-600 hover:bg-gray-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                  <div id="client-analysis-container" class="mb-6 hidden">
                     <h3 class="text-lg font-medium text-gray-700 mb-2">Análisis de Clientes por IA</h3>
                     <div id="client-analysis-content" class="bg-gray-50 p-4 rounded-lg border border-gray-200 text-sm text-gray-600 min-h-[100px] whitespace-pre-wrap"></div>
@@ -557,6 +582,10 @@
             clientRankingByQuantity: document.getElementById('client-ranking-by-quantity'),
             clientRankingByRevenue: document.getElementById('client-ranking-by-revenue'),
             closeClientRankingModalBtn: document.getElementById('close-client-ranking-modal-btn'),
+            clientSearchInput: document.getElementById('client-search-input'),
+            minAvgPurchaseInput: document.getElementById('min-avg-purchase-input'),
+            maxAvgPurchaseInput: document.getElementById('max-avg-purchase-input'),
+            clearClientFiltersBtn: document.getElementById('clear-client-filters-btn'),
         };
         
         // --- LLAMADA A LA API DE GEMINI ---
@@ -677,9 +706,8 @@
             const q = query(collection(db, `artifacts/${appId}/users/${currentUserId}/clients`));
             clientsUnsubscribe = onSnapshot(q, (querySnapshot) => {
                 allClients = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderClientsList();
-                renderClientMap();
-                updateRankings(); // Actualizar rankings cuando cambian los clientes
+                applyAndRenderClientFilters();
+                updateRankings();
             }, (error) => console.error("Error al escuchar clientes:", error));
         }
         
@@ -792,50 +820,59 @@
             });
             addTableButtonListeners();
         }
-        function renderClientsList() {
+        function renderClientsList(clientsToRender) {
+            if (clientsToRender === undefined) {
+                clientsToRender = allClients;
+            }
             ui.clientsList.innerHTML = '';
-            const hasClients = allClients.length > 0;
-            ui.clientsEmptyState.classList.toggle('hidden', hasClients);
-            ui.clientsList.classList.toggle('hidden', !hasClients);
             
-            allClients.forEach(async (client) => {
-                const avgPurchase = (client.purchaseCount > 0) ? (client.totalSpent || 0) / client.purchaseCount : 0;
-                
-                const purchases = await getClientPurchaseHistory(client.id);
-                const frequency = calculateFrequency(purchases);
-                const frequencyText = frequency !== null ? `Cada ${frequency} días (aprox)` : 'N/A';
+            ui.clientsEmptyState.classList.toggle('hidden', allClients.length > 0);
+            
+            if (allClients.length > 0 && clientsToRender.length === 0) {
+                ui.clientsList.innerHTML = `<li class="p-8 text-center text-gray-500">No se encontraron clientes que coincidan con los filtros.</li>`;
+            } else {
+                clientsToRender.forEach(async (client) => {
+                    const avgPurchase = (client.purchaseCount > 0) ? (client.totalSpent || 0) / client.purchaseCount : 0;
+                    
+                    const purchases = await getClientPurchaseHistory(client.id);
+                    const frequency = calculateFrequency(purchases);
+                    const frequencyText = frequency !== null ? `Cada ${frequency} días (aprox)` : 'N/A';
 
-                const li = document.createElement('li');
-                li.className = "p-4 hover:bg-gray-50";
-                li.innerHTML = `
-                    <div class="flex items-center justify-between space-x-4">
-                        <div class="flex-1 min-w-0 flex items-center space-x-4">
-                            <div class="flex-shrink-0"><span class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-indigo-100 text-indigo-700 font-bold">${client.cliente.charAt(0)}</span></div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-medium text-gray-900 truncate">${client.cliente}</p>
-                                <p class="text-sm text-gray-500 truncate">${client.direccion}</p>
-                                <p class="text-sm text-green-600 font-semibold truncate">Compra Promedio: ${formatCurrency(avgPurchase)}</p>
-                                <p class="text-sm text-blue-600 font-semibold truncate">Frecuencia: ${frequencyText}</p>
+                    const li = document.createElement('li');
+                    li.className = "p-4 hover:bg-gray-50";
+                    li.innerHTML = `
+                        <div class="flex items-center justify-between space-x-4">
+                            <div class="flex-1 min-w-0 flex items-center space-x-4">
+                                <div class="flex-shrink-0"><span class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-indigo-100 text-indigo-700 font-bold">${client.cliente.charAt(0)}</span></div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-gray-900 truncate">${client.cliente}</p>
+                                    <p class="text-sm text-gray-500 truncate">${client.direccion}</p>
+                                    <p class="text-sm text-green-600 font-semibold truncate">Compra Promedio: ${formatCurrency(avgPurchase)}</p>
+                                    <p class="text-sm text-blue-600 font-semibold truncate">Frecuencia: ${frequencyText}</p>
+                                </div>
+                            </div>
+                            <div class="flex-shrink-0 flex items-center space-x-1 sm:space-x-2 text-sm flex-wrap justify-end">
+                                <button class="add-purchase-btn font-medium text-green-600 hover:text-green-900 p-1" data-id="${client.id}">+ Compra</button>
+                                <button class="view-history-btn font-medium text-gray-600 hover:text-gray-900 p-1" data-id="${client.id}">Historial</button>
+                                <button class="client-ranking-btn font-medium text-purple-600 hover:text-purple-900 p-1" data-id="${client.id}">Ranking</button>
+                                <button class="edit-client-btn font-medium text-indigo-600 hover:text-indigo-900 p-1" data-id="${client.id}">Editar</button>
+                                <button class="delete-client-btn font-medium text-red-600 hover:text-red-900 p-1" data-id="${client.id}">Eliminar</button>
                             </div>
                         </div>
-                        <div class="flex-shrink-0 flex items-center space-x-1 sm:space-x-2 text-sm flex-wrap justify-end">
-                            <button class="add-purchase-btn font-medium text-green-600 hover:text-green-900 p-1" data-id="${client.id}">+ Compra</button>
-                            <button class="view-history-btn font-medium text-gray-600 hover:text-gray-900 p-1" data-id="${client.id}">Historial</button>
-                            <button class="client-ranking-btn font-medium text-purple-600 hover:text-purple-900 p-1" data-id="${client.id}">Ranking</button>
-                            <button class="edit-client-btn font-medium text-indigo-600 hover:text-indigo-900 p-1" data-id="${client.id}">Editar</button>
-                            <button class="delete-client-btn font-medium text-red-600 hover:text-red-900 p-1" data-id="${client.id}">Eliminar</button>
-                        </div>
-                    </div>
-                `;
-                ui.clientsList.appendChild(li);
-            });
+                    `;
+                    ui.clientsList.appendChild(li);
+                });
+            }
         }
         
-        function renderClientMap() {
+        function renderClientMap(clientsToRender) {
+             if (clientsToRender === undefined) {
+                clientsToRender = allClients;
+            }
              clientMapMarkers.forEach(marker => marker.setMap(null));
              clientMapMarkers = [];
              
-             const points = allClients.filter(c => c.latitude).map(client => new google.maps.LatLng(client.latitude, client.longitude));
+             const points = clientsToRender.filter(c => c.latitude).map(client => new google.maps.LatLng(client.latitude, client.longitude));
              
             if (heatmap) {
                 heatmap.setData(points);
@@ -845,7 +882,7 @@
                 });
             }
 
-            allClients.forEach(client => {
+            clientsToRender.forEach(client => {
                 if (!client.latitude) return;
                 const avgPurchase = (client.purchaseCount > 0) ? (client.totalSpent || 0) / client.purchaseCount : 0;
                 const position = new google.maps.LatLng(client.latitude, client.longitude);
@@ -1641,6 +1678,17 @@
 
             ui.closeClientRankingModalBtn.addEventListener('click', closeClientRankingModal);
             ui.clientRankingModal.addEventListener('click', (e) => { if(e.target.id === 'client-ranking-modal') closeClientRankingModal(); });
+
+            // Listeners para los filtros de clientes
+            ui.clientSearchInput.addEventListener('input', applyAndRenderClientFilters);
+            ui.minAvgPurchaseInput.addEventListener('input', applyAndRenderClientFilters);
+            ui.maxAvgPurchaseInput.addEventListener('input', applyAndRenderClientFilters);
+            ui.clearClientFiltersBtn.addEventListener('click', () => {
+                ui.clientSearchInput.value = '';
+                ui.minAvgPurchaseInput.value = '';
+                ui.maxAvgPurchaseInput.value = '';
+                applyAndRenderClientFilters();
+            });
         }
         
         function switchTab(tabName) {
@@ -1830,6 +1878,32 @@
             setTimeout(() => {
                 modal.querySelector('.bg-white').classList.remove('opacity-0', '-translate-y-10');
             }, 10);
+        }
+
+        function applyAndRenderClientFilters() {
+            const searchTerm = ui.clientSearchInput.value.toLowerCase().trim();
+            const minAvg = parseFloat(ui.minAvgPurchaseInput.value);
+            const maxAvg = parseFloat(ui.maxAvgPurchaseInput.value);
+
+            let filteredClients = allClients.filter(client => {
+                // Filtro por término de búsqueda (nombre o dirección)
+                const matchesSearch = searchTerm === '' || 
+                                    client.cliente.toLowerCase().includes(searchTerm) || 
+                                    client.direccion.toLowerCase().includes(searchTerm);
+                
+                if (!matchesSearch) return false;
+
+                // Filtro por compra promedio
+                const avgPurchase = (client.purchaseCount > 0) ? (client.totalSpent || 0) / client.purchaseCount : 0;
+                
+                const matchesMin = isNaN(minAvg) || avgPurchase >= minAvg;
+                const matchesMax = isNaN(maxAvg) || avgPurchase <= maxAvg;
+
+                return matchesMin && matchesMax;
+            });
+
+            renderClientsList(filteredClients);
+            renderClientMap(filteredClients);
         }
 
         // --- FUNCIÓN DE INICIO GLOBAL Y VERIFICACIÓN ---
