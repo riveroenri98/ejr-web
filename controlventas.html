@@ -384,22 +384,16 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
         // --- CONFIGURATION ---
-        // --- CONFIGURATION ---
-const firebaseConfig = {
-    apiKey: "AIzaSyAJbCC1pR-CQTpOXBicC59Jqm32Rr7q9M8",
-    authDomain: "sistemafidelidad-super-21.firebaseapp.com",
-    projectId: "sistemafidelidad-super-21",
-    storageBucket: "sistemafidelidad-super-21.firebasestorage.app",
-    messagingSenderId: "221163223090",
-    appId: "1:221163223090:web:ffe60b7a75758d591c242b",
-    measurementId: "G-79RSPJE5L8"
-};
-
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-sales-app';
-
-// --- INITIALIZATION ---
-const app = initializeApp(firebaseConfig);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-sales-app';
+        const firebaseConfig = {
+            apiKey: "AIzaSyAJbCC1pR-CQTpOXBicC59Jqm32Rr7q9M8",
+            authDomain: "sistemafidelidad-super-21.firebaseapp.com",
+            projectId: "sistemafidelidad-super-21",
+            storageBucket: "sistemafidelidad-super-21.firebasestorage.app",
+            messagingSenderId: "221163223090",
+            appId: "1:221163223090:web:ffe60b7a75758d591c242b",
+            measurementId: "G-79RSPJE5L8"
+        };
+        const appId = 'control-ventas-app'; // Usamos un ID simple para su app
 
         // --- INITIALIZATION ---
         const app = initializeApp(firebaseConfig);
@@ -414,35 +408,38 @@ const app = initializeApp(firebaseConfig);
         let pagosCache = [];
         let confirmCallback = null;
 
-        // --- AUTHENTICATION ---
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                userId = user.uid;
-                console.log("User authenticated with UID:", userId);
-                initializeAppLogic();
-            } else {
-                console.log("No user signed in. Trying to sign in...");
-                try {
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-                } catch (error) {
-                    console.error("Error signing in:", error);
-                    showMessage("Error de autenticación. La aplicación no funcionará correctamente.", true);
-                }
-            }
+        // --- MAIN APP INITIALIZER ---
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOM fully loaded. Initializing app...");
+            initializeAppLogic();
         });
 
-        // --- DOM ELEMENTS ---
-        const tabs = document.querySelectorAll('.tab-btn');
-        const views = document.querySelectorAll('.view');
-        const modals = document.querySelectorAll('.modal-backdrop');
+        // --- AUTHENTICATION ---
+        function setupAuthListener() {
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    userId = user.uid;
+                    console.log("User authenticated with UID:", userId);
+                    setupFirestoreListeners();
+                } else {
+                    console.log("No user signed in. Trying to sign in anonymously...");
+                    try {
+                        await signInAnonymously(auth);
+                    } catch (error) {
+                        console.error("Error signing in anonymously:", error);
+                        showMessage("Error de autenticación. Verifique que el inicio de sesión anónimo esté habilitado en Firebase.", true);
+                    }
+                }
+            });
+        }
+
+        // --- DOM ELEMENTS (declared globally for access) ---
+        let tabs, views, modals;
 
         // --- HELPER FUNCTIONS ---
         const showMessage = (msg, isError = false) => {
             const messageBox = document.getElementById('message-box');
+            if (!messageBox) return;
             const messageText = document.getElementById('message-text');
             messageText.textContent = msg;
             messageBox.classList.remove('hidden', 'bg-green-500', 'bg-red-500');
@@ -457,11 +454,11 @@ const app = initializeApp(firebaseConfig);
         };
 
         const formatCurrency = (amount) => {
-            return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(amount);
+            return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(amount || 0);
         };
 
         const formatDate = (dateString) => {
-            const date = new Date(dateString + 'T00:00:00'); // Ensure correct date parsing
+            const date = new Date(dateString + 'T00:00:00');
             return date.toLocaleDateString('es-AR', { year: 'numeric', month: 'long', day: 'numeric' });
         };
         
@@ -469,6 +466,11 @@ const app = initializeApp(firebaseConfig);
 
         // --- TAB & MODAL MANAGEMENT ---
         const setupUIListeners = () => {
+            console.log("Setting up UI listeners...");
+            tabs = document.querySelectorAll('.tab-btn');
+            views = document.querySelectorAll('.view');
+            modals = document.querySelectorAll('.modal-backdrop');
+
             tabs.forEach(tab => {
                 tab.addEventListener('click', () => {
                     tabs.forEach(t => t.classList.remove('tab-active'));
@@ -478,7 +480,6 @@ const app = initializeApp(firebaseConfig);
                 });
             });
             
-            // Seller sub-tabs
             const subTabBtns = document.querySelectorAll('.sub-tab-btn');
             const subViews = document.querySelectorAll('.sub-view');
             subTabBtns.forEach(btn => {
@@ -493,32 +494,7 @@ const app = initializeApp(firebaseConfig);
                     }
                 });
             });
-
-
-            const openModal = (modalId) => document.getElementById(modalId).classList.replace('hidden', 'flex');
-            const closeModal = () => modals.forEach(m => m.classList.replace('flex', 'hidden'));
-
-            document.getElementById('btn-nuevo-cliente').addEventListener('click', () => openModal('modal-cliente'));
-            document.getElementById('btn-nuevo-producto').addEventListener('click', () => openModal('modal-producto'));
-            document.querySelector('#vendedores-resumen-view #btn-nuevo-vendedor').addEventListener('click', () => openModal('modal-vendedor'));
-            document.getElementById('btn-nueva-venta').addEventListener('click', () => {
-                prepareVentaModal();
-                openModal('modal-venta');
-            });
-            
-            document.querySelectorAll('.btn-cancelar-modal').forEach(btn => btn.addEventListener('click', closeModal));
-            
-            document.getElementById('btn-cancelar-confirmacion').addEventListener('click', () => {
-                document.getElementById('modal-confirmacion').classList.replace('flex', 'hidden');
-                confirmCallback = null;
-            });
-            document.getElementById('btn-aceptar-confirmacion').addEventListener('click', () => {
-                if (confirmCallback) {
-                    confirmCallback();
-                }
-                document.getElementById('modal-confirmacion').classList.replace('flex', 'hidden');
-                confirmCallback = null;
-            });
+            console.log("UI listeners setup complete.");
         };
 
         // --- DATA RENDERING ---
@@ -579,7 +555,6 @@ const app = initializeApp(firebaseConfig);
                 const pagosDelDia = pagosCache.filter(pago => pago.fecha === fecha);
                 const comisionCobrosDia = pagosDelDia.reduce((sum, p) => sum + (p.importe * 0.02), 0);
 
-
                 const detalleHtml = ventasDelDia.map(venta => {
                     const vendedor = vendedoresCache.find(v => v.id === venta.vendedorId)?.nombre || 'N/A';
                     const cliente = clientesCache.find(c => c.id === venta.clienteId)?.nombre || 'N/A';
@@ -623,7 +598,6 @@ const app = initializeApp(firebaseConfig);
                 `;
             }).join('');
         };
-
 
         const renderClientes = (clientes) => {
             clientesCache = clientes;
@@ -680,18 +654,22 @@ const app = initializeApp(firebaseConfig);
         // --- FIRESTORE LOGIC ---
         const setupFirestoreListeners = () => {
             if (!userId) return;
+            console.log("Setting up Firestore listeners for user:", userId);
             const basePath = `/artifacts/${appId}/users/${userId}`;
 
             onSnapshot(collection(db, `${basePath}/vendedores`), (snapshot) => {
-                renderVendedoresResumen(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                vendedoresCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderVendedoresResumen(vendedoresCache);
+                renderHistorialVentas();
             });
             onSnapshot(collection(db, `${basePath}/clientes`), (snapshot) => {
                 clientesCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderClientes(clientesCache);
-                renderHistorialVentas(); // Re-render in case client names changed
+                renderHistorialVentas(); 
             });
             onSnapshot(collection(db, `${basePath}/productos`), (snapshot) => {
-                renderProductos(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                productosCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderProductos(productosCache);
             });
             onSnapshot(collection(db, `${basePath}/ventas`), (snapshot) => {
                 renderVentas(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
@@ -701,6 +679,7 @@ const app = initializeApp(firebaseConfig);
                 renderVendedoresResumen(vendedoresCache);
                 renderHistorialVentas();
             });
+            console.log("Firestore listeners setup complete.");
         };
 
         const addDocument = async (coll, data) => {
@@ -727,6 +706,7 @@ const app = initializeApp(firebaseConfig);
 
         // --- FORM SUBMISSIONS ---
         const setupFormListeners = () => {
+            console.log("Setting up form listeners...");
             document.getElementById('form-cliente').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const nombre = document.getElementById('cliente-nombre').value;
@@ -781,18 +761,12 @@ const app = initializeApp(firebaseConfig);
                 }
 
                 try {
-                    // Add sale document
                     await addDocument('ventas', venta);
-                    
-                    // Update client balance
                     const clienteRef = doc(db, `/artifacts/${appId}/users/${userId}/clientes`, venta.clienteId);
                     await updateDoc(clienteRef, { saldo: increment(venta.total) });
-
-                    // Add 3% commission to seller
                     const comisionVenta = venta.total * 0.03;
                     const vendedorRef = doc(db, `/artifacts/${appId}/users/${userId}/vendedores`, venta.vendedorId);
                     await updateDoc(vendedorRef, { comisionSaldo: increment(comisionVenta) });
-
                     e.target.reset();
                     modals.forEach(m => m.classList.replace('flex', 'hidden'));
                 } catch (error) {
@@ -813,23 +787,17 @@ const app = initializeApp(firebaseConfig);
                 }
                 
                 try {
-                    // Register payment
                     await addDocument('pagos', {
                         clienteId,
                         vendedorId,
                         importe,
                         fecha: getTodayString()
                     });
-                    
-                    // Update client balance
                     const clienteRef = doc(db, `/artifacts/${appId}/users/${userId}/clientes`, clienteId);
                     await updateDoc(clienteRef, { saldo: increment(-importe) });
-                    
-                    // Add 2% bonus commission to seller
                     const comisionBono = importe * 0.02;
                     const vendedorRef = doc(db, `/artifacts/${appId}/users/${userId}/vendedores`, vendedorId);
                     await updateDoc(vendedorRef, { comisionSaldo: increment(comisionBono) });
-
                     e.target.reset();
                     modals.forEach(m => m.classList.replace('flex', 'hidden'));
                 } catch (error) {
@@ -860,180 +828,188 @@ const app = initializeApp(firebaseConfig);
                     showMessage("Error al pagar la comisión.", true);
                 }
             });
-        };
+        console.log("Form listeners setup complete.");
+    };
+    
+    // --- DYNAMIC FORM LOGIC FOR SALES ---
+    const prepareVentaModal = () => {
+        document.getElementById('form-venta').reset();
+        document.getElementById('venta-productos-container').innerHTML = '';
+        document.getElementById('venta-total').textContent = formatCurrency(0);
+        document.getElementById('venta-fecha').value = getTodayString();
+
+        const vendedorSelect = document.getElementById('venta-vendedor');
+        vendedorSelect.innerHTML = '<option value="">Seleccione un vendedor</option>' + vendedoresCache.map(v => `<option value="${v.id}">${v.nombre}</option>`).join('');
         
-        // --- DYNAMIC FORM LOGIC FOR SALES ---
-        const prepareVentaModal = () => {
-            // Reset form
-            document.getElementById('form-venta').reset();
-            document.getElementById('venta-productos-container').innerHTML = '';
-            document.getElementById('venta-total').textContent = formatCurrency(0);
-            document.getElementById('venta-fecha').value = getTodayString();
-
-            // Populate dropdowns
-            const vendedorSelect = document.getElementById('venta-vendedor');
-            vendedorSelect.innerHTML = '<option value="">Seleccione un vendedor</option>' + vendedoresCache.map(v => `<option value="${v.id}">${v.nombre}</option>`).join('');
-            
-            const clienteSelect = document.getElementById('venta-cliente');
-            clienteSelect.innerHTML = '<option value="">Seleccione un cliente</option>' + clientesCache.map(c => `<option value="${c.id}" data-direccion="${c.direccion}">${c.nombre}</option>`).join('');
-            
-            // Add first product row
-            agregarFilaProductoVenta();
-        };
-
-        const agregarFilaProductoVenta = () => {
-            const container = document.getElementById('venta-productos-container');
-            const newRow = document.createElement('div');
-            newRow.className = 'grid grid-cols-12 gap-2 items-center producto-item-row';
-            newRow.innerHTML = `
-                <div class="col-span-5">
-                    <select class="venta-producto-select mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                        <option value="">Seleccione producto</option>
-                        ${productosCache.map(p => `<option value="${p.id}" data-precio="${p.precio}">${p.nombre}</option>`).join('')}
-                    </select>
-                </div>
-                <div class="col-span-2">
-                    <input type="number" value="1" min="1" class="venta-producto-cantidad mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                </div>
-                <div class="col-span-2">
-                    <input type="number" step="0.01" class="venta-producto-precio mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                </div>
-                <div class="col-span-2 text-right font-medium">
-                    <span class="venta-producto-subtotal">$0.00</span>
-                </div>
-                <div class="col-span-1 text-right">
-                    <button type="button" class="btn-eliminar-fila-producto text-red-500 hover:text-red-700"><i class="fas fa-times-circle"></i></button>
-                </div>
-            `;
-            container.appendChild(newRow);
-        };
+        const clienteSelect = document.getElementById('venta-cliente');
+        clienteSelect.innerHTML = '<option value="">Seleccione un cliente</option>' + clientesCache.map(c => `<option value="${c.id}" data-direccion="${c.direccion}">${c.nombre}</option>`).join('');
         
-        const actualizarTotalVenta = () => {
-            let total = 0;
-            document.querySelectorAll('.producto-item-row').forEach(row => {
-                const cantidad = parseInt(row.querySelector('.venta-producto-cantidad').value) || 0;
-                const precio = parseFloat(row.querySelector('.venta-producto-precio').value) || 0;
-                const subtotal = cantidad * precio;
-                row.querySelector('.venta-producto-subtotal').textContent = formatCurrency(subtotal);
-                total += subtotal;
-            });
-            document.getElementById('venta-total').textContent = formatCurrency(total);
-        };
-        
-        // --- EVENT DELEGATION FOR DYNAMIC CONTENT ---
-        const setupEventListeners = () => {
-            document.body.addEventListener('click', async (e) => {
-                const deleteBtn = e.target.closest('.btn-eliminar-cliente, .btn-eliminar-producto, .btn-eliminar-vendedor');
-                if (deleteBtn) {
-                    const id = deleteBtn.dataset.id;
-                    let collectionName = '';
-                    if (deleteBtn.classList.contains('btn-eliminar-cliente')) collectionName = 'clientes';
-                    if (deleteBtn.classList.contains('btn-eliminar-producto')) collectionName = 'productos';
-                    if (deleteBtn.classList.contains('btn-eliminar-vendedor')) collectionName = 'vendedores';
-                    await deleteDocument(collectionName, id);
-                }
-                
-                if (e.target.closest('.btn-eliminar-venta')) {
-                    const btn = e.target.closest('.btn-eliminar-venta');
-                    const ventaId = btn.dataset.id;
-                    const ventaTotal = parseFloat(btn.dataset.total);
-                    const clienteId = btn.dataset.clienteId;
-                    const vendedorId = btn.dataset.vendedorId;
-                    
-                    showConfirmModal("¿Está seguro de que desea eliminar esta venta? Se reajustará el saldo del cliente y la comisión del vendedor.", async () => {
-                        try {
-                            // Revert client balance
-                            const clienteRef = doc(db, `/artifacts/${appId}/users/${userId}/clientes`, clienteId);
-                            await updateDoc(clienteRef, { saldo: increment(-ventaTotal) });
-                            
-                            // Revert seller commission
-                            const comisionVenta = ventaTotal * 0.03;
-                            const vendedorRef = doc(db, `/artifacts/${appId}/users/${userId}/vendedores`, vendedorId);
-                            await updateDoc(vendedorRef, { comisionSaldo: increment(-comisionVenta) });
+        agregarFilaProductoVenta();
+    };
 
-                            // Delete the sale
-                            await deleteDoc(doc(db, `/artifacts/${appId}/users/${userId}/ventas`, ventaId));
-                            
-                            showMessage("Venta eliminada y saldos ajustados.");
-                        } catch (error) {
-                            console.error("Error deleting sale:", error);
-                            showMessage("Error al eliminar la venta.", true);
-                        }
-                    });
-                }
+    const agregarFilaProductoVenta = () => {
+        const container = document.getElementById('venta-productos-container');
+        const newRow = document.createElement('div');
+        newRow.className = 'grid grid-cols-12 gap-2 items-center producto-item-row';
+        newRow.innerHTML = `
+            <div class="col-span-5">
+                <select class="venta-producto-select mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    <option value="">Seleccione producto</option>
+                    ${productosCache.map(p => `<option value="${p.id}" data-precio="${p.precio}">${p.nombre}</option>`).join('')}
+                </select>
+            </div>
+            <div class="col-span-2">
+                <input type="number" value="1" min="1" class="venta-producto-cantidad mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+            </div>
+            <div class="col-span-2">
+                <input type="number" step="0.01" class="venta-producto-precio mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+            </div>
+            <div class="col-span-2 text-right font-medium">
+                <span class="venta-producto-subtotal">$0.00</span>
+            </div>
+            <div class="col-span-1 text-right">
+                <button type="button" class="btn-eliminar-fila-producto text-red-500 hover:text-red-700"><i class="fas fa-times-circle"></i></button>
+            </div>
+        `;
+        container.appendChild(newRow);
+    };
+    
+    const actualizarTotalVenta = () => {
+        let total = 0;
+        document.querySelectorAll('.producto-item-row').forEach(row => {
+            const cantidad = parseInt(row.querySelector('.venta-producto-cantidad').value) || 0;
+            const precio = parseFloat(row.querySelector('.venta-producto-precio').value) || 0;
+            const subtotal = cantidad * precio;
+            row.querySelector('.venta-producto-subtotal').textContent = formatCurrency(subtotal);
+            total += subtotal;
+        });
+        document.getElementById('venta-total').textContent = formatCurrency(total);
+    };
+    
+    // --- EVENT DELEGATION FOR DYNAMIC CONTENT ---
+    const setupEventListeners = () => {
+        console.log("Setting up dynamic event listeners...");
+        const openModal = (modalId) => document.getElementById(modalId).classList.replace('hidden', 'flex');
 
-                if (e.target.closest('.btn-registrar-pago')) {
-                    const btn = e.target.closest('.btn-registrar-pago');
-                    const clienteId = btn.dataset.id;
-                    const cliente = clientesCache.find(c => c.id === clienteId);
-                    if (cliente) {
-                        document.getElementById('pago-cliente-id').value = cliente.id;
-                        document.getElementById('pago-cliente-nombre').textContent = cliente.nombre;
-                        document.getElementById('pago-cliente-saldo').textContent = formatCurrency(cliente.saldo);
-                        const pagoVendedorSelect = document.getElementById('pago-vendedor');
-                        pagoVendedorSelect.innerHTML = '<option value="">Seleccione un vendedor</option>' + vendedoresCache.map(v => `<option value="${v.id}">${v.nombre}</option>`).join('');
-                        document.getElementById('modal-pago').classList.replace('hidden', 'flex');
-                    }
-                }
-                
-                if (e.target.closest('.btn-pagar-comision')) {
-                    const btn = e.target.closest('.btn-pagar-comision');
-                    const vendedorId = btn.dataset.id;
-                    const vendedor = vendedoresCache.find(v => v.id === vendedorId);
-                    if (vendedor) {
-                        document.getElementById('comision-vendedor-id').value = vendedor.id;
-                        document.getElementById('comision-vendedor-nombre').textContent = vendedor.nombre;
-                        document.getElementById('comision-vendedor-saldo').textContent = formatCurrency(vendedor.comisionSaldo || 0);
-                        document.getElementById('comision-importe').max = vendedor.comisionSaldo || 0;
-                        document.getElementById('modal-pagar-comision').classList.replace('hidden', 'flex');
-                    }
-                }
+        document.body.addEventListener('click', async (e) => {
+            const target = e.target;
 
-                if (e.target.id === 'btn-agregar-producto-venta') {
-                    agregarFilaProductoVenta();
-                }
-
-                if (e.target.closest('.btn-eliminar-fila-producto')) {
-                    e.target.closest('.producto-item-row').remove();
-                    actualizarTotalVenta();
-                }
-            });
-
-            document.body.addEventListener('change', (e) => {
-                if (e.target.id === 'venta-cliente') {
-                    const selectedOption = e.target.options[e.target.selectedIndex];
-                    document.getElementById('venta-direccion').value = selectedOption.dataset.direccion || '';
-                }
-
-                if (e.target.classList.contains('venta-producto-select')) {
-                    const selectedOption = e.target.options[e.target.selectedIndex];
-                    const precio = selectedOption.dataset.precio || 0;
-                    const row = e.target.closest('.producto-item-row');
-                    row.querySelector('.venta-producto-precio').value = precio;
-                    actualizarTotalVenta();
-                }
-            });
-            
-            document.body.addEventListener('input', (e) => {
-                if (e.target.classList.contains('venta-producto-cantidad') || e.target.classList.contains('venta-producto-precio')) {
-                    actualizarTotalVenta();
-                }
-            });
-        };
-
-        // --- MAIN APP LOGIC ---
-        function initializeAppLogic() {
-            if (!userId) {
-                console.log("Waiting for user authentication...");
-                return;
+            // Static button clicks handled via delegation
+            if (target.closest('#btn-nuevo-cliente')) openModal('modal-cliente');
+            if (target.closest('#btn-nuevo-producto')) openModal('modal-producto');
+            if (target.closest('#vendedores-resumen-view #btn-nuevo-vendedor')) openModal('modal-vendedor');
+            if (target.closest('#btn-nueva-venta')) {
+                prepareVentaModal();
+                openModal('modal-venta');
             }
-            console.log("Initializing app for user:", userId);
-            setupUIListeners();
-            setupFormListeners();
-            setupFirestoreListeners();
-            setupEventListeners();
-        }
+            if (target.closest('.btn-cancelar-modal')) target.closest('.modal-backdrop').classList.replace('flex', 'hidden');
 
-    </script>
+            // Dynamic button clicks
+            const deleteBtn = target.closest('.btn-eliminar-cliente, .btn-eliminar-producto, .btn-eliminar-vendedor');
+            if (deleteBtn) {
+                const id = deleteBtn.dataset.id;
+                let collectionName = '';
+                if (deleteBtn.classList.contains('btn-eliminar-cliente')) collectionName = 'clientes';
+                if (deleteBtn.classList.contains('btn-eliminar-producto')) collectionName = 'productos';
+                if (deleteBtn.classList.contains('btn-eliminar-vendedor')) collectionName = 'vendedores';
+                await deleteDocument(collectionName, id);
+            }
+            
+            if (target.closest('.btn-eliminar-venta')) {
+                const btn = target.closest('.btn-eliminar-venta');
+                const ventaId = btn.dataset.id;
+                const ventaTotal = parseFloat(btn.dataset.total);
+                const clienteId = btn.dataset.clienteId;
+                const vendedorId = btn.dataset.vendedorId;
+                
+                showConfirmModal("¿Está seguro de que desea eliminar esta venta? Se reajustará el saldo del cliente y la comisión del vendedor.", async () => {
+                    try {
+                        const clienteRef = doc(db, `/artifacts/${appId}/users/${userId}/clientes`, clienteId);
+                        await updateDoc(clienteRef, { saldo: increment(-ventaTotal) });
+                        
+                        const comisionVenta = ventaTotal * 0.03;
+                        const vendedorRef = doc(db, `/artifacts/${appId}/users/${userId}/vendedores`, vendedorId);
+                        await updateDoc(vendedorRef, { comisionSaldo: increment(-comisionVenta) });
+
+                        await deleteDoc(doc(db, `/artifacts/${appId}/users/${userId}/ventas`, ventaId));
+                        
+                        showMessage("Venta eliminada y saldos ajustados.");
+                    } catch (error) {
+                        console.error("Error deleting sale:", error);
+                        showMessage("Error al eliminar la venta.", true);
+                    }
+                });
+            }
+
+            if (target.closest('.btn-registrar-pago')) {
+                const btn = target.closest('.btn-registrar-pago');
+                const clienteId = btn.dataset.id;
+                const cliente = clientesCache.find(c => c.id === clienteId);
+                if (cliente) {
+                    document.getElementById('pago-cliente-id').value = cliente.id;
+                    document.getElementById('pago-cliente-nombre').textContent = cliente.nombre;
+                    document.getElementById('pago-cliente-saldo').textContent = formatCurrency(cliente.saldo);
+                    const pagoVendedorSelect = document.getElementById('pago-vendedor');
+                    pagoVendedorSelect.innerHTML = '<option value="">Seleccione un vendedor</option>' + vendedoresCache.map(v => `<option value="${v.id}">${v.nombre}</option>`).join('');
+                    openModal('modal-pago');
+                }
+            }
+            
+            if (target.closest('.btn-pagar-comision')) {
+                const btn = target.closest('.btn-pagar-comision');
+                const vendedorId = btn.dataset.id;
+                const vendedor = vendedoresCache.find(v => v.id === vendedorId);
+                if (vendedor) {
+                    document.getElementById('comision-vendedor-id').value = vendedor.id;
+                    document.getElementById('comision-vendedor-nombre').textContent = vendedor.nombre;
+                    document.getElementById('comision-vendedor-saldo').textContent = formatCurrency(vendedor.comisionSaldo || 0);
+                    document.getElementById('comision-importe').max = vendedor.comisionSaldo || 0;
+                    openModal('modal-pagar-comision');
+                }
+            }
+
+            if (target.id === 'btn-agregar-producto-venta') {
+                agregarFilaProductoVenta();
+            }
+
+            if (target.closest('.btn-eliminar-fila-producto')) {
+                target.closest('.producto-item-row').remove();
+                actualizarTotalVenta();
+            }
+        });
+
+        document.body.addEventListener('change', (e) => {
+            if (e.target.id === 'venta-cliente') {
+                const selectedOption = e.target.options[e.target.selectedIndex];
+                document.getElementById('venta-direccion').value = selectedOption.dataset.direccion || '';
+            }
+
+            if (e.target.classList.contains('venta-producto-select')) {
+                const selectedOption = e.target.options[e.target.selectedIndex];
+                const precio = selectedOption.dataset.precio || 0;
+                const row = e.target.closest('.producto-item-row');
+                row.querySelector('.venta-producto-precio').value = precio;
+                actualizarTotalVenta();
+            }
+        });
+        
+        document.body.addEventListener('input', (e) => {
+            if (e.target.classList.contains('venta-producto-cantidad') || e.target.classList.contains('venta-producto-precio')) {
+                actualizarTotalVenta();
+            }
+        });
+        console.log("Dynamic event listeners setup complete.");
+    };
+
+    // --- MAIN APP LOGIC ---
+    function initializeAppLogic() {
+        // This function is the single entry point
+        setupUIListeners();
+        setupFormListeners();
+        setupEventListeners();
+        setupAuthListener(); // This will trigger the rest of the app once authenticated
+    }
+
+</script>
 </body>
 </html>
