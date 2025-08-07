@@ -750,9 +750,15 @@
             console.log("Firestore listeners setup complete.");
         };
 
-        const addDocument = async (coll, data) => {
+        const addDocument = async (coll, data, isPublic = false) => {
             try {
-                const docRef = await addDoc(collection(db, `/artifacts/${appId}/users/${userId}/${coll}`), data);
+                let path;
+                if (isPublic) {
+                    path = `/artifacts/${appId}/public/data/${coll}`;
+                } else {
+                    path = `/artifacts/${appId}/users/${userId}/${coll}`;
+                }
+                const docRef = await addDoc(collection(db, path), data);
                 showMessage(`${coll.slice(0, -1)} agregado con éxito.`);
                 return docRef;
             } catch (e) {
@@ -762,10 +768,16 @@
             }
         };
         
-        const deleteDocument = async (coll, id) => {
+        const deleteDocument = async (coll, id, isPublic = false) => {
             showConfirmModal(`¿Está seguro de que desea eliminar este ${coll.slice(0, -1)}? Esta acción no se puede deshacer.`, async () => {
                 try {
-                    await deleteDoc(doc(db, `/artifacts/${appId}/users/${userId}/${coll}`, id));
+                    let path;
+                    if (isPublic) {
+                        path = `/artifacts/${appId}/public/data/${coll}/${id}`;
+                    } else {
+                        path = `/artifacts/${appId}/users/${userId}/${coll}/${id}`;
+                    }
+                    await deleteDoc(doc(db, path));
                     showMessage(`${coll.slice(0, -1)} eliminado con éxito.`);
                 } catch (e) {
                     console.error("Error deleting document: ", e);
@@ -853,8 +865,7 @@
                             createdAt: serverTimestamp()
                         };
                         
-                        // Save to a shared public collection for the other app to access
-                        await addDoc(collection(db, `/artifacts/${appId}/public/data/envios`), envioData);
+                        await addDocument('envios', envioData, true); // Save to public collection
                         showMessage("Venta agregada a la planilla de envíos.", false);
                     }
 
