@@ -318,9 +318,17 @@
                 <h4 class="text-lg font-medium mb-2">Productos</h4>
                 <div id="venta-productos-container" class="space-y-3 mb-4"></div>
                 <button type="button" id="btn-agregar-producto-venta" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm"><i class="fas fa-plus mr-1"></i>Agregar Producto</button>
-                <div class="mt-4 text-right">
+                
+                <div class="mt-4 flex justify-between items-center">
+                    <div class="flex items-center">
+                        <input id="venta-para-envio" name="venta-para-envio" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                        <label for="venta-para-envio" class="ml-2 block text-sm font-medium text-gray-900">
+                            Agregar a la planilla de envíos
+                        </label>
+                    </div>
                     <p class="text-xl font-bold">Total: <span id="venta-total" class="text-indigo-700">$0.00</span></p>
                 </div>
+
                 <div class="flex justify-end space-x-3 mt-6">
                     <button type="button" class="btn-cancelar-modal bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg">Cancelar</button>
                     <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">Guardar Venta</button>
@@ -395,7 +403,7 @@
     <script type="module">
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, getDoc, updateDoc, deleteDoc, increment, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, getDoc, updateDoc, deleteDoc, increment, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
         // --- CONFIGURATION ---
@@ -698,7 +706,7 @@
                 return `
                     <tr id="${v.id}">
                         <td class="px-6 py-4 whitespace-nowrap">${formatDate(v.fecha)}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">${cliente ? cliente.nombre : 'N/A'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${cliente ? cliente.nombre : 'N/A'} ${v.paraEnvio ? '<i class="fas fa-truck text-indigo-500 ml-2" title="Agregado a envíos"></i>' : ''}</td>
                         <td class="px-6 py-4 whitespace-nowrap">${vendedor ? vendedor.nombre : 'N/A'}</td>
                         <td class="px-6 py-4 whitespace-nowrap font-semibold">${formatCurrency(v.total)}</td>
                          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -744,11 +752,13 @@
 
         const addDocument = async (coll, data) => {
             try {
-                await addDoc(collection(db, `/artifacts/${appId}/users/${userId}/${coll}`), data);
+                const docRef = await addDoc(collection(db, `/artifacts/${appId}/users/${userId}/${coll}`), data);
                 showMessage(`${coll.slice(0, -1)} agregado con éxito.`);
+                return docRef;
             } catch (e) {
                 console.error("Error adding document: ", e);
                 showMessage(`Error al agregar ${coll.slice(0, -1)}.`, true);
+                return null;
             }
         };
         
@@ -795,12 +805,14 @@
 
             document.getElementById('form-venta').addEventListener('submit', async (e) => {
                 e.preventDefault();
+                const paraEnvio = document.getElementById('venta-para-envio').checked;
                 const venta = {
                     fecha: document.getElementById('venta-fecha').value,
                     vendedorId: document.getElementById('venta-vendedor').value,
                     clienteId: document.getElementById('venta-cliente').value,
                     items: [],
-                    total: 0
+                    total: 0,
+                    paraEnvio: paraEnvio
                 };
 
                 const productoRows = document.querySelectorAll('.producto-item-row');
@@ -821,12 +833,37 @@
                 }
 
                 try {
-                    await addDocument('ventas', venta);
+                    const docRef = await addDocument('ventas', venta);
+                    
+                    if (docRef && paraEnvio) {
+                        const cliente = clientesCache.find(c => c.id === venta.clienteId);
+                        const productosVendidos = venta.items.map(item => {
+                            const producto = productosCache.find(p => p.id === item.productoId);
+                            return `${item.cantidad}x ${producto ? producto.nombre : 'Desconocido'}`;
+                        }).join(', ');
+
+                        const envioData = {
+                            ventaId: docRef.id,
+                            cliente: cliente ? cliente.nombre : 'N/A',
+                            direccion: cliente ? cliente.direccion : 'N/A',
+                            productos: productosVendidos,
+                            total: venta.total,
+                            fechaVenta: venta.fecha,
+                            estado: 'Pendiente',
+                            createdAt: serverTimestamp()
+                        };
+                        
+                        // Save to a shared public collection for the other app to access
+                        await addDoc(collection(db, `/artifacts/${appId}/public/envios`), envioData);
+                        showMessage("Venta agregada a la planilla de envíos.", false);
+                    }
+
                     const clienteRef = doc(db, `/artifacts/${appId}/users/${userId}/clientes`, venta.clienteId);
                     await updateDoc(clienteRef, { saldo: increment(venta.total) });
                     const comisionVenta = venta.total * 0.03;
                     const vendedorRef = doc(db, `/artifacts/${appId}/users/${userId}/vendedores`, venta.vendedorId);
                     await updateDoc(vendedorRef, { comisionSaldo: increment(comisionVenta) });
+                    
                     e.target.reset();
                     modals.forEach(m => m.classList.replace('flex', 'hidden'));
                 } catch (error) {
@@ -985,6 +1022,15 @@
                 
                 showConfirmModal("¿Está seguro de que desea eliminar esta venta? Se reajustará el saldo del cliente y la comisión del vendedor.", async () => {
                     try {
+                        const venta = ventasCache.find(v => v.id === ventaId);
+                        if (venta && venta.paraEnvio) {
+                            const enviosQuery = query(collection(db, `/artifacts/${appId}/public/envios`), where("ventaId", "==", ventaId));
+                            const querySnapshot = await getDocs(enviosQuery);
+                            for (const doc of querySnapshot.docs) {
+                                await deleteDoc(doc.ref);
+                            }
+                        }
+
                         const clienteRef = doc(db, `/artifacts/${appId}/users/${userId}/clientes`, clienteId);
                         await updateDoc(clienteRef, { saldo: increment(-ventaTotal) });
                         
@@ -1064,7 +1110,6 @@
 
     // --- MAIN APP LOGIC ---
     function initializeAppLogic() {
-        // This function is the single entry point
         setupAuthListener();
         setupUIListeners();
         setupFormListeners();
