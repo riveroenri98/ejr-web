@@ -854,7 +854,7 @@
                         };
                         
                         // Save to a shared public collection for the other app to access
-                        await addDoc(collection(db, `/artifacts/${appId}/public/envios`), envioData);
+                        await addDoc(collection(db, `/artifacts/${appId}/public/data/envios`), envioData);
                         showMessage("Venta agregada a la planilla de envíos.", false);
                     }
 
@@ -1024,7 +1024,7 @@
                     try {
                         const venta = ventasCache.find(v => v.id === ventaId);
                         if (venta && venta.paraEnvio) {
-                            const enviosQuery = query(collection(db, `/artifacts/${appId}/public/envios`), where("ventaId", "==", ventaId));
+                            const enviosQuery = query(collection(db, `/artifacts/${appId}/public/data/envios`), where("ventaId", "==", ventaId));
                             const querySnapshot = await getDocs(enviosQuery);
                             for (const doc of querySnapshot.docs) {
                                 await deleteDoc(doc.ref);
