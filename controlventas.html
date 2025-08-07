@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Control de Ventas</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+        }
+        .modal-backdrop {
+            background-color: rgba(0,0,0,0.5);
+        }
+        .tab-active {
+            border-bottom-color: #4f46e5; /* Indigo */
+            color: #4f46e5;
+            font-weight: 600;
+        }
+        .sub-tab-active {
+            background-color: #4f46e5;
+            color: white;
+        }
+        .table-container {
+            max-height: 65vh;
+            overflow-y: auto;
+        }
+        /* Custom scrollbar for better aesthetics */
+        .table-container::-webkit-scrollbar, #vendedores-historial-view::-webkit-scrollbar {
+            width: 8px;
+        }
+        .table-container::-webkit-scrollbar-track, #vendedores-historial-view::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .table-container::-webkit-scrollbar-thumb, #vendedores-historial-view::-webkit-scrollbar-thumb {
+            background: #a5b4fc;
+            border-radius: 4px;
+        }
+        .table-container::-webkit-scrollbar-thumb:hover, #vendedores-historial-view::-webkit-scrollbar-thumb:hover {
+            background: #6366f1;
+        }
+    </style>
+</head>
+<body class="antialiased text-gray-800">
+
+    <!-- Main Container -->
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Sistema de Control de Ventas</h1>
+            <p class="text-gray-600 mt-2">Gestione sus ventas, clientes y saldos de forma centralizada.</p>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <div class="mb-6 border-b border-gray-200">
+            <nav class="flex -mb-px space-x-6" aria-label="Tabs">
+                <button id="tab-ventas" class="tab-btn tab-active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                    <i class="fas fa-cash-register mr-2"></i>Ventas
+                </button>
+                <button id="tab-clientes" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                    <i class="fas fa-users mr-2"></i>Clientes
+                </button>
+                <button id="tab-productos" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                    <i class="fas fa-box-open mr-2"></i>Productos
+                </button>
+                 <button id="tab-vendedores" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                    <i class="fas fa-user-tie mr-2"></i>Vendedores
+                </button>
+            </nav>
+        </div>
+
+        <!-- Content Area -->
+        <main id="content-area">
+            <!-- Ventas View -->
+            <div id="view-ventas" class="view">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold">Registro de Ventas</h2>
+                    <button id="btn-nueva-venta" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
+                        <i class="fas fa-plus mr-2"></i>Nueva Venta
+                    </button>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-md table-container">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendedor</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-ventas" class="bg-white divide-y divide-gray-200">
+                            <!-- Sales rows will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Clientes View -->
+            <div id="view-clientes" class="view hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold">Gestión de Clientes</h2>
+                    <button id="btn-nuevo-cliente" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
+                        <i class="fas fa-user-plus mr-2"></i>Nuevo Cliente
+                    </button>
+                </div>
+                 <div class="bg-white p-4 rounded-lg shadow-md table-container">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dirección</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-clientes" class="bg-white divide-y divide-gray-200">
+                            <!-- Client rows will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Productos View -->
+            <div id="view-productos" class="view hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold">Gestión de Productos</h2>
+                    <button id="btn-nuevo-producto" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
+                        <i class="fas fa-plus mr-2"></i>Nuevo Producto
+                    </button>
+                </div>
+                 <div class="bg-white p-4 rounded-lg shadow-md table-container">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-productos" class="bg-white divide-y divide-gray-200">
+                           <!-- Product rows will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Vendedores View -->
+            <div id="view-vendedores" class="view hidden">
+                 <div class="flex justify-between items-start mb-4">
+                    <h2 class="text-2xl font-semibold">Panel de Vendedores</h2>
+                    <div class="flex space-x-1 bg-gray-200 p-1 rounded-lg">
+                        <button id="btn-sub-historial" class="sub-tab-btn sub-tab-active px-4 py-1.5 text-sm font-medium rounded-md transition-colors">Historial de Ventas</button>
+                        <button id="btn-sub-resumen" class="sub-tab-btn px-4 py-1.5 text-sm font-medium rounded-md transition-colors">Resumen de Vendedores</button>
+                    </div>
+                </div>
+
+                <!-- Vendedores Historial View -->
+                <div id="vendedores-historial-view" class="sub-view table-container pr-2">
+                    <!-- Historical sales will be rendered here -->
+                </div>
+                
+                <!-- Vendedores Resumen View -->
+                <div id="vendedores-resumen-view" class="sub-view hidden">
+                    <div class="flex justify-end mb-4">
+                        <button id="btn-nuevo-vendedor" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
+                            <i class="fas fa-user-tie mr-2"></i>Nuevo Vendedor
+                        </button>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-md table-container">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comisión Ventas (3%)</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comisión Cobros (2%)</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo Total Comisión</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-vendedores-resumen" class="bg-white divide-y divide-gray-200">
+                               <!-- Seller summary rows will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <!-- Modal Nuevo Cliente -->
+    <div id="modal-cliente" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <h3 class="text-xl font-semibold mb-4">Nuevo Cliente</h3>
+            <form id="form-cliente">
+                <div class="mb-4">
+                    <label for="cliente-nombre" class="block text-sm font-medium text-gray-700">Nombre</label>
+                    <input type="text" id="cliente-nombre" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                </div>
+                <div class="mb-4">
+                    <label for="cliente-direccion" class="block text-sm font-medium text-gray-700">Dirección</label>
+                    <input type="text" id="cliente-direccion" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" class="btn-cancelar-modal bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg">Cancelar</button>
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal Nuevo Producto -->
+    <div id="modal-producto" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <h3 class="text-xl font-semibold mb-4">Nuevo Producto</h3>
+            <form id="form-producto">
+                <div class="mb-4">
+                    <label for="producto-nombre" class="block text-sm font-medium text-gray-700">Nombre del Producto</label>
+                    <input type="text" id="producto-nombre" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                </div>
+                <div class="mb-4">
+                    <label for="producto-precio" class="block text-sm font-medium text-gray-700">Precio</label>
+                    <input type="number" id="producto-precio" step="0.01" min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" class="btn-cancelar-modal bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg">Cancelar</button>
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Nuevo Vendedor -->
+    <div id="modal-vendedor" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <h3 class="text-xl font-semibold mb-4">Nuevo Vendedor</h3>
+            <form id="form-vendedor">
+                <div class="mb-4">
+                    <label for="vendedor-nombre" class="block text-sm font-medium text-gray-700">Nombre del Vendedor</label>
+                    <input type="text" id="vendedor-nombre" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" class="btn-cancelar-modal bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg">Cancelar</button>
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal Nueva Venta -->
+    <div id="modal-venta" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl">
+            <h3 class="text-xl font-semibold mb-4">Registrar Nueva Venta</h3>
+            <form id="form-venta">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="venta-fecha" class="block text-sm font-medium text-gray-700">Fecha</label>
+                        <input type="date" id="venta-fecha" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                    </div>
+                    <div>
+                        <label for="venta-vendedor" class="block text-sm font-medium text-gray-700">Vendedor</label>
+                        <select id="venta-vendedor" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                            <!-- Vendedor options here -->
+                        </select>
+                    </div>
+                    <div>
+                        <label for="venta-cliente" class="block text-sm font-medium text-gray-700">Cliente</label>
+                        <select id="venta-cliente" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                            <!-- Client options here -->
+                        </select>
+                    </div>
+                    <div>
+                        <label for="venta-direccion" class="block text-sm font-medium text-gray-700">Dirección</label>
+                        <input type="text" id="venta-direccion" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-100" readonly>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+                <h4 class="text-lg font-medium mb-2">Productos</h4>
+                <div id="venta-productos-container" class="space-y-3 mb-4">
+                    <!-- Product items will be added here -->
+                </div>
+                <button type="button" id="btn-agregar-producto-venta" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm"><i class="fas fa-plus mr-1"></i>Agregar Producto</button>
+                
+                <div class="mt-4 text-right">
+                    <p class="text-xl font-bold">Total: <span id="venta-total" class="text-indigo-700">$0.00</span></p>
+                </div>
+
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" class="btn-cancelar-modal bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg">Cancelar</button>
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">Guardar Venta</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Registrar Pago -->
+    <div id="modal-pago" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <h3 class="text-xl font-semibold mb-4">Registrar Pago</h3>
+            <form id="form-pago">
+                <input type="hidden" id="pago-cliente-id">
+                <div class="mb-4">
+                    <p>Cliente: <span id="pago-cliente-nombre" class="font-semibold"></span></p>
+                    <p>Saldo Actual: <span id="pago-cliente-saldo" class="font-semibold"></span></p>
+                </div>
+                <div class="mb-4">
+                    <label for="pago-vendedor" class="block text-sm font-medium text-gray-700">Vendedor que cobra</label>
+                    <select id="pago-vendedor" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                        <!-- Vendedor options here -->
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="pago-importe" class="block text-sm font-medium text-gray-700">Importe a Pagar</label>
+                    <input type="number" id="pago-importe" step="0.01" min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" class="btn-cancelar-modal bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg">Cancelar</button>
+                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">Registrar Pago</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal Pagar Comisión -->
+    <div id="modal-pagar-comision" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <h3 class="text-xl font-semibold mb-4">Pagar Comisión</h3>
+            <form id="form-pagar-comision">
+                <input type="hidden" id="comision-vendedor-id">
+                <div class="mb-4">
+                    <p>Vendedor: <span id="comision-vendedor-nombre" class="font-semibold"></span></p>
+                    <p>Saldo Comisión Actual: <span id="comision-vendedor-saldo" class="font-semibold"></span></p>
+                </div>
+                <div class="mb-4">
+                    <label for="comision-importe" class="block text-sm font-medium text-gray-700">Importe a Pagar</label>
+                    <input type="number" id="comision-importe" step="0.01" min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" class="btn-cancelar-modal bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg">Cancelar</button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Confirmar Pago</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal Confirmación -->
+    <div id="modal-confirmacion" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm">
+            <h3 class="text-xl font-semibold mb-2">Confirmar Acción</h3>
+            <p id="confirmacion-texto" class="text-gray-600 mb-6"></p>
+            <div class="flex justify-end space-x-3">
+                <button id="btn-cancelar-confirmacion" type="button" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg">Cancelar</button>
+                <button id="btn-aceptar-confirmacion" type="button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Message Box -->
+    <div id="message-box" class="fixed bottom-5 right-5 z-50 hidden bg-green-500 text-white py-3 px-5 rounded-lg shadow-lg transition-opacity duration-300">
+        <p id="message-text"></p>
+    </div>
+
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, getDoc, updateDoc, deleteDoc, increment, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        
+        // --- CONFIGURATION ---
+        // --- CONFIGURATION ---
+const firebaseConfig = {
+    apiKey: "AIzaSyAJbCC1pR-CQTpOXBicC59Jqm32Rr7q9M8",
+    authDomain: "sistemafidelidad-super-21.firebaseapp.com",
+    projectId: "sistemafidelidad-super-21",
+    storageBucket: "sistemafidelidad-super-21.firebasestorage.app",
+    messagingSenderId: "221163223090",
+    appId: "1:221163223090:web:ffe60b7a75758d591c242b",
+    measurementId: "G-79RSPJE5L8"
+};
+
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-sales-app';
+
+// --- INITIALIZATION ---
+const app = initializeApp(firebaseConfig);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-sales-app';
+
+        // --- INITIALIZATION ---
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let userId = null;
+        let clientesCache = [];
+        let productosCache = [];
+        let vendedoresCache = [];
+        let ventasCache = [];
+        let pagosCache = [];
+        let confirmCallback = null;
+
+        // --- AUTHENTICATION ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                userId = user.uid;
+                console.log("User authenticated with UID:", userId);
+                initializeAppLogic();
+            } else {
+                console.log("No user signed in. Trying to sign in...");
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch (error) {
+                    console.error("Error signing in:", error);
+                    showMessage("Error de autenticación. La aplicación no funcionará correctamente.", true);
+                }
+            }
+        });
+
+        // --- DOM ELEMENTS ---
+        const tabs = document.querySelectorAll('.tab-btn');
+        const views = document.querySelectorAll('.view');
+        const modals = document.querySelectorAll('.modal-backdrop');
+
+        // --- HELPER FUNCTIONS ---
+        const showMessage = (msg, isError = false) => {
+            const messageBox = document.getElementById('message-box');
+            const messageText = document.getElementById('message-text');
+            messageText.textContent = msg;
+            messageBox.classList.remove('hidden', 'bg-green-500', 'bg-red-500');
+            messageBox.classList.add(isError ? 'bg-red-500' : 'bg-green-500');
+            setTimeout(() => messageBox.classList.add('hidden'), 3000);
+        };
+        
+        const showConfirmModal = (text, callback) => {
+            document.getElementById('confirmacion-texto').textContent = text;
+            confirmCallback = callback;
+            document.getElementById('modal-confirmacion').classList.replace('hidden', 'flex');
+        };
+
+        const formatCurrency = (amount) => {
+            return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(amount);
+        };
+
+        const formatDate = (dateString) => {
+            const date = new Date(dateString + 'T00:00:00'); // Ensure correct date parsing
+            return date.toLocaleDateString('es-AR', { year: 'numeric', month: 'long', day: 'numeric' });
+        };
+        
+        const getTodayString = () => new Date().toISOString().split('T')[0];
+
+        // --- TAB & MODAL MANAGEMENT ---
+        const setupUIListeners = () => {
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('tab-active'));
+                    tab.classList.add('tab-active');
+                    views.forEach(v => v.classList.add('hidden'));
+                    document.getElementById(`view-${tab.id.split('-')[1]}`).classList.remove('hidden');
+                });
+            });
+            
+            // Seller sub-tabs
+            const subTabBtns = document.querySelectorAll('.sub-tab-btn');
+            const subViews = document.querySelectorAll('.sub-view');
+            subTabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    subTabBtns.forEach(b => b.classList.remove('sub-tab-active'));
+                    btn.classList.add('sub-tab-active');
+                    subViews.forEach(v => v.classList.add('hidden'));
+                    if (btn.id === 'btn-sub-historial') {
+                        document.getElementById('vendedores-historial-view').classList.remove('hidden');
+                    } else {
+                        document.getElementById('vendedores-resumen-view').classList.remove('hidden');
+                    }
+                });
+            });
+
+
+            const openModal = (modalId) => document.getElementById(modalId).classList.replace('hidden', 'flex');
+            const closeModal = () => modals.forEach(m => m.classList.replace('flex', 'hidden'));
+
+            document.getElementById('btn-nuevo-cliente').addEventListener('click', () => openModal('modal-cliente'));
+            document.getElementById('btn-nuevo-producto').addEventListener('click', () => openModal('modal-producto'));
+            document.querySelector('#vendedores-resumen-view #btn-nuevo-vendedor').addEventListener('click', () => openModal('modal-vendedor'));
+            document.getElementById('btn-nueva-venta').addEventListener('click', () => {
+                prepareVentaModal();
+                openModal('modal-venta');
+            });
+            
+            document.querySelectorAll('.btn-cancelar-modal').forEach(btn => btn.addEventListener('click', closeModal));
+            
+            document.getElementById('btn-cancelar-confirmacion').addEventListener('click', () => {
+                document.getElementById('modal-confirmacion').classList.replace('flex', 'hidden');
+                confirmCallback = null;
+            });
+            document.getElementById('btn-aceptar-confirmacion').addEventListener('click', () => {
+                if (confirmCallback) {
+                    confirmCallback();
+                }
+                document.getElementById('modal-confirmacion').classList.replace('flex', 'hidden');
+                confirmCallback = null;
+            });
+        };
+
+        // --- DATA RENDERING ---
+        const renderVendedoresResumen = (vendedores) => {
+            vendedoresCache = vendedores;
+            const tbody = document.getElementById('tabla-vendedores-resumen');
+            if (!tbody) return;
+            
+            tbody.innerHTML = vendedores.map(v => {
+                const comisionPorVentas = ventasCache
+                    .filter(venta => venta.vendedorId === v.id)
+                    .reduce((sum, venta) => sum + (venta.total * 0.03), 0);
+                
+                const comisionPorCobros = pagosCache
+                    .filter(pago => pago.vendedorId === v.id)
+                    .reduce((sum, pago) => sum + (pago.importe * 0.02), 0);
+
+                const saldoTotalComision = v.comisionSaldo || 0;
+
+                return `
+                    <tr id="resumen-${v.id}">
+                        <td class="px-6 py-4 whitespace-nowrap font-medium">${v.nombre}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${formatCurrency(comisionPorVentas)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${formatCurrency(comisionPorCobros)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap font-semibold ${saldoTotalComision > 0 ? 'text-blue-600' : ''}">${formatCurrency(saldoTotalComision)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-4">
+                            <button class="btn-pagar-comision text-blue-600 hover:text-blue-900" data-id="${v.id}" title="Pagar Comisión"><i class="fas fa-hand-holding-dollar"></i></button>
+                            <button class="btn-eliminar-vendedor text-red-600 hover:text-red-900" data-id="${v.id}" title="Eliminar"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        };
+        
+        const renderHistorialVentas = () => {
+            const container = document.getElementById('vendedores-historial-view');
+            if (!container) return;
+
+            const ventasPorFecha = ventasCache.reduce((acc, venta) => {
+                const fecha = venta.fecha;
+                if (!acc[fecha]) acc[fecha] = [];
+                acc[fecha].push(venta);
+                return acc;
+            }, {});
+
+            const fechasOrdenadas = Object.keys(ventasPorFecha).sort((a, b) => new Date(b) - new Date(a));
+
+            if (fechasOrdenadas.length === 0) {
+                container.innerHTML = `<p class="text-center text-gray-500 py-8">No hay historial de ventas para mostrar.</p>`;
+                return;
+            }
+
+            container.innerHTML = fechasOrdenadas.map(fecha => {
+                const ventasDelDia = ventasPorFecha[fecha];
+                const totalVendidoDia = ventasDelDia.reduce((sum, v) => sum + v.total, 0);
+                const comisionVentasDia = ventasDelDia.reduce((sum, v) => sum + (v.total * 0.03), 0);
+                
+                const pagosDelDia = pagosCache.filter(pago => pago.fecha === fecha);
+                const comisionCobrosDia = pagosDelDia.reduce((sum, p) => sum + (p.importe * 0.02), 0);
+
+
+                const detalleHtml = ventasDelDia.map(venta => {
+                    const vendedor = vendedoresCache.find(v => v.id === venta.vendedorId)?.nombre || 'N/A';
+                    const cliente = clientesCache.find(c => c.id === venta.clienteId)?.nombre || 'N/A';
+                    const comisionVenta = venta.total * 0.03;
+                    return `
+                        <tr class="border-b border-gray-100">
+                            <td class="px-4 py-2">${vendedor}</td>
+                            <td class="px-4 py-2">${cliente}</td>
+                            <td class="px-4 py-2 text-right">${formatCurrency(venta.total)}</td>
+                            <td class="px-4 py-2 text-right">${formatCurrency(comisionVenta)}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="bg-white rounded-lg shadow-md mb-6 overflow-hidden">
+                        <div class="bg-gray-50 p-4 border-b">
+                            <h3 class="text-lg font-semibold text-gray-800">${formatDate(fecha)}</h3>
+                            <div class="flex justify-between text-sm text-gray-600 mt-1 flex-wrap gap-x-4">
+                                <span>Total Vendido: <strong class="text-gray-900">${formatCurrency(totalVendidoDia)}</strong></span>
+                                <span>Comisión (Venta): <strong class="text-gray-900">${formatCurrency(comisionVentasDia)}</strong></span>
+                                <span>Comisión (Cobro): <strong class="text-green-600">${formatCurrency(comisionCobrosDia)}</strong></span>
+                            </div>
+                        </div>
+                        <div class="p-2">
+                            <table class="min-w-full text-sm">
+                                <thead class="text-left text-xs text-gray-500 uppercase">
+                                    <tr>
+                                        <th class="px-4 py-2 font-medium">Vendedor</th>
+                                        <th class="px-4 py-2 font-medium">Cliente</th>
+                                        <th class="px-4 py-2 font-medium text-right">Total Venta</th>
+                                        <th class="px-4 py-2 font-medium text-right">Comisión (3%)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${detalleHtml}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        };
+
+
+        const renderClientes = (clientes) => {
+            clientesCache = clientes;
+            const tbody = document.getElementById('tabla-clientes');
+            tbody.innerHTML = clientes.map(c => `
+                <tr id="${c.id}">
+                    <td class="px-6 py-4 whitespace-nowrap">${c.nombre}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${c.direccion}</td>
+                    <td class="px-6 py-4 whitespace-nowrap font-semibold ${c.saldo > 0 ? 'text-red-600' : 'text-green-600'}">${formatCurrency(c.saldo)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-4">
+                        <button class="btn-registrar-pago text-green-600 hover:text-green-900" data-id="${c.id}" title="Registrar Pago"><i class="fas fa-dollar-sign"></i></button>
+                        <button class="btn-eliminar-cliente text-red-600 hover:text-red-900" data-id="${c.id}" title="Eliminar"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        };
+
+        const renderProductos = (productos) => {
+            productosCache = productos;
+            const tbody = document.getElementById('tabla-productos');
+            tbody.innerHTML = productos.map(p => `
+                <tr id="${p.id}">
+                    <td class="px-6 py-4 whitespace-nowrap">${p.nombre}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatCurrency(p.precio)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button class="btn-eliminar-producto text-red-600 hover:text-red-900" data-id="${p.id}"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        };
+        
+        const renderVentas = (ventas) => {
+            ventasCache = ventas;
+            const tbody = document.getElementById('tabla-ventas');
+            tbody.innerHTML = ventas.map(v => {
+                const cliente = clientesCache.find(c => c.id === v.clienteId);
+                const vendedor = vendedoresCache.find(vend => vend.id === v.vendedorId);
+                return `
+                    <tr id="${v.id}">
+                        <td class="px-6 py-4 whitespace-nowrap">${formatDate(v.fecha)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${cliente ? cliente.nombre : 'N/A'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${vendedor ? vendedor.nombre : 'N/A'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap font-semibold">${formatCurrency(v.total)}</td>
+                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button class="btn-eliminar-venta text-red-600 hover:text-red-900" data-id="${v.id}" data-total="${v.total}" data-cliente-id="${v.clienteId}" data-vendedor-id="${v.vendedorId}"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            renderHistorialVentas();
+            renderVendedoresResumen(vendedoresCache);
+        };
+
+        // --- FIRESTORE LOGIC ---
+        const setupFirestoreListeners = () => {
+            if (!userId) return;
+            const basePath = `/artifacts/${appId}/users/${userId}`;
+
+            onSnapshot(collection(db, `${basePath}/vendedores`), (snapshot) => {
+                renderVendedoresResumen(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+            });
+            onSnapshot(collection(db, `${basePath}/clientes`), (snapshot) => {
+                clientesCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderClientes(clientesCache);
+                renderHistorialVentas(); // Re-render in case client names changed
+            });
+            onSnapshot(collection(db, `${basePath}/productos`), (snapshot) => {
+                renderProductos(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+            });
+            onSnapshot(collection(db, `${basePath}/ventas`), (snapshot) => {
+                renderVentas(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+            });
+            onSnapshot(collection(db, `${basePath}/pagos`), (snapshot) => {
+                pagosCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderVendedoresResumen(vendedoresCache);
+                renderHistorialVentas();
+            });
+        };
+
+        const addDocument = async (coll, data) => {
+            try {
+                await addDoc(collection(db, `/artifacts/${appId}/users/${userId}/${coll}`), data);
+                showMessage(`${coll.slice(0, -1)} agregado con éxito.`);
+            } catch (e) {
+                console.error("Error adding document: ", e);
+                showMessage(`Error al agregar ${coll.slice(0, -1)}.`, true);
+            }
+        };
+        
+        const deleteDocument = async (coll, id) => {
+            showConfirmModal(`¿Está seguro de que desea eliminar este ${coll.slice(0, -1)}? Esta acción no se puede deshacer.`, async () => {
+                try {
+                    await deleteDoc(doc(db, `/artifacts/${appId}/users/${userId}/${coll}`, id));
+                    showMessage(`${coll.slice(0, -1)} eliminado con éxito.`);
+                } catch (e) {
+                    console.error("Error deleting document: ", e);
+                    showMessage(`Error al eliminar ${coll.slice(0, -1)}.`, true);
+                }
+            });
+        };
+
+        // --- FORM SUBMISSIONS ---
+        const setupFormListeners = () => {
+            document.getElementById('form-cliente').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const nombre = document.getElementById('cliente-nombre').value;
+                const direccion = document.getElementById('cliente-direccion').value;
+                await addDocument('clientes', { nombre, direccion, saldo: 0 });
+                e.target.reset();
+                modals.forEach(m => m.classList.replace('flex', 'hidden'));
+            });
+
+            document.getElementById('form-producto').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const nombre = document.getElementById('producto-nombre').value;
+                const precio = parseFloat(document.getElementById('producto-precio').value);
+                await addDocument('productos', { nombre, precio });
+                e.target.reset();
+                modals.forEach(m => m.classList.replace('flex', 'hidden'));
+            });
+
+            document.getElementById('form-vendedor').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const nombre = document.getElementById('vendedor-nombre').value;
+                await addDocument('vendedores', { nombre, comisionSaldo: 0 });
+                e.target.reset();
+                modals.forEach(m => m.classList.replace('flex', 'hidden'));
+            });
+
+            document.getElementById('form-venta').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const venta = {
+                    fecha: document.getElementById('venta-fecha').value,
+                    vendedorId: document.getElementById('venta-vendedor').value,
+                    clienteId: document.getElementById('venta-cliente').value,
+                    items: [],
+                    total: 0
+                };
+
+                const productoRows = document.querySelectorAll('.producto-item-row');
+                productoRows.forEach(row => {
+                    const productoId = row.querySelector('.venta-producto-select').value;
+                    const cantidad = parseInt(row.querySelector('.venta-producto-cantidad').value);
+                    const precioUnitario = parseFloat(row.querySelector('.venta-producto-precio').value);
+                    if (productoId && cantidad > 0) {
+                        venta.items.push({ productoId, cantidad, precioUnitario, subtotal: cantidad * precioUnitario });
+                    }
+                });
+
+                venta.total = venta.items.reduce((sum, item) => sum + item.subtotal, 0);
+
+                if (venta.total <= 0 || !venta.vendedorId || !venta.clienteId) {
+                    showMessage("Complete todos los campos de la venta.", true);
+                    return;
+                }
+
+                try {
+                    // Add sale document
+                    await addDocument('ventas', venta);
+                    
+                    // Update client balance
+                    const clienteRef = doc(db, `/artifacts/${appId}/users/${userId}/clientes`, venta.clienteId);
+                    await updateDoc(clienteRef, { saldo: increment(venta.total) });
+
+                    // Add 3% commission to seller
+                    const comisionVenta = venta.total * 0.03;
+                    const vendedorRef = doc(db, `/artifacts/${appId}/users/${userId}/vendedores`, venta.vendedorId);
+                    await updateDoc(vendedorRef, { comisionSaldo: increment(comisionVenta) });
+
+                    e.target.reset();
+                    modals.forEach(m => m.classList.replace('flex', 'hidden'));
+                } catch (error) {
+                    console.error("Error saving sale:", error);
+                    showMessage("Error al guardar la venta.", true);
+                }
+            });
+            
+            document.getElementById('form-pago').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const clienteId = document.getElementById('pago-cliente-id').value;
+                const vendedorId = document.getElementById('pago-vendedor').value;
+                const importe = parseFloat(document.getElementById('pago-importe').value);
+
+                if (importe <= 0 || !vendedorId) {
+                    showMessage("El importe debe ser mayor a cero y debe seleccionar un vendedor.", true);
+                    return;
+                }
+                
+                try {
+                    // Register payment
+                    await addDocument('pagos', {
+                        clienteId,
+                        vendedorId,
+                        importe,
+                        fecha: getTodayString()
+                    });
+                    
+                    // Update client balance
+                    const clienteRef = doc(db, `/artifacts/${appId}/users/${userId}/clientes`, clienteId);
+                    await updateDoc(clienteRef, { saldo: increment(-importe) });
+                    
+                    // Add 2% bonus commission to seller
+                    const comisionBono = importe * 0.02;
+                    const vendedorRef = doc(db, `/artifacts/${appId}/users/${userId}/vendedores`, vendedorId);
+                    await updateDoc(vendedorRef, { comisionSaldo: increment(comisionBono) });
+
+                    e.target.reset();
+                    modals.forEach(m => m.classList.replace('flex', 'hidden'));
+                } catch (error) {
+                    console.error("Error registering payment:", error);
+                    showMessage("Error al registrar el pago.", true);
+                }
+            });
+            
+            document.getElementById('form-pagar-comision').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const vendedorId = document.getElementById('comision-vendedor-id').value;
+                const importePagado = parseFloat(document.getElementById('comision-importe').value);
+                const vendedor = vendedoresCache.find(v => v.id === vendedorId);
+
+                if (!vendedor || importePagado <= 0 || importePagado > vendedor.comisionSaldo) {
+                    showMessage("El importe a pagar es inválido o excede el saldo.", true);
+                    return;
+                }
+
+                try {
+                    const vendedorRef = doc(db, `/artifacts/${appId}/users/${userId}/vendedores`, vendedorId);
+                    await updateDoc(vendedorRef, { comisionSaldo: increment(-importePagado) });
+                    showMessage("Pago de comisión registrado con éxito.");
+                    e.target.reset();
+                    modals.forEach(m => m.classList.replace('flex', 'hidden'));
+                } catch (error) {
+                    console.error("Error paying commission:", error);
+                    showMessage("Error al pagar la comisión.", true);
+                }
+            });
+        };
+        
+        // --- DYNAMIC FORM LOGIC FOR SALES ---
+        const prepareVentaModal = () => {
+            // Reset form
+            document.getElementById('form-venta').reset();
+            document.getElementById('venta-productos-container').innerHTML = '';
+            document.getElementById('venta-total').textContent = formatCurrency(0);
+            document.getElementById('venta-fecha').value = getTodayString();
+
+            // Populate dropdowns
+            const vendedorSelect = document.getElementById('venta-vendedor');
+            vendedorSelect.innerHTML = '<option value="">Seleccione un vendedor</option>' + vendedoresCache.map(v => `<option value="${v.id}">${v.nombre}</option>`).join('');
+            
+            const clienteSelect = document.getElementById('venta-cliente');
+            clienteSelect.innerHTML = '<option value="">Seleccione un cliente</option>' + clientesCache.map(c => `<option value="${c.id}" data-direccion="${c.direccion}">${c.nombre}</option>`).join('');
+            
+            // Add first product row
+            agregarFilaProductoVenta();
+        };
+
+        const agregarFilaProductoVenta = () => {
+            const container = document.getElementById('venta-productos-container');
+            const newRow = document.createElement('div');
+            newRow.className = 'grid grid-cols-12 gap-2 items-center producto-item-row';
+            newRow.innerHTML = `
+                <div class="col-span-5">
+                    <select class="venta-producto-select mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                        <option value="">Seleccione producto</option>
+                        ${productosCache.map(p => `<option value="${p.id}" data-precio="${p.precio}">${p.nombre}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="col-span-2">
+                    <input type="number" value="1" min="1" class="venta-producto-cantidad mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                </div>
+                <div class="col-span-2">
+                    <input type="number" step="0.01" class="venta-producto-precio mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                </div>
+                <div class="col-span-2 text-right font-medium">
+                    <span class="venta-producto-subtotal">$0.00</span>
+                </div>
+                <div class="col-span-1 text-right">
+                    <button type="button" class="btn-eliminar-fila-producto text-red-500 hover:text-red-700"><i class="fas fa-times-circle"></i></button>
+                </div>
+            `;
+            container.appendChild(newRow);
+        };
+        
+        const actualizarTotalVenta = () => {
+            let total = 0;
+            document.querySelectorAll('.producto-item-row').forEach(row => {
+                const cantidad = parseInt(row.querySelector('.venta-producto-cantidad').value) || 0;
+                const precio = parseFloat(row.querySelector('.venta-producto-precio').value) || 0;
+                const subtotal = cantidad * precio;
+                row.querySelector('.venta-producto-subtotal').textContent = formatCurrency(subtotal);
+                total += subtotal;
+            });
+            document.getElementById('venta-total').textContent = formatCurrency(total);
+        };
+        
+        // --- EVENT DELEGATION FOR DYNAMIC CONTENT ---
+        const setupEventListeners = () => {
+            document.body.addEventListener('click', async (e) => {
+                const deleteBtn = e.target.closest('.btn-eliminar-cliente, .btn-eliminar-producto, .btn-eliminar-vendedor');
+                if (deleteBtn) {
+                    const id = deleteBtn.dataset.id;
+                    let collectionName = '';
+                    if (deleteBtn.classList.contains('btn-eliminar-cliente')) collectionName = 'clientes';
+                    if (deleteBtn.classList.contains('btn-eliminar-producto')) collectionName = 'productos';
+                    if (deleteBtn.classList.contains('btn-eliminar-vendedor')) collectionName = 'vendedores';
+                    await deleteDocument(collectionName, id);
+                }
+                
+                if (e.target.closest('.btn-eliminar-venta')) {
+                    const btn = e.target.closest('.btn-eliminar-venta');
+                    const ventaId = btn.dataset.id;
+                    const ventaTotal = parseFloat(btn.dataset.total);
+                    const clienteId = btn.dataset.clienteId;
+                    const vendedorId = btn.dataset.vendedorId;
+                    
+                    showConfirmModal("¿Está seguro de que desea eliminar esta venta? Se reajustará el saldo del cliente y la comisión del vendedor.", async () => {
+                        try {
+                            // Revert client balance
+                            const clienteRef = doc(db, `/artifacts/${appId}/users/${userId}/clientes`, clienteId);
+                            await updateDoc(clienteRef, { saldo: increment(-ventaTotal) });
+                            
+                            // Revert seller commission
+                            const comisionVenta = ventaTotal * 0.03;
+                            const vendedorRef = doc(db, `/artifacts/${appId}/users/${userId}/vendedores`, vendedorId);
+                            await updateDoc(vendedorRef, { comisionSaldo: increment(-comisionVenta) });
+
+                            // Delete the sale
+                            await deleteDoc(doc(db, `/artifacts/${appId}/users/${userId}/ventas`, ventaId));
+                            
+                            showMessage("Venta eliminada y saldos ajustados.");
+                        } catch (error) {
+                            console.error("Error deleting sale:", error);
+                            showMessage("Error al eliminar la venta.", true);
+                        }
+                    });
+                }
+
+                if (e.target.closest('.btn-registrar-pago')) {
+                    const btn = e.target.closest('.btn-registrar-pago');
+                    const clienteId = btn.dataset.id;
+                    const cliente = clientesCache.find(c => c.id === clienteId);
+                    if (cliente) {
+                        document.getElementById('pago-cliente-id').value = cliente.id;
+                        document.getElementById('pago-cliente-nombre').textContent = cliente.nombre;
+                        document.getElementById('pago-cliente-saldo').textContent = formatCurrency(cliente.saldo);
+                        const pagoVendedorSelect = document.getElementById('pago-vendedor');
+                        pagoVendedorSelect.innerHTML = '<option value="">Seleccione un vendedor</option>' + vendedoresCache.map(v => `<option value="${v.id}">${v.nombre}</option>`).join('');
+                        document.getElementById('modal-pago').classList.replace('hidden', 'flex');
+                    }
+                }
+                
+                if (e.target.closest('.btn-pagar-comision')) {
+                    const btn = e.target.closest('.btn-pagar-comision');
+                    const vendedorId = btn.dataset.id;
+                    const vendedor = vendedoresCache.find(v => v.id === vendedorId);
+                    if (vendedor) {
+                        document.getElementById('comision-vendedor-id').value = vendedor.id;
+                        document.getElementById('comision-vendedor-nombre').textContent = vendedor.nombre;
+                        document.getElementById('comision-vendedor-saldo').textContent = formatCurrency(vendedor.comisionSaldo || 0);
+                        document.getElementById('comision-importe').max = vendedor.comisionSaldo || 0;
+                        document.getElementById('modal-pagar-comision').classList.replace('hidden', 'flex');
+                    }
+                }
+
+                if (e.target.id === 'btn-agregar-producto-venta') {
+                    agregarFilaProductoVenta();
+                }
+
+                if (e.target.closest('.btn-eliminar-fila-producto')) {
+                    e.target.closest('.producto-item-row').remove();
+                    actualizarTotalVenta();
+                }
+            });
+
+            document.body.addEventListener('change', (e) => {
+                if (e.target.id === 'venta-cliente') {
+                    const selectedOption = e.target.options[e.target.selectedIndex];
+                    document.getElementById('venta-direccion').value = selectedOption.dataset.direccion || '';
+                }
+
+                if (e.target.classList.contains('venta-producto-select')) {
+                    const selectedOption = e.target.options[e.target.selectedIndex];
+                    const precio = selectedOption.dataset.precio || 0;
+                    const row = e.target.closest('.producto-item-row');
+                    row.querySelector('.venta-producto-precio').value = precio;
+                    actualizarTotalVenta();
+                }
+            });
+            
+            document.body.addEventListener('input', (e) => {
+                if (e.target.classList.contains('venta-producto-cantidad') || e.target.classList.contains('venta-producto-precio')) {
+                    actualizarTotalVenta();
+                }
+            });
+        };
+
+        // --- MAIN APP LOGIC ---
+        function initializeAppLogic() {
+            if (!userId) {
+                console.log("Waiting for user authentication...");
+                return;
+            }
+            console.log("Initializing app for user:", userId);
+            setupUIListeners();
+            setupFormListeners();
+            setupFirestoreListeners();
+            setupEventListeners();
+        }
+
+    </script>
+</body>
+</html>
