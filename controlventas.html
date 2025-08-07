@@ -388,8 +388,8 @@
             <h3 class="text-xl font-semibold mb-2">Confirmar Acción</h3>
             <p id="confirmacion-texto" class="text-gray-600 mb-6"></p>
             <div class="flex justify-end space-x-3">
-                <button id="btn-cancelar-confirmacion" type="button" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg">Cancelar</button>
-                <button id="btn-aceptar-confirmacion" type="button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">Eliminar</button>
+                <button type="button" class="btn-cancelar-confirmacion bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg">Cancelar</button>
+                <button type="button" class="btn-aceptar-confirmacion bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">Eliminar</button>
             </div>
         </div>
     </div>
@@ -769,21 +769,19 @@
         };
         
         const deleteDocument = async (coll, id, isPublic = false) => {
-            showConfirmModal(`¿Está seguro de que desea eliminar este ${coll.slice(0, -1)}? Esta acción no se puede deshacer.`, async () => {
-                try {
-                    let path;
-                    if (isPublic) {
-                        path = `/artifacts/${appId}/public/data/${coll}/${id}`;
-                    } else {
-                        path = `/artifacts/${appId}/users/${userId}/${coll}/${id}`;
-                    }
-                    await deleteDoc(doc(db, path));
-                    showMessage(`${coll.slice(0, -1)} eliminado con éxito.`);
-                } catch (e) {
-                    console.error("Error deleting document: ", e);
-                    showMessage(`Error al eliminar ${coll.slice(0, -1)}.`, true);
+            try {
+                let path;
+                if (isPublic) {
+                    path = `/artifacts/${appId}/public/data/${coll}/${id}`;
+                } else {
+                    path = `/artifacts/${appId}/users/${userId}/${coll}/${id}`;
                 }
-            });
+                await deleteDoc(doc(db, path));
+                showMessage(`${coll.slice(0, -1)} eliminado con éxito.`);
+            } catch (e) {
+                console.error("Error deleting document: ", e);
+                showMessage(`Error al eliminar ${coll.slice(0, -1)}.`, true);
+            }
         };
 
         // --- FORM SUBMISSIONS ---
@@ -1012,6 +1010,18 @@
             }
              if (target.closest('#btn-logout')) handleLogout();
             if (target.closest('.btn-cancelar-modal')) target.closest('.modal-backdrop').classList.replace('flex', 'hidden');
+            if (target.closest('.btn-aceptar-confirmacion')) {
+                 if (confirmCallback) {
+                    confirmCallback();
+                }
+                document.getElementById('modal-confirmacion').classList.replace('flex', 'hidden');
+                confirmCallback = null;
+            }
+            if (target.closest('.btn-cancelar-confirmacion')) {
+                document.getElementById('modal-confirmacion').classList.replace('flex', 'hidden');
+                confirmCallback = null;
+            }
+
 
             // Dynamic button clicks
             const deleteBtn = target.closest('.btn-eliminar-cliente, .btn-eliminar-producto, .btn-eliminar-vendedor');
