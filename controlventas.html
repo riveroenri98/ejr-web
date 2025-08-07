@@ -56,153 +56,186 @@
 </head>
 <body class="antialiased text-gray-800">
 
-    <!-- Main Container -->
-    <div class="container mx-auto p-4 md:p-8">
-        <header class="mb-8 text-center">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Sistema de Control de Ventas</h1>
-            <p class="text-gray-600 mt-2">Gestione sus ventas, clientes y saldos de forma centralizada.</p>
-        </header>
-
-        <!-- Navigation Tabs -->
-        <div class="mb-6 border-b border-gray-200">
-            <nav class="flex -mb-px space-x-6" aria-label="Tabs">
-                <button id="tab-ventas" class="tab-btn tab-active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                    <i class="fas fa-cash-register mr-2"></i>Ventas
-                </button>
-                <button id="tab-clientes" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
-                    <i class="fas fa-users mr-2"></i>Clientes
-                </button>
-                <button id="tab-productos" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
-                    <i class="fas fa-box-open mr-2"></i>Productos
-                </button>
-                 <button id="tab-vendedores" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
-                    <i class="fas fa-user-tie mr-2"></i>Vendedores
-                </button>
-            </nav>
+    <!-- Login View -->
+    <div id="login-view" class="flex items-center justify-center min-h-screen bg-gray-100">
+        <div class="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
+            <div>
+                <h2 class="text-3xl font-extrabold text-center text-gray-900">Iniciar Sesión</h2>
+                <p class="mt-2 text-center text-sm text-gray-600">
+                    Acceda a su sistema de control de ventas
+                </p>
+            </div>
+            <form id="login-form" class="space-y-6">
+                <div>
+                    <label for="email" class="sr-only">Correo Electrónico</label>
+                    <input id="email" name="email" type="email" autocomplete="email" required class="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md appearance-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Correo Electrónico">
+                </div>
+                <div>
+                    <label for="password" class="sr-only">Contraseña</label>
+                    <input id="password" name="password" type="password" autocomplete="current-password" required class="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md appearance-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Contraseña">
+                </div>
+                <div id="login-error-message" class="text-sm text-center text-red-600 h-4"></div>
+                <div>
+                    <button type="submit" class="relative flex justify-center w-full px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md group hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Ingresar
+                    </button>
+                </div>
+            </form>
         </div>
+    </div>
 
-        <!-- Content Area -->
-        <main id="content-area">
-            <!-- Ventas View -->
-            <div id="view-ventas" class="view">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-2xl font-semibold">Registro de Ventas</h2>
-                    <button id="btn-nueva-venta" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
-                        <i class="fas fa-plus mr-2"></i>Nueva Venta
+    <!-- Main App View (initially hidden) -->
+    <div id="app-view" class="hidden">
+        <!-- Main Container -->
+        <div class="container mx-auto p-4 md:p-8">
+            <header class="mb-8 text-center relative">
+                <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Sistema de Control de Ventas</h1>
+                <p class="text-gray-600 mt-2">Gestione sus ventas, clientes y saldos de forma centralizada.</p>
+                <button id="btn-logout" class="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 text-sm">
+                    <i class="fas fa-sign-out-alt mr-2"></i>Salir
+                </button>
+            </header>
+
+            <!-- Navigation Tabs -->
+            <div class="mb-6 border-b border-gray-200">
+                <nav class="flex -mb-px space-x-6" aria-label="Tabs">
+                    <button id="tab-ventas" class="tab-btn tab-active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                        <i class="fas fa-cash-register mr-2"></i>Ventas
                     </button>
-                </div>
-                <div class="bg-white p-4 rounded-lg shadow-md table-container">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendedor</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabla-ventas" class="bg-white divide-y divide-gray-200">
-                            <!-- Sales rows will be inserted here -->
-                        </tbody>
-                    </table>
-                </div>
+                    <button id="tab-clientes" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                        <i class="fas fa-users mr-2"></i>Clientes
+                    </button>
+                    <button id="tab-productos" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                        <i class="fas fa-box-open mr-2"></i>Productos
+                    </button>
+                     <button id="tab-vendedores" class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm">
+                        <i class="fas fa-user-tie mr-2"></i>Vendedores
+                    </button>
+                </nav>
             </div>
 
-            <!-- Clientes View -->
-            <div id="view-clientes" class="view hidden">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-2xl font-semibold">Gestión de Clientes</h2>
-                    <button id="btn-nuevo-cliente" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
-                        <i class="fas fa-user-plus mr-2"></i>Nuevo Cliente
-                    </button>
-                </div>
-                 <div class="bg-white p-4 rounded-lg shadow-md table-container">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dirección</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabla-clientes" class="bg-white divide-y divide-gray-200">
-                            <!-- Client rows will be inserted here -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Productos View -->
-            <div id="view-productos" class="view hidden">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-2xl font-semibold">Gestión de Productos</h2>
-                    <button id="btn-nuevo-producto" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
-                        <i class="fas fa-plus mr-2"></i>Nuevo Producto
-                    </button>
-                </div>
-                 <div class="bg-white p-4 rounded-lg shadow-md table-container">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabla-productos" class="bg-white divide-y divide-gray-200">
-                           <!-- Product rows will be inserted here -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            
-            <!-- Vendedores View -->
-            <div id="view-vendedores" class="view hidden">
-                 <div class="flex justify-between items-start mb-4">
-                    <h2 class="text-2xl font-semibold">Panel de Vendedores</h2>
-                    <div class="flex space-x-1 bg-gray-200 p-1 rounded-lg">
-                        <button id="btn-sub-historial" class="sub-tab-btn sub-tab-active px-4 py-1.5 text-sm font-medium rounded-md transition-colors">Historial de Ventas</button>
-                        <button id="btn-sub-resumen" class="sub-tab-btn px-4 py-1.5 text-sm font-medium rounded-md transition-colors">Resumen de Vendedores</button>
-                    </div>
-                </div>
-
-                <!-- Vendedores Historial View -->
-                <div id="vendedores-historial-view" class="sub-view table-container pr-2">
-                    <!-- Historical sales will be rendered here -->
-                </div>
-                
-                <!-- Vendedores Resumen View -->
-                <div id="vendedores-resumen-view" class="sub-view hidden">
-                    <div class="flex justify-end mb-4">
-                        <button id="btn-nuevo-vendedor" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
-                            <i class="fas fa-user-tie mr-2"></i>Nuevo Vendedor
+            <!-- Content Area -->
+            <main id="content-area">
+                <!-- Ventas View -->
+                <div id="view-ventas" class="view">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-semibold">Registro de Ventas</h2>
+                        <button id="btn-nueva-venta" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
+                            <i class="fas fa-plus mr-2"></i>Nueva Venta
                         </button>
                     </div>
                     <div class="bg-white p-4 rounded-lg shadow-md table-container">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comisión Ventas (3%)</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comisión Cobros (2%)</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo Total Comisión</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendedor</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody id="tabla-vendedores-resumen" class="bg-white divide-y divide-gray-200">
-                               <!-- Seller summary rows will be inserted here -->
+                            <tbody id="tabla-ventas" class="bg-white divide-y divide-gray-200">
+                                <!-- Sales rows will be inserted here -->
                             </tbody>
                         </table>
                     </div>
                 </div>
-            </div>
-        </main>
+
+                <!-- Clientes View -->
+                <div id="view-clientes" class="view hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-semibold">Gestión de Clientes</h2>
+                        <button id="btn-nuevo-cliente" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
+                            <i class="fas fa-user-plus mr-2"></i>Nuevo Cliente
+                        </button>
+                    </div>
+                     <div class="bg-white p-4 rounded-lg shadow-md table-container">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dirección</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-clientes" class="bg-white divide-y divide-gray-200">
+                                <!-- Client rows will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Productos View -->
+                <div id="view-productos" class="view hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-semibold">Gestión de Productos</h2>
+                        <button id="btn-nuevo-producto" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
+                            <i class="fas fa-plus mr-2"></i>Nuevo Producto
+                        </button>
+                    </div>
+                     <div class="bg-white p-4 rounded-lg shadow-md table-container">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-productos" class="bg-white divide-y divide-gray-200">
+                               <!-- Product rows will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Vendedores View -->
+                <div id="view-vendedores" class="view hidden">
+                     <div class="flex justify-between items-start mb-4">
+                        <h2 class="text-2xl font-semibold">Panel de Vendedores</h2>
+                        <div class="flex space-x-1 bg-gray-200 p-1 rounded-lg">
+                            <button id="btn-sub-historial" class="sub-tab-btn sub-tab-active px-4 py-1.5 text-sm font-medium rounded-md transition-colors">Historial de Ventas</button>
+                            <button id="btn-sub-resumen" class="sub-tab-btn px-4 py-1.5 text-sm font-medium rounded-md transition-colors">Resumen de Vendedores</button>
+                        </div>
+                    </div>
+
+                    <!-- Vendedores Historial View -->
+                    <div id="vendedores-historial-view" class="sub-view table-container pr-2">
+                        <!-- Historical sales will be rendered here -->
+                    </div>
+                    
+                    <!-- Vendedores Resumen View -->
+                    <div id="vendedores-resumen-view" class="sub-view hidden">
+                        <div class="flex justify-end mb-4">
+                            <button id="btn-nuevo-vendedor" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
+                                <i class="fas fa-user-tie mr-2"></i>Nuevo Vendedor
+                            </button>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow-md table-container">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comisión Ventas (3%)</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comisión Cobros (2%)</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo Total Comisión</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-vendedores-resumen" class="bg-white divide-y divide-gray-200">
+                                   <!-- Seller summary rows will be inserted here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
     </div>
 
     <!-- Modals -->
-    <!-- Modal Nuevo Cliente -->
     <div id="modal-cliente" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
         <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
             <h3 class="text-xl font-semibold mb-4">Nuevo Cliente</h3>
@@ -223,7 +256,6 @@
         </div>
     </div>
     
-    <!-- Modal Nuevo Producto -->
     <div id="modal-producto" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
         <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
             <h3 class="text-xl font-semibold mb-4">Nuevo Producto</h3>
@@ -244,7 +276,6 @@
         </div>
     </div>
 
-    <!-- Modal Nuevo Vendedor -->
     <div id="modal-vendedor" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
         <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
             <h3 class="text-xl font-semibold mb-4">Nuevo Vendedor</h3>
@@ -261,7 +292,6 @@
         </div>
     </div>
     
-    <!-- Modal Nueva Venta -->
     <div id="modal-venta" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
         <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl">
             <h3 class="text-xl font-semibold mb-4">Registrar Nueva Venta</h3>
@@ -273,33 +303,24 @@
                     </div>
                     <div>
                         <label for="venta-vendedor" class="block text-sm font-medium text-gray-700">Vendedor</label>
-                        <select id="venta-vendedor" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
-                            <!-- Vendedor options here -->
-                        </select>
+                        <select id="venta-vendedor" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required></select>
                     </div>
                     <div>
                         <label for="venta-cliente" class="block text-sm font-medium text-gray-700">Cliente</label>
-                        <select id="venta-cliente" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
-                            <!-- Client options here -->
-                        </select>
+                        <select id="venta-cliente" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required></select>
                     </div>
                     <div>
                         <label for="venta-direccion" class="block text-sm font-medium text-gray-700">Dirección</label>
                         <input type="text" id="venta-direccion" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-100" readonly>
                     </div>
                 </div>
-
                 <hr class="my-4">
                 <h4 class="text-lg font-medium mb-2">Productos</h4>
-                <div id="venta-productos-container" class="space-y-3 mb-4">
-                    <!-- Product items will be added here -->
-                </div>
+                <div id="venta-productos-container" class="space-y-3 mb-4"></div>
                 <button type="button" id="btn-agregar-producto-venta" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm"><i class="fas fa-plus mr-1"></i>Agregar Producto</button>
-                
                 <div class="mt-4 text-right">
                     <p class="text-xl font-bold">Total: <span id="venta-total" class="text-indigo-700">$0.00</span></p>
                 </div>
-
                 <div class="flex justify-end space-x-3 mt-6">
                     <button type="button" class="btn-cancelar-modal bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg">Cancelar</button>
                     <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">Guardar Venta</button>
@@ -308,7 +329,6 @@
         </div>
     </div>
 
-    <!-- Modal Registrar Pago -->
     <div id="modal-pago" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
         <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
             <h3 class="text-xl font-semibold mb-4">Registrar Pago</h3>
@@ -320,9 +340,7 @@
                 </div>
                 <div class="mb-4">
                     <label for="pago-vendedor" class="block text-sm font-medium text-gray-700">Vendedor que cobra</label>
-                    <select id="pago-vendedor" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
-                        <!-- Vendedor options here -->
-                    </select>
+                    <select id="pago-vendedor" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required></select>
                 </div>
                 <div class="mb-4">
                     <label for="pago-importe" class="block text-sm font-medium text-gray-700">Importe a Pagar</label>
@@ -336,7 +354,6 @@
         </div>
     </div>
     
-    <!-- Modal Pagar Comisión -->
     <div id="modal-pagar-comision" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
         <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
             <h3 class="text-xl font-semibold mb-4">Pagar Comisión</h3>
@@ -358,7 +375,6 @@
         </div>
     </div>
     
-    <!-- Modal Confirmación -->
     <div id="modal-confirmacion" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
         <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm">
             <h3 class="text-xl font-semibold mb-2">Confirmar Acción</h3>
@@ -370,7 +386,6 @@
         </div>
     </div>
 
-    <!-- Custom Message Box -->
     <div id="message-box" class="fixed bottom-5 right-5 z-50 hidden bg-green-500 text-white py-3 px-5 rounded-lg shadow-lg transition-opacity duration-300">
         <p id="message-text"></p>
     </div>
@@ -381,7 +396,7 @@
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, getDoc, updateDoc, deleteDoc, increment, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
         // --- CONFIGURATION ---
         const firebaseConfig = {
@@ -393,7 +408,7 @@
             appId: "1:221163223090:web:ffe60b7a75758d591c242b",
             measurementId: "G-79RSPJE5L8"
         };
-        const appId = 'control-ventas-app'; // Usamos un ID simple para su app
+        const appId = 'control-ventas-app';
 
         // --- INITIALIZATION ---
         const app = initializeApp(firebaseConfig);
@@ -407,30 +422,70 @@
         let ventasCache = [];
         let pagosCache = [];
         let confirmCallback = null;
+        let appInitialized = false;
 
         // --- MAIN APP INITIALIZER ---
         document.addEventListener('DOMContentLoaded', () => {
-            console.log("DOM fully loaded. Initializing app...");
-            initializeAppLogic();
+            console.log("DOM fully loaded. Initializing auth...");
+            setupPermanentListeners();
+            setupAuthListener();
         });
 
-        // --- AUTHENTICATION ---
+        // --- AUTHENTICATION & APP START ---
+        function setupPermanentListeners() {
+            document.getElementById('login-form').addEventListener('submit', handleLogin);
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('login-error-message');
+            errorMessage.textContent = '';
+
+            signInWithEmailAndPassword(auth, email, password)
+                .catch(error => {
+                    console.error("Login failed:", error);
+                    errorMessage.textContent = 'Correo o contraseña incorrectos.';
+                });
+        }
+
+        function handleLogout() {
+            signOut(auth).catch(error => console.error("Logout failed:", error));
+        }
+
         function setupAuthListener() {
-            onAuthStateChanged(auth, async (user) => {
+            onAuthStateChanged(auth, (user) => {
+                const loginView = document.getElementById('login-view');
+                const appView = document.getElementById('app-view');
+
                 if (user) {
                     userId = user.uid;
                     console.log("User authenticated with UID:", userId);
-                    setupFirestoreListeners();
+                    loginView.style.display = 'none';
+                    appView.style.display = 'block';
+                    startApp();
                 } else {
-                    console.log("No user signed in. Trying to sign in anonymously...");
-                    try {
-                        await signInAnonymously(auth);
-                    } catch (error) {
-                        console.error("Error signing in anonymously:", error);
-                        showMessage("Error de autenticación. Verifique que el inicio de sesión anónimo esté habilitado en Firebase.", true);
-                    }
+                    userId = null;
+                    console.log("User is signed out.");
+                    loginView.style.display = 'flex';
+                    appView.style.display = 'none';
+                    appInitialized = false; // Reset flag on logout
                 }
             });
+        }
+
+        function startApp() {
+            if (appInitialized) return;
+            console.log("Starting application logic...");
+            
+            setupUIListeners();
+            setupFormListeners();
+            setupEventListeners();
+            setupFirestoreListeners();
+            
+            appInitialized = true;
+            console.log("Application started.");
         }
 
         // --- DOM ELEMENTS (declared globally for access) ---
@@ -533,14 +588,21 @@
             const container = document.getElementById('vendedores-historial-view');
             if (!container) return;
 
-            const ventasPorFecha = ventasCache.reduce((acc, venta) => {
-                const fecha = venta.fecha;
-                if (!acc[fecha]) acc[fecha] = [];
-                acc[fecha].push(venta);
-                return acc;
-            }, {});
+            const eventsByDate = {};
 
-            const fechasOrdenadas = Object.keys(ventasPorFecha).sort((a, b) => new Date(b) - new Date(a));
+            ventasCache.forEach(venta => {
+                const fecha = venta.fecha;
+                if (!eventsByDate[fecha]) eventsByDate[fecha] = { ventas: [], pagos: [] };
+                eventsByDate[fecha].ventas.push(venta);
+            });
+
+            pagosCache.forEach(pago => {
+                const fecha = pago.fecha;
+                if (!eventsByDate[fecha]) eventsByDate[fecha] = { ventas: [], pagos: [] };
+                eventsByDate[fecha].pagos.push(pago);
+            });
+
+            const fechasOrdenadas = Object.keys(eventsByDate).sort((a, b) => new Date(b) - new Date(a));
 
             if (fechasOrdenadas.length === 0) {
                 container.innerHTML = `<p class="text-center text-gray-500 py-8">No hay historial de ventas para mostrar.</p>`;
@@ -548,14 +610,12 @@
             }
 
             container.innerHTML = fechasOrdenadas.map(fecha => {
-                const ventasDelDia = ventasPorFecha[fecha];
-                const totalVendidoDia = ventasDelDia.reduce((sum, v) => sum + v.total, 0);
-                const comisionVentasDia = ventasDelDia.reduce((sum, v) => sum + (v.total * 0.03), 0);
-                
-                const pagosDelDia = pagosCache.filter(pago => pago.fecha === fecha);
-                const comisionCobrosDia = pagosDelDia.reduce((sum, p) => sum + (p.importe * 0.02), 0);
+                const events = eventsByDate[fecha];
+                const totalVendidoDia = events.ventas.reduce((sum, v) => sum + v.total, 0);
+                const comisionVentasDia = events.ventas.reduce((sum, v) => sum + (v.total * 0.03), 0);
+                const comisionCobrosDia = events.pagos.reduce((sum, p) => sum + (p.importe * 0.02), 0);
 
-                const detalleHtml = ventasDelDia.map(venta => {
+                const detalleHtml = events.ventas.map(venta => {
                     const vendedor = vendedoresCache.find(v => v.id === venta.vendedorId)?.nombre || 'N/A';
                     const cliente = clientesCache.find(c => c.id === venta.clienteId)?.nombre || 'N/A';
                     const comisionVenta = venta.total * 0.03;
@@ -902,6 +962,7 @@
                 prepareVentaModal();
                 openModal('modal-venta');
             }
+             if (target.closest('#btn-logout')) handleLogout();
             if (target.closest('.btn-cancelar-modal')) target.closest('.modal-backdrop').classList.replace('flex', 'hidden');
 
             // Dynamic button clicks
@@ -1004,10 +1065,10 @@
     // --- MAIN APP LOGIC ---
     function initializeAppLogic() {
         // This function is the single entry point
+        setupAuthListener();
         setupUIListeners();
         setupFormListeners();
         setupEventListeners();
-        setupAuthListener(); // This will trigger the rest of the app once authenticated
     }
 
 </script>
