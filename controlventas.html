@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -271,6 +271,28 @@
                 <div class="flex justify-end space-x-3">
                     <button type="button" class="btn-cancelar-modal bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg">Cancelar</button>
                     <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Product Modal -->
+    <div id="modal-editar-producto" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <h3 class="text-xl font-semibold mb-4">Editar Producto</h3>
+            <form id="form-editar-producto">
+                <input type="hidden" id="editar-producto-id">
+                <div class="mb-4">
+                    <label for="editar-producto-nombre" class="block text-sm font-medium text-gray-700">Nombre del Producto</label>
+                    <input type="text" id="editar-producto-nombre" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                </div>
+                <div class="mb-4">
+                    <label for="editar-producto-precio" class="block text-sm font-medium text-gray-700">Precio</label>
+                    <input type="number" id="editar-producto-precio" step="0.01" min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" class="btn-cancelar-modal bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg">Cancelar</button>
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">Guardar Cambios</button>
                 </div>
             </form>
         </div>
@@ -690,8 +712,9 @@
                 <tr id="${p.id}">
                     <td class="px-6 py-4 whitespace-nowrap">${p.nombre}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${formatCurrency(p.precio)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button class="btn-eliminar-producto text-red-600 hover:text-red-900" data-id="${p.id}"><i class="fas fa-trash"></i></button>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-4">
+                        <button class="btn-editar-producto text-indigo-600 hover:text-indigo-900" data-id="${p.id}" title="Editar"><i class="fas fa-pencil-alt"></i></button>
+                        <button class="btn-eliminar-producto text-red-600 hover:text-red-900" data-id="${p.id}" title="Eliminar"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>
             `).join('');
@@ -803,6 +826,29 @@
                 await addDocument('productos', { nombre, precio });
                 e.target.reset();
                 modals.forEach(m => m.classList.replace('flex', 'hidden'));
+            });
+            
+            document.getElementById('form-editar-producto').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const id = document.getElementById('editar-producto-id').value;
+                const nombre = document.getElementById('editar-producto-nombre').value;
+                const precio = parseFloat(document.getElementById('editar-producto-precio').value);
+
+                if (!id || !nombre || isNaN(precio) || precio < 0) {
+                    showMessage("Datos del producto inválidos.", true);
+                    return;
+                }
+                
+                try {
+                    const productRef = doc(db, `/artifacts/${appId}/users/${userId}/productos`, id);
+                    await updateDoc(productRef, { nombre, precio });
+                    showMessage("Producto actualizado con éxito.");
+                    e.target.reset();
+                    document.getElementById('modal-editar-producto').classList.replace('flex', 'hidden');
+                } catch (error) {
+                    console.error("Error updating product:", error);
+                    showMessage("Error al actualizar el producto.", true);
+                }
             });
 
             document.getElementById('form-vendedor').addEventListener('submit', async (e) => {
@@ -1037,6 +1083,18 @@
                 });
             }
             
+            if (target.closest('.btn-editar-producto')) {
+                const btn = target.closest('.btn-editar-producto');
+                const productoId = btn.dataset.id;
+                const producto = productosCache.find(p => p.id === productoId);
+                if (producto) {
+                    document.getElementById('editar-producto-id').value = producto.id;
+                    document.getElementById('editar-producto-nombre').value = producto.nombre;
+                    document.getElementById('editar-producto-precio').value = producto.precio;
+                    openModal('modal-editar-producto');
+                }
+            }
+
             if (target.closest('.btn-eliminar-venta')) {
                 const btn = target.closest('.btn-eliminar-venta');
                 const ventaId = btn.dataset.id;
@@ -1143,3 +1201,4 @@
 </script>
 </body>
 </html>
+
