@@ -863,7 +863,7 @@
                             createdAt: serverTimestamp()
                         };
                         
-                        await addDocument('envios', envioData, true); // Save to public collection
+                        await addDocument('envios', envioData, true);
                         showMessage("Venta agregada a la planilla de envíos.", false);
                     }
 
@@ -1031,7 +1031,10 @@
                 if (deleteBtn.classList.contains('btn-eliminar-cliente')) collectionName = 'clientes';
                 if (deleteBtn.classList.contains('btn-eliminar-producto')) collectionName = 'productos';
                 if (deleteBtn.classList.contains('btn-eliminar-vendedor')) collectionName = 'vendedores';
-                await deleteDocument(collectionName, id);
+                
+                showConfirmModal(`¿Está seguro de que desea eliminar este ${collectionName.slice(0,-1)}?`, () => {
+                    deleteDocument(collectionName, id);
+                });
             }
             
             if (target.closest('.btn-eliminar-venta')) {
