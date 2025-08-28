@@ -28,6 +28,10 @@
         }
         .modal-backdrop {
             background-color: rgba(0,0,0,0.5);
+            z-index: 1000; /* Ensure modals are on top of the map */
+        }
+        #message-box {
+            z-index: 1100; /* Ensure messages are on top of everything */
         }
         .tab-active {
             border-bottom-color: #4f46e5; /* Indigo */
@@ -253,7 +257,7 @@
     </div>
 
     <!-- Modals -->
-    <div id="modal-cliente" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+    <div id="modal-cliente" class="fixed inset-0 hidden items-center justify-center modal-backdrop">
         <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
             <h3 class="text-xl font-semibold mb-4">Nuevo Cliente</h3>
             <form id="form-cliente">
@@ -273,7 +277,7 @@
         </div>
     </div>
     
-    <div id="modal-producto" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+    <div id="modal-producto" class="fixed inset-0 hidden items-center justify-center modal-backdrop">
         <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
             <h3 class="text-xl font-semibold mb-4">Nuevo Producto</h3>
             <form id="form-producto">
@@ -294,7 +298,7 @@
     </div>
 
     <!-- Edit Product Modal -->
-    <div id="modal-editar-producto" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+    <div id="modal-editar-producto" class="fixed inset-0 hidden items-center justify-center modal-backdrop">
         <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
             <h3 class="text-xl font-semibold mb-4">Editar Producto</h3>
             <form id="form-editar-producto">
@@ -315,7 +319,7 @@
         </div>
     </div>
 
-    <div id="modal-vendedor" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+    <div id="modal-vendedor" class="fixed inset-0 hidden items-center justify-center modal-backdrop">
         <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
             <h3 class="text-xl font-semibold mb-4">Nuevo Vendedor</h3>
             <form id="form-vendedor">
@@ -331,7 +335,7 @@
         </div>
     </div>
     
-    <div id="modal-venta" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+    <div id="modal-venta" class="fixed inset-0 hidden items-center justify-center modal-backdrop">
         <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl">
             <h3 class="text-xl font-semibold mb-4">Registrar Nueva Venta</h3>
             <form id="form-venta">
@@ -376,7 +380,7 @@
         </div>
     </div>
 
-    <div id="modal-pago" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+    <div id="modal-pago" class="fixed inset-0 hidden items-center justify-center modal-backdrop">
         <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
             <h3 class="text-xl font-semibold mb-4">Registrar Pago</h3>
             <form id="form-pago">
@@ -401,7 +405,7 @@
         </div>
     </div>
     
-    <div id="modal-pagar-comision" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+    <div id="modal-pagar-comision" class="fixed inset-0 hidden items-center justify-center modal-backdrop">
         <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
             <h3 class="text-xl font-semibold mb-4">Pagar Comisión</h3>
             <form id="form-pagar-comision">
@@ -422,7 +426,7 @@
         </div>
     </div>
     
-    <div id="modal-confirmacion" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+    <div id="modal-confirmacion" class="fixed inset-0 hidden items-center justify-center modal-backdrop">
         <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm">
             <h3 class="text-xl font-semibold mb-2">Confirmar Acción</h3>
             <p id="confirmacion-texto" class="text-gray-600 mb-6"></p>
@@ -433,7 +437,7 @@
         </div>
     </div>
 
-    <div id="message-box" class="fixed bottom-5 right-5 z-50 hidden bg-green-500 text-white py-3 px-5 rounded-lg shadow-lg transition-opacity duration-300">
+    <div id="message-box" class="fixed bottom-5 right-5 hidden bg-green-500 text-white py-3 px-5 rounded-lg shadow-lg transition-opacity duration-300">
         <p id="message-text"></p>
     </div>
 
@@ -443,7 +447,7 @@
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, getDoc, updateDoc, deleteDoc, increment, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
         // --- CONFIGURATION ---
         const firebaseConfig = {
@@ -497,8 +501,30 @@
 
             signInWithEmailAndPassword(auth, email, password)
                 .catch(error => {
-                    console.error("Login failed:", error);
-                    errorMessage.textContent = 'Correo o contraseña incorrectos.';
+                    console.error("Login attempt failed:", error.code);
+                    // If user does not exist, try to create a new account
+                    if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found') {
+                        console.log("User not found, attempting to create a new account...");
+                        createUserWithEmailAndPassword(auth, email, password)
+                            .then(userCredential => {
+                                // Account created & signed in, onAuthStateChanged will handle the rest.
+                                console.log("Account created successfully for:", userCredential.user.email);
+                            })
+                            .catch(createError => {
+                                console.error("Account creation failed:", createError.code);
+                                // Handle different creation errors
+                                if (createError.code === 'auth/weak-password') {
+                                    errorMessage.textContent = 'La contraseña es demasiado débil.';
+                                } else {
+                                    errorMessage.textContent = 'Error al crear la cuenta.';
+                                }
+                            });
+                    } else if (error.code === 'auth/wrong-password') {
+                         errorMessage.textContent = 'Correo o contraseña incorrectos.';
+                    }
+                    else {
+                        errorMessage.textContent = 'Ocurrió un error inesperado.';
+                    }
                 });
         }
 
@@ -1278,3 +1304,4 @@
 </script>
 </body>
 </html>
+
