@@ -16,9 +16,8 @@
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Leaflet.js for Mapping -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=REEMPLAZA_CON_TU_API_KEY"></script>
 
     <style>
         /* Custom styles */
@@ -183,7 +182,7 @@
                         </div>
                         <!-- NEW: Map container -->
                         <div id="client-map" class="shadow-md">
-                           <!-- Leaflet map will be rendered here -->
+                           <!-- Google map will be rendered here -->
                         </div>
                     </div>
                 </div>
@@ -475,9 +474,9 @@
         let confirmCallback = null;
         let appInitialized = false;
         
-        // NEW: Map related variables
+        // Google Maps related variables
         let clientMap = null;
-        let mapMarkersLayer = null;
+        let mapMarkers = [];
 
 
         // --- MAIN APP INITIALIZER ---
@@ -599,41 +598,48 @@
         
         // --- MAP FUNCTIONS ---
         const initializeClientMap = () => {
-            if (clientMap) {
-                // If map is already initialized, just ensure it's correctly sized
-                clientMap.invalidateSize();
-                return;
-            }
+            if (clientMap) return;
             try {
                 // Centered on Argentina
-                clientMap = L.map('client-map').setView([-38.4161, -63.6167], 4);
-                
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                }).addTo(clientMap);
-                
-                mapMarkersLayer = L.layerGroup().addTo(clientMap);
-                console.log("Map initialized successfully.");
+                clientMap = new google.maps.Map(document.getElementById('client-map'), {
+                    center: { lat: -38.4161, lng: -63.6167 },
+                    zoom: 4,
+                });
+                mapMarkers = [];
+                console.log("Google Map initialized successfully.");
             } catch (error) {
-                console.error("Could not initialize map:", error);
-                document.getElementById('client-map').innerHTML = '<p class="text-center text-red-500 p-4">Error al cargar el mapa.</p>';
+                console.error("Could not initialize Google Map:", error);
+                document.getElementById('client-map').innerHTML = '<p class="text-center text-red-500 p-4">Error al cargar el mapa. Asegúrate de que la clave API de Google Maps sea correcta.</p>';
             }
         };
 
-        const geocodeAddress = async (address) => {
-            if (!address) return null;
-            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-                if (data && data.length > 0) {
-                    return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+        const geocodeAddress = (address) => {
+            return new Promise((resolve, reject) => {
+                if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+                    console.error("Google Maps API not loaded.");
+                    resolve(null);
+                    return;
                 }
-                return null;
-            } catch (error) {
-                console.error("Geocoding error:", error);
-                return null;
+                const geocoder = new google.maps.Geocoder();
+                geocoder.geocode({ 'address': address }, (results, status) => {
+                    if (status === 'OK') {
+                        resolve({
+                            lat: results[0].geometry.location.lat(),
+                            lng: results[0].geometry.location.lng()
+                        });
+                    } else {
+                        console.warn('Geocode was not successful for the following reason: ' + status);
+                        resolve(null); // Resolve with null to not break the rendering loop
+                    }
+                });
+            });
+        };
+        
+        const clearMarkers = () => {
+            for (let i = 0; i < mapMarkers.length; i++) {
+                mapMarkers[i].setMap(null);
             }
+            mapMarkers = [];
         };
 
 
@@ -652,9 +658,7 @@
                     const viewId = `view-${tab.id.split('-')[1]}`;
                     document.getElementById(viewId).classList.remove('hidden');
 
-                    // If the clients tab is now active, initialize the map
                     if (viewId === 'view-clientes') {
-                        // Use a short timeout to ensure the container is visible before initializing
                         setTimeout(initializeClientMap, 100);
                     }
                 });
@@ -799,16 +803,25 @@
                 </tr>
             `).join('');
 
-            // NEW: Update map markers when clients are rendered/updated
-            if (mapMarkersLayer) {
-                mapMarkersLayer.clearLayers();
+            if (clientMap) {
+                clearMarkers();
+                const infoWindow = new google.maps.InfoWindow();
                 clientes.forEach(cliente => {
                     if (cliente.direccion) {
                         geocodeAddress(cliente.direccion).then(coords => {
                             if (coords) {
-                                L.marker([coords.lat, coords.lon])
-                                    .addTo(mapMarkersLayer)
-                                    .bindPopup(`<b>${cliente.nombre}</b><br>${cliente.direccion}`);
+                                const marker = new google.maps.Marker({
+                                    position: coords,
+                                    map: clientMap,
+                                    title: cliente.nombre,
+                                });
+
+                                marker.addListener('click', () => {
+                                    infoWindow.setContent(`<b>${cliente.nombre}</b><br>${cliente.direccion}`);
+                                    infoWindow.open(clientMap, marker);
+                                });
+
+                                mapMarkers.push(marker);
                             }
                         });
                     }
