@@ -16,8 +16,8 @@
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Google Maps API -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA7HWfNdkPZvsMKIU8BUploP1MVl5FFOac"></script>
+    <!-- Google Maps API with Places Library -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=REEMPLAZA_CON_TU_API_KEY&libraries=places"></script>
 
     <style>
         /* Custom styles */
@@ -63,6 +63,10 @@
         #client-map {
             height: 65vh;
             border-radius: 0.5rem; /* rounded-lg */
+        }
+        /* Ensure Google Places Autocomplete suggestions appear over the modal */
+        .pac-container {
+            z-index: 1050 !important;
         }
     </style>
 </head>
@@ -595,8 +599,41 @@
         };
         
         const getTodayString = () => new Date().toISOString().split('T')[0];
+
+        const openModal = (modalId) => {
+            document.getElementById(modalId).classList.replace('hidden', 'flex');
+            if (modalId === 'modal-cliente') {
+                setTimeout(setupAutocomplete, 100);
+            }
+        };
         
         // --- MAP FUNCTIONS ---
+        const setupAutocomplete = () => {
+            const input = document.getElementById('cliente-direccion');
+            if (!input || (input.classList.contains('pac-target-input'))) { 
+                return; 
+            }
+            
+            if (typeof google === 'undefined' || typeof google.maps.places === 'undefined') {
+                console.warn("Google Places library not found. Make sure the API key is correct and the library is included.");
+                return;
+            }
+
+            const options = {
+                componentRestrictions: { country: "ar" },
+                fields: ["formatted_address"],
+                types: ["address"],
+            };
+            const autocomplete = new google.maps.places.Autocomplete(input, options);
+
+            autocomplete.addListener('place_changed', () => {
+                const place = autocomplete.getPlace();
+                if (place.formatted_address) {
+                    input.value = place.formatted_address;
+                }
+            });
+        };
+
         const initializeClientMap = () => {
             if (clientMap) return;
             try {
@@ -1170,7 +1207,6 @@
     // --- EVENT DELEGATION FOR DYNAMIC CONTENT ---
     const setupEventListeners = () => {
         console.log("Setting up dynamic event listeners...");
-        const openModal = (modalId) => document.getElementById(modalId).classList.replace('hidden', 'flex');
 
         document.body.addEventListener('click', async (e) => {
             const target = e.target;
