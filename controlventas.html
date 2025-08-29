@@ -16,8 +16,8 @@
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Google Maps API -->REEMP
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA7HWfNdkPZvsMKIU8BUploP1MVl5FFOac"></script>
+    <!-- Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=REEMPLAZA_CON_TU_API_KEY"></script>
 
     <style>
         /* Custom styles */
@@ -607,6 +607,7 @@
                 });
                 mapMarkers = [];
                 console.log("Google Map initialized successfully.");
+                updateMapMarkers(clientesCache); // Draw markers on the newly created map
             } catch (error) {
                 console.error("Could not initialize Google Map:", error);
                 document.getElementById('client-map').innerHTML = '<p class="text-center text-red-500 p-4">Error al cargar el mapa. Asegúrate de que la clave API de Google Maps sea correcta.</p>';
@@ -640,6 +641,33 @@
                 mapMarkers[i].setMap(null);
             }
             mapMarkers = [];
+        };
+
+        const updateMapMarkers = (clientes) => {
+            if (!clientMap) return; // Exit if map is not initialized
+
+            clearMarkers();
+            const infoWindow = new google.maps.InfoWindow();
+            clientes.forEach(cliente => {
+                if (cliente.direccion) {
+                    geocodeAddress(cliente.direccion).then(coords => {
+                        if (coords) {
+                            const marker = new google.maps.Marker({
+                                position: coords,
+                                map: clientMap,
+                                title: cliente.nombre,
+                            });
+
+                            marker.addListener('click', () => {
+                                infoWindow.setContent(`<b>${cliente.nombre}</b><br>${cliente.direccion}`);
+                                infoWindow.open(clientMap, marker);
+                            });
+
+                            mapMarkers.push(marker);
+                        }
+                    });
+                }
+            });
         };
 
 
@@ -803,30 +831,7 @@
                 </tr>
             `).join('');
 
-            if (clientMap) {
-                clearMarkers();
-                const infoWindow = new google.maps.InfoWindow();
-                clientes.forEach(cliente => {
-                    if (cliente.direccion) {
-                        geocodeAddress(cliente.direccion).then(coords => {
-                            if (coords) {
-                                const marker = new google.maps.Marker({
-                                    position: coords,
-                                    map: clientMap,
-                                    title: cliente.nombre,
-                                });
-
-                                marker.addListener('click', () => {
-                                    infoWindow.setContent(`<b>${cliente.nombre}</b><br>${cliente.direccion}`);
-                                    infoWindow.open(clientMap, marker);
-                                });
-
-                                mapMarkers.push(marker);
-                            }
-                        });
-                    }
-                });
-            }
+            updateMapMarkers(clientes);
         };
 
         const renderProductos = (productos) => {
@@ -1317,4 +1322,3 @@
 </script>
 </body>
 </html>
-
