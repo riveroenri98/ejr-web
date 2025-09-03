@@ -10,14 +10,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .spinner { border-top-color: #4f46e5; animation: spin 1s linear infinite; }
         .modal-backdrop { background-color: rgba(0, 0, 0, 0.5); }
         .ai-spinner { border-top-color: #10b981; animation: spin 0.8s linear infinite; }
-        
         #main-map, #modal-map, #start-point-map, #clients-map, #client-modal-map { 
             width: 100%; 
             border-radius: 0.75rem; 
@@ -33,7 +31,6 @@
         .nav-tab {
             transition: background-color 0.2s, color 0.2s;
         }
-
         @media (max-width: 768px) {
             .table-responsive thead { display: none; }
             .table-responsive tr { display: block; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
@@ -85,7 +82,7 @@
         </div>
 
         <div id="app-content" class="max-w-screen-2xl mx-auto hidden">
-             <header class="mb-6">
+            <header class="mb-6">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <h1 class="text-3xl font-bold text-gray-900">Panel Logístico y CRM con IA</h1>
@@ -110,12 +107,12 @@
 
             <!-- Contenido de Logística -->
             <div id="logistics-view">
-                 <div class="flex flex-wrap items-center gap-x-3 gap-y-2 mb-4">
-                     <button id="set-start-point-btn" class="flex items-center justify-center bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-2 mb-4">
+                    <button id="set-start-point-btn" class="flex items-center justify-center bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg>
                         Definir Inicio
-                     </button>
-                     <button id="generate-route-btn" class="flex items-center justify-center bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors">
+                    </button>
+                    <button id="generate-route-btn" class="flex items-center justify-center bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M18 10c-2.4 0-4.7.9-6.5 2.5a12.4 12.4 0 0 0-6.5 7.5"/><path d="M18 10V4.5a2.5 2.5 0 0 0-5 0V10"/><path d="M12 22a2 2 0 1 0 4 0 2 2 0 1 0-4 0Z"/><path d="M16 4.5a2.5 2.5 0 0 0-5 0V10"/><path d="M10 22a2 2 0 1 0 4 0 2 2 0 1 0-4 0Z"/><path d="M18 10h1a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-1"/><path d="M6 10H5a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1"/></svg>
                         Crear Hoja de Ruta
                     </button>
@@ -124,14 +121,14 @@
                         Agregar Pedido
                     </button>
                 </div>
-                 <div class="mb-4 text-sm text-gray-600 bg-gray-100 p-2 rounded-md flex items-center justify-between">
+                <div class="mb-4 text-sm text-gray-600 bg-gray-100 p-2 rounded-md flex items-center justify-between">
                     <p><span class="font-semibold">Punto de partida:</span> <span id="start-point-display" class="italic">No definido</span></p>
                     <p><span class="font-semibold">Usuario:</span> <span id="user-email-display"></span></p>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 lg:gap-8">
                     <div class="flex flex-col">
-                         <main class="bg-white rounded-xl shadow-lg overflow-hidden flex-grow">
+                        <main class="bg-white rounded-xl shadow-lg overflow-hidden flex-grow">
                             <div id="order-list-container" class="overflow-x-auto h-full">
                                 <div id="empty-state" class="text-center p-12 hidden">
                                     <h3 class="mt-4 text-xl font-semibold text-gray-800">No hay pedidos todavía</h3>
@@ -150,13 +147,21 @@
                             <div id="main-map" class="shadow-lg"></div>
                         </div>
                         <div id="route-itinerary-container" class="hidden">
-                            <h3 class="text-lg font-medium text-gray-700 mb-2">Hoja de Ruta Detallada</h3>
+                            <div class="flex justify-between items-center mb-2">
+                                <h3 class="text-lg font-medium text-gray-700">Hoja de Ruta Detallada</h3>
+                                <a id="open-gmaps-link" href="#" target="_blank" class="flex items-center justify-center bg-blue-600 text-white font-semibold py-2 px-3 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors text-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                                    </svg>
+                                    Abrir en Google Maps
+                                </a>
+                            </div>
                             <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm max-h-60 overflow-y-auto">
                                 <ol id="route-itinerary-list" class="space-y-3 text-sm"></ol>
                             </div>
                         </div>
                         <div id="ai-summary-container" class="hidden">
-                             <div class="flex justify-between items-center mb-2">
+                            <div class="flex justify-between items-center mb-2">
                                 <h3 class="text-lg font-medium text-gray-700">Análisis de Ruta por IA</h3>
                                 <button id="get-ai-route-summary-btn" class="flex items-center justify-center bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors text-sm">
                                     ✨ Analizar Ruta
@@ -171,13 +176,13 @@
             <!-- Contenido de Clientes -->
             <div id="clients-view" class="hidden">
                 <div class="mb-4 flex flex-wrap gap-3">
-                     <button id="add-client-btn" class="flex items-center justify-center bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors">
+                    <button id="add-client-btn" class="flex items-center justify-center bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
                         Agregar Cliente
                     </button>
                     <button id="analyze-clients-btn" class="flex items-center justify-center bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                         ✨ Analizar Zona de Clientes
+                        ✨ Analizar Zona de Clientes
                     </button>
                 </div>
                 <!-- Barra de Búsqueda y Filtros -->
@@ -205,28 +210,28 @@
                     </div>
                 </div>
 
-                 <div id="client-analysis-container" class="mb-6 hidden">
+                <div id="client-analysis-container" class="mb-6 hidden">
                     <h3 class="text-lg font-medium text-gray-700 mb-2">Análisis de Clientes por IA</h3>
                     <div id="client-analysis-content" class="bg-gray-50 p-4 rounded-lg border border-gray-200 text-sm text-gray-600 min-h-[100px] whitespace-pre-wrap"></div>
-                 </div>
-                 <div class="grid grid-cols-1 lg:grid-cols-2 lg:gap-8">
-                     <div class="flex flex-col">
-                         <h3 class="text-lg font-medium text-gray-700 mb-2">Base de Datos de Clientes</h3>
-                         <main class="bg-white rounded-xl shadow-lg overflow-hidden flex-grow">
-                             <div id="clients-list-container" class="overflow-auto" style="height: 65vh;">
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 lg:gap-8">
+                    <div class="flex flex-col">
+                        <h3 class="text-lg font-medium text-gray-700 mb-2">Base de Datos de Clientes</h3>
+                        <main class="bg-white rounded-xl shadow-lg overflow-hidden flex-grow">
+                            <div id="clients-list-container" class="overflow-auto" style="height: 65vh;">
                                 <div id="clients-empty-state" class="text-center p-12 hidden">
                                     <h3 class="mt-4 text-xl font-semibold text-gray-800">No hay clientes guardados</h3>
                                     <p class="mt-1 text-gray-500">Agrega un pedido o un cliente nuevo para empezar.</p>
                                 </div>
                                 <ul id="clients-list" class="divide-y divide-gray-200"></ul>
                             </div>
-                         </main>
-                     </div>
-                     <div class="mt-8 lg:mt-0">
-                         <h3 class="text-lg font-medium text-gray-700 mb-2">Mapa de Concentración de Clientes</h3>
-                         <div id="clients-map" class="shadow-lg"></div>
-                     </div>
-                 </div>
+                        </main>
+                    </div>
+                    <div class="mt-8 lg:mt-0">
+                        <h3 class="text-lg font-medium text-gray-700 mb-2">Mapa de Concentración de Clientes</h3>
+                        <div id="clients-map" class="shadow-lg"></div>
+                    </div>
+                </div>
             </div>
             
             <!-- Contenido de Análisis -->
@@ -250,7 +255,7 @@
                                 </div>
                             </div>
                         </div>
-                         <div>
+                        <div>
                             <h3 class="font-semibold text-xl mb-4 text-gray-800 flex items-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-teal-600" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg>
                                 Ranking de Clientes
@@ -269,27 +274,38 @@
                     </div>
                 </div>
             </div>
-
-
         </div>
 
         <!-- MODALES -->
         <div id="order-modal" class="fixed inset-0 z-40 hidden items-center justify-center p-4 modal-backdrop">
-             <div id="order-modal-content" class="bg-white rounded-xl shadow-2xl w-full max-w-3xl transform transition-all opacity-0 -translate-y-10 max-h-[90vh] overflow-y-auto">
+            <div id="order-modal-content" class="bg-white rounded-xl shadow-2xl w-full max-w-3xl transform transition-all opacity-0 -translate-y-10 max-h-[90vh] overflow-y-auto">
                 <form id="order-form" class="p-6 sm:p-8">
-                     <h2 id="order-modal-title" class="text-2xl font-bold text-gray-900 mb-6">Agregar Nuevo Pedido</h2>
+                    <h2 id="order-modal-title" class="text-2xl font-bold text-gray-900 mb-6">Agregar Nuevo Pedido</h2>
                     <input type="hidden" id="order-id">
                     <div class="grid grid-cols-1 gap-x-6 gap-y-8">
                         <div class="space-y-5">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div><label for="pedidoIdInput" class="block text-sm font-medium text-gray-700">N° de Pedido</label><input type="text" id="pedidoIdInput" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Ej: #1024" required></div>
-                                <div><label for="clienteInput" class="block text-sm font-medium text-gray-700">Nombre del Cliente</label><input type="text" id="clienteInput" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Ej: Ana Pérez" required></div>
+                                <div>
+                                    <label for="clienteInput" class="block text-sm font-medium text-gray-700">Nombre del Cliente</label>
+                                    <input type="text" id="clienteInput" list="client-datalist" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Seleccione o escriba un cliente" required>
+                                    <datalist id="client-datalist"></datalist>
+                                </div>
                             </div>
-                             <div>
-                                <label for="importeInput" class="block text-sm font-medium text-gray-700">Importe Total de la Compra</label>
-                                <div class="relative mt-1">
-                                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
-                                    <input type="number" id="importeInput" class="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="0.00" step="0.01" min="0">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="importeInput" class="block text-sm font-medium text-gray-700">Importe Total</label>
+                                    <div class="relative mt-1">
+                                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
+                                        <input type="number" id="importeInput" class="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="0.00" step="0.01" min="0">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="orderAmountPaidInput" class="block text-sm font-medium text-gray-700">Importe Abonado</label>
+                                    <div class="relative mt-1">
+                                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
+                                        <input type="number" id="orderAmountPaidInput" class="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="0.00" step="0.01" min="0">
+                                    </div>
                                 </div>
                             </div>
                             <div>
@@ -299,25 +315,25 @@
                                 </div>
                                 <textarea id="direccionInput" rows="3" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Calle Falsa 123, Springfield. Tocar timbre A." required></textarea>
                             </div>
-                             <div>
+                            <div>
                                 <label for="productosInput" class="block text-sm font-medium text-gray-700">Productos y Cantidades</label>
                                 <textarea id="productosInput" rows="4" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Pegue aquí el pedido completo del cliente..."></textarea>
                             </div>
-                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div><label for="estadoInput" class="block text-sm font-medium text-gray-700">Estado</label><select id="estadoInput" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"><option>Pendiente</option><option>En Preparación</option><option>Enviado</option><option>Entregado</option></select></div>
-                                 <div><label for="trackingInput" class="block text-sm font-medium text-gray-700">N° Seguimiento</label><input type="text" id="trackingInput" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Opcional"></div>
+                                <div><label for="trackingInput" class="block text-sm font-medium text-gray-700">N° Seguimiento</label><input type="text" id="trackingInput" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Opcional"></div>
                             </div>
-                             <div id="confirmation-message-container" class="hidden">
+                            <div id="confirmation-message-container" class="hidden">
                                 <div class="flex justify-between items-center">
                                     <label for="confirmationMessage" class="block text-sm font-medium text-gray-700">Mensaje de Confirmación (Generado por IA)</label>
-                                     <button type="button" id="copy-confirmation-btn" class="text-sm text-indigo-600 font-semibold hover:text-indigo-800">Copiar</button>
+                                    <button type="button" id="copy-confirmation-btn" class="text-sm text-indigo-600 font-semibold hover:text-indigo-800">Copiar</button>
                                 </div>
-                                 <textarea id="confirmationMessage" rows="3" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                                <textarea id="confirmationMessage" rows="3" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></textarea>
                             </div>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Marcar Ubicación</label>
-                             <div class="flex items-center gap-2 mb-2">
+                            <div class="flex items-center gap-2 mb-2">
                                 <p class="text-xs text-gray-500 flex-grow">Usa el campo 'Dirección' y 'Buscar' o haz clic en el mapa.</p>
                                 <button type="button" id="search-address-btn" class="bg-indigo-100 text-indigo-700 font-semibold py-1 px-3 rounded-md hover:bg-indigo-200 text-sm whitespace-nowrap">Buscar</button>
                             </div>
@@ -337,22 +353,22 @@
             </div>
         </div>
         <div id="client-modal" class="fixed inset-0 z-40 hidden items-center justify-center p-4 modal-backdrop">
-             <div id="client-modal-content" class="bg-white rounded-xl shadow-2xl w-full max-w-2xl transform transition-all opacity-0 -translate-y-10 max-h-[90vh] overflow-y-auto">
+            <div id="client-modal-content" class="bg-white rounded-xl shadow-2xl w-full max-w-2xl transform transition-all opacity-0 -translate-y-10 max-h-[90vh] overflow-y-auto">
                 <form id="client-form" class="p-6 sm:p-8">
-                     <input type="hidden" id="clientIdInput">
-                     <h2 id="client-modal-title" class="text-2xl font-bold text-gray-900 mb-6">Agregar Nuevo Cliente</h2>
-                     <div class="space-y-6">
+                    <input type="hidden" id="clientIdInput">
+                    <h2 id="client-modal-title" class="text-2xl font-bold text-gray-900 mb-6">Agregar Nuevo Cliente</h2>
+                    <div class="space-y-6">
                         <div>
-                             <label for="clientNameInput" class="block text-sm font-medium text-gray-700">Nombre del Cliente</label>
-                             <input type="text" id="clientNameInput" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
+                            <label for="clientNameInput" class="block text-sm font-medium text-gray-700">Nombre del Cliente</label>
+                            <input type="text" id="clientNameInput" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
                         </div>
                         <div>
                             <label for="clientAddressInput" class="block text-sm font-medium text-gray-700">Dirección</label>
                             <textarea id="clientAddressInput" rows="2" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required></textarea>
                         </div>
-                         <div>
+                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Marcar Ubicación</label>
-                             <div class="flex items-center gap-2 mb-2">
+                            <div class="flex items-center gap-2 mb-2">
                                 <p class="text-xs text-gray-500 flex-grow">Usa el campo 'Dirección' y 'Buscar' o haz clic en el mapa.</p>
                                 <button type="button" id="search-client-address-btn" class="bg-indigo-100 text-indigo-700 font-semibold py-1 px-3 rounded-md hover:bg-indigo-200 text-sm whitespace-nowrap">Buscar</button>
                             </div>
@@ -369,8 +385,8 @@
         <div id="start-point-modal" class="fixed inset-0 z-40 hidden items-center justify-center p-4 modal-backdrop">
             <div id="start-point-modal-content" class="bg-white rounded-xl shadow-2xl w-full max-w-2xl transform transition-all opacity-0 -translate-y-10">
                 <div class="p-6 sm:p-8">
-                     <h2 class="text-2xl font-bold text-gray-900 mb-6">Definir Punto de Partida</h2>
-                     <div class="space-y-4">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Definir Punto de Partida</h2>
+                    <div class="space-y-4">
                         <div>
                             <label for="start-address-input" class="block text-sm font-medium text-gray-700">Buscar Dirección de Inicio</label>
                             <div class="mt-1 flex gap-2">
@@ -382,8 +398,8 @@
                             <p class="text-sm text-gray-600">O haz clic en el mapa para marcar la ubicación.</p>
                             <div id="start-point-map" class="mt-2"></div>
                         </div>
-                     </div>
-                     <div class="mt-8 flex justify-end space-x-3">
+                    </div>
+                    <div class="mt-8 flex justify-end space-x-3">
                         <button type="button" id="cancel-start-point-btn" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">Cancelar</button>
                         <button type="button" id="save-start-point-btn" class="inline-flex justify-center py-2 px-4 border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">Guardar Inicio</button>
                     </div>
@@ -404,11 +420,20 @@
                             <textarea id="purchaseProductsInput" rows="5" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Pegue aquí el pedido completo del cliente..."></textarea>
                             <p class="mt-1 text-xs text-gray-500">El importe total se calculará automáticamente desde aquí.</p>
                         </div>
-                        <div>
-                            <label for="purchaseAmountInput" class="block text-sm font-medium text-gray-700">Importe Total (calculado)</label>
-                            <div class="relative mt-1">
-                                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
-                                <input type="number" id="purchaseAmountInput" class="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-100" placeholder="0.00" step="0.01" min="0" readonly>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="purchaseAmountInput" class="block text-sm font-medium text-gray-700">Importe Total</label>
+                                <div class="relative mt-1">
+                                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
+                                    <input type="number" id="purchaseAmountInput" class="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-50" placeholder="0.00" step="0.01" min="0">
+                                </div>
+                            </div>
+                            <div>
+                                <label for="purchaseAmountPaidInput" class="block text-sm font-medium text-gray-700">Importe Abonado</label>
+                                <div class="relative mt-1">
+                                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
+                                    <input type="number" id="purchaseAmountPaidInput" class="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="0.00" step="0.01" min="0">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -444,11 +469,20 @@
                             <label for="editPurchaseProductsInput" class="block text-sm font-medium text-gray-700">Productos y Cantidades</label>
                             <textarea id="editPurchaseProductsInput" rows="5" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Formato: Cantidad x Nombre @ Precio Unitario"></textarea>
                         </div>
-                        <div>
-                            <label for="editPurchaseAmountInput" class="block text-sm font-medium text-gray-700">Importe Total (calculado)</label>
-                            <div class="relative mt-1">
-                                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
-                                <input type="number" id="editPurchaseAmountInput" class="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-100" placeholder="0.00" step="0.01" min="0" readonly>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="editPurchaseAmountInput" class="block text-sm font-medium text-gray-700">Importe Total</label>
+                                <div class="relative mt-1">
+                                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
+                                    <input type="number" id="editPurchaseAmountInput" class="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-50" placeholder="0.00" step="0.01" min="0">
+                                </div>
+                            </div>
+                            <div>
+                                <label for="editPurchaseAmountPaidInput" class="block text-sm font-medium text-gray-700">Importe Abonado</label>
+                                <div class="relative mt-1">
+                                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span class="text-gray-500 sm:text-sm">$</span></div>
+                                    <input type="number" id="editPurchaseAmountPaidInput" class="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="0.00" step="0.01" min="0">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -488,15 +522,15 @@
         
         // --- CONFIGURACIÓN ---
         const firebaseConfig = {
-          apiKey: "AIzaSyAJbCC1pR-CQTpOXBicC59Jqm32Rr7q9M8",
-          authDomain: "sistemafidelidad-super-21.firebaseapp.com",
-          projectId: "sistemafidelidad-super-21",
-          storageBucket: "sistemafidelidad-super-21.firebasestorage.app",
-          messagingSenderId: "221163223090",
-          appId: "1:221163223090:web:ffe60b7a75758d591c242b",
-          measurementId: "G-79RSPJE5L8"
+            apiKey: "AIzaSyAJbCC1pR-CQTpOXBicC59Jqm32Rr7q9M8",
+            authDomain: "sistemafidelidad-super-21.firebaseapp.com",
+            projectId: "sistemafidelidad-super-21",
+            storageBucket: "sistemafidelidad-super-21.firebasestorage.app",
+            messagingSenderId: "221163223090",
+            appId: "1:221163223090:web:ffe60b7a75758d591c242b",
+            measurementId: "G-79RSPJE5L8"
         };
-        const Maps_API_KEY = "AIzaSyD9d0wzamU3rHdnfjVHeT0ZQWBz1-1bvd8"; 
+        const Maps_API_KEY = "REEMPLAZA_CON_TU_API_KEY"; 
 
         // --- VARIABLES GLOBALES ---
         let db, auth, mainMap, modalMap, startPointMap, clientsMap, clientModalMap, heatmap, geocoder;
@@ -586,6 +620,8 @@
             minAvgPurchaseInput: document.getElementById('min-avg-purchase-input'),
             maxAvgPurchaseInput: document.getElementById('max-avg-purchase-input'),
             clearClientFiltersBtn: document.getElementById('clear-client-filters-btn'),
+            clientDatalist: document.getElementById('client-datalist'),
+            openGmapsLink: document.getElementById('open-gmaps-link'),
         };
         
         // --- LLAMADA A LA API DE GEMINI ---
@@ -601,7 +637,7 @@
                     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     const result = await response.json();
                     if (result.candidates && result.candidates[0]?.content?.parts?.[0]?.text) {
-                         ui.loadingOverlay.classList.add('hidden'); ui.loadingOverlay.classList.remove('flex');
+                        ui.loadingOverlay.classList.add('hidden'); ui.loadingOverlay.classList.remove('flex');
                         return result.candidates[0].content.parts[0].text;
                     }
                     else throw new Error("Respuesta inválida de la API de Gemini.");
@@ -665,8 +701,8 @@
                         errorMessage = "La contraseña es incorrecta. Por favor, inténtalo de nuevo.";
                         break;
                     case 'auth/operation-not-allowed':
-                         errorMessage = "El inicio de sesión por correo/contraseña no está habilitado en Firebase.";
-                         break;
+                        errorMessage = "El inicio de sesión por correo/contraseña no está habilitado en Firebase.";
+                        break;
                 }
                 ui.loginError.textContent = errorMessage;
                 ui.loginError.classList.remove('hidden');
@@ -693,7 +729,7 @@
 
         // --- LÓGICA DE DATOS (FIRESTORE) ---
         function listenToOrders() {
-             if (ordersUnsubscribe) ordersUnsubscribe();
+            if (ordersUnsubscribe) ordersUnsubscribe();
             const q = query(collection(db, `artifacts/${appId}/users/${currentUserId}/pedidos`), orderBy("timestamp", "desc"));
             ordersUnsubscribe = onSnapshot(q, (querySnapshot) => {
                 allOrders = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -706,6 +742,7 @@
             const q = query(collection(db, `artifacts/${appId}/users/${currentUserId}/clients`));
             clientsUnsubscribe = onSnapshot(q, (querySnapshot) => {
                 allClients = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                populateClientDatalist();
                 applyAndRenderClientFilters();
                 updateRankings();
             }, (error) => console.error("Error al escuchar clientes:", error));
@@ -735,17 +772,20 @@
 
         async function findOrCreateClientForOrder(orderData) {
             const clientsRef = collection(db, `artifacts/${appId}/users/${currentUserId}/clients`);
-            const q = query(clientsRef, where("cliente", "==", orderData.cliente));
+            const normalizedName = orderData.cliente.toLowerCase().replace(/\s+/g, ' ').trim();
+            const q = query(clientsRef, where("normalizedName", "==", normalizedName));
             const querySnapshot = await getDocs(q);
 
             if (querySnapshot.empty) {
                 const newClientRef = await addDoc(clientsRef, {
-                    cliente: orderData.cliente,
+                    cliente: orderData.cliente.trim(),
+                    normalizedName: normalizedName,
                     direccion: orderData.direccion,
                     latitude: orderData.latitude,
                     longitude: orderData.longitude,
                     totalSpent: 0, 
-                    purchaseCount: 0, 
+                    purchaseCount: 0,
+                    balance: 0, 
                     firstSeen: serverTimestamp()
                 });
                 return newClientRef.id;
@@ -797,8 +837,16 @@
                 default: return { bg: 'bg-gray-100', text: 'text-gray-800' };
             }
         };
+        const getPaymentStatusColors = (status) => {
+            switch (status) {
+                case 'Pagado': return { bg: 'bg-green-100', text: 'text-green-800' };
+                case 'Pago Parcial': return { bg: 'bg-yellow-100', text: 'text-yellow-800' };
+                case 'Pendiente': return { bg: 'bg-red-100', text: 'text-red-800' };
+                default: return { bg: 'bg-gray-100', text: 'text-gray-800' };
+            }
+        };
         function renderOrders() {
-             ui.orderList.innerHTML = '';
+            ui.orderList.innerHTML = '';
             const hasOrders = allOrders.length > 0;
             ui.emptyState.classList.toggle('hidden', hasOrders);
             ui.orderList.closest('table').classList.toggle('hidden', !hasOrders);
@@ -837,6 +885,8 @@
                     const purchases = await getClientPurchaseHistory(client.id);
                     const frequency = calculateFrequency(purchases);
                     const frequencyText = frequency !== null ? `Cada ${frequency} días (aprox)` : 'N/A';
+                    const balance = client.balance || 0;
+                    const balanceColor = balance > 0 ? 'text-red-600' : 'text-gray-600';
 
                     const li = document.createElement('li');
                     li.className = "p-4 hover:bg-gray-50";
@@ -847,7 +897,10 @@
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm font-medium text-gray-900 truncate">${client.cliente}</p>
                                     <p class="text-sm text-gray-500 truncate">${client.direccion}</p>
-                                    <p class="text-sm text-green-600 font-semibold truncate">Compra Promedio: ${formatCurrency(avgPurchase)}</p>
+                                    <div class="flex flex-wrap gap-x-4 text-sm">
+                                        <p class="text-green-600 font-semibold truncate">Promedio: ${formatCurrency(avgPurchase)}</p>
+                                        <p class="${balanceColor} font-semibold truncate">Saldo Deudor: ${formatCurrency(balance)}</p>
+                                    </div>
                                     <p class="text-sm text-blue-600 font-semibold truncate">Frecuencia: ${frequencyText}</p>
                                 </div>
                             </div>
@@ -866,14 +919,14 @@
         }
         
         function renderClientMap(clientsToRender) {
-             if (clientsToRender === undefined) {
+            if (clientsToRender === undefined) {
                 clientsToRender = allClients;
             }
-             clientMapMarkers.forEach(marker => marker.setMap(null));
-             clientMapMarkers = [];
-             
-             const points = clientsToRender.filter(c => c.latitude).map(client => new google.maps.LatLng(client.latitude, client.longitude));
-             
+            clientMapMarkers.forEach(marker => marker.setMap(null));
+            clientMapMarkers = [];
+            
+            const points = clientsToRender.filter(c => c.latitude).map(client => new google.maps.LatLng(client.latitude, client.longitude));
+            
             if (heatmap) {
                 heatmap.setData(points);
             } else if (points.length > 0) {
@@ -914,13 +967,14 @@
             directionsRenderer.setMap(mainMap);
             ui.routeItineraryContainer.classList.add('hidden');
             ui.aiSummaryContainer.classList.add('hidden');
+            ui.openGmapsLink.href = '#'; // Reset link
         }
         function clearMarkers() {
             mainMapMarkers.forEach(marker => marker.setMap(null));
             mainMapMarkers = [];
         }
         function updateMainMapMarkers() {
-             clearMarkers();
+            clearMarkers();
             const bounds = new google.maps.LatLngBounds();
             
             if (startPoint) {
@@ -984,6 +1038,15 @@
             const route = result.routes[0];
             const optimizedOrder = route.waypoint_order;
 
+            const waypointsInOrder = optimizedOrder.map(index => pendingOrders[index]);
+            const waypointsString = waypointsInOrder
+                .map(order => `${order.latitude},${order.longitude}`)
+                .join('|');
+            
+            const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${startPoint.lat},${startPoint.lng}&destination=${startPoint.lat},${startPoint.lng}&waypoints=${waypointsString}&travelmode=driving`;
+            
+            ui.openGmapsLink.href = googleMapsUrl;
+
             const startLi = document.createElement('li');
             startLi.className = "flex items-start";
             startLi.innerHTML = `<div class="flex-shrink-0"><span class="flex items-center justify-center h-6 w-6 rounded-full bg-green-500 text-white font-bold text-xs">INICIO</span></div><p class="ml-3 font-semibold text-gray-700">Punto de Partida</p>`;
@@ -1004,8 +1067,8 @@
             });
         }
         function geocodeSearch(address, map, successCallback, failureCallback = null) {
-             if (!address) return;
-             geocoder.geocode({ 'address': address }, (results, status) => {
+            if (!address) return;
+            geocoder.geocode({ 'address': address }, (results, status) => {
                 if (status === 'OK') {
                     map.setCenter(results[0].geometry.location);
                     map.setZoom(16);
@@ -1014,8 +1077,8 @@
                     if (failureCallback) failureCallback();
                     else alert('La dirección no fue encontrada por el siguiente motivo: ' + status);
                     console.error('Geocode was not successful for the following reason: ' + status);
-                 }
-             });
+                }
+            });
         }
         
         // --- FUNCIONES DE IA ---
@@ -1091,23 +1154,17 @@
         async function handleSaveOrder(e) {
             e.preventDefault();
             const orderDocId = document.getElementById('order-id').value;
-             const productsText = document.getElementById('productosInput').value;
-            const { products, totalAmount } = parseProductsInput(productsText);
-
-            let importeFinal = totalAmount;
-            // Si no se pudieron parsear productos, usar el importe manual
-            if (importeFinal === 0) {
-                importeFinal = parseFloat(document.getElementById('importeInput').value) || 0;
-            } else {
-                // Actualizar el campo de importe si se calculó desde los productos
-                document.getElementById('importeInput').value = importeFinal.toFixed(2);
-            }
+            const productsText = document.getElementById('productosInput').value;
+            const { products } = parseProductsInput(productsText);
+            const amountPaid = parseFloat(document.getElementById('orderAmountPaidInput').value) || 0;
+            
+            const importeFinal = parseFloat(document.getElementById('importeInput').value) || 0;
 
             const data = {
                 pedidoId: document.getElementById('pedidoIdInput').value, 
                 cliente: document.getElementById('clienteInput').value,
                 direccion: document.getElementById('direccionInput').value, 
-                productos: formatProductsToText(products), // Guardar el formato limpio
+                productos: formatProductsToText(products),
                 estado: document.getElementById('estadoInput').value, 
                 tracking: document.getElementById('trackingInput').value,
                 importe: importeFinal
@@ -1128,7 +1185,7 @@
                 
                 if (data.latitude && data.importe > 0) {
                     const clientId = await findOrCreateClientForOrder(data);
-                    await logPurchase(clientId, data.importe, new Date().toISOString().split('T')[0], 'order', products, savedOrderId);
+                    await logPurchase(clientId, data.importe, new Date().toISOString().split('T')[0], 'order', products, amountPaid, savedOrderId);
                 }
                 
                 toggleOrderModal(false);
@@ -1162,9 +1219,9 @@
                     toggleOrderModal(true);
                     if (modalLatLng) {
                         setTimeout(() => {
-                           modalMap.setCenter(modalLatLng);
-                           modalMap.setZoom(16);
-                           updateModalMarker(modalLatLng);
+                            modalMap.setCenter(modalLatLng);
+                            modalMap.setZoom(16);
+                            updateModalMarker(modalLatLng);
                         }, 200);
                     }
                 }
@@ -1183,7 +1240,7 @@
         }
         
         function toggleClientModal(show) {
-             if (show) {
+            if (show) {
                 ui.clientModal.classList.remove('hidden'); ui.clientModal.classList.add('flex');
                 setTimeout(() => {
                     ui.clientModalContent.classList.remove('opacity-0', '-translate-y-10');
@@ -1211,7 +1268,8 @@
                 return;
             }
 
-            const q = query(collection(db, `artifacts/${appId}/users/${currentUserId}/clients`), where("cliente", "==", clientName));
+            const normalizedName = clientName.toLowerCase().replace(/\s+/g, ' ').trim();
+            const q = query(collection(db, `artifacts/${appId}/users/${currentUserId}/clients`), where("normalizedName", "==", normalizedName));
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) {
                 const existingClient = querySnapshot.docs[0];
@@ -1224,6 +1282,7 @@
             const saveData = async (location) => {
                 const data = {
                     cliente: clientName,
+                    normalizedName: normalizedName,
                     direccion: clientAddress,
                     latitude: location.lat(),
                     longitude: location.lng(),
@@ -1235,6 +1294,7 @@
                         data.firstSeen = serverTimestamp();
                         data.totalSpent = 0;
                         data.purchaseCount = 0;
+                        data.balance = 0;
                         await addDoc(collection(db, `artifacts/${appId}/users/${currentUserId}/clients`), data);
                     }
                     toggleClientModal(false);
@@ -1277,10 +1337,10 @@
                     }
                     toggleClientModal(true);
                     if (clientModalLatLng) {
-                         setTimeout(() => {
-                           clientModalMap.setCenter(clientModalLatLng);
-                           clientModalMap.setZoom(16);
-                           updateClientModalMarker(clientModalLatLng);
+                        setTimeout(() => {
+                            clientModalMap.setCenter(clientModalLatLng);
+                            clientModalMap.setZoom(16);
+                            updateClientModalMarker(clientModalLatLng);
                         }, 200);
                     }
                 }
@@ -1390,30 +1450,41 @@
             
             const date = document.getElementById('purchaseDateInput').value;
             const productsText = document.getElementById('purchaseProductsInput').value;
+            const amountPaid = parseFloat(document.getElementById('purchaseAmountPaidInput').value) || 0;
+            const { products } = parseProductsInput(productsText);
+            const totalAmount = parseFloat(document.getElementById('purchaseAmountInput').value) || 0;
             
-            const { products, totalAmount } = parseProductsInput(productsText);
-            
-            if (products.length === 0 || totalAmount <= 0 || !date) {
-                alert("Por favor, ingresa una fecha y una lista de productos válida.");
+            if (totalAmount <= 0 || !date) {
+                alert("Por favor, ingresa una fecha y un importe total válido.");
                 return;
             }
             
-            await logPurchase(activePurchaseContext.clientId, totalAmount, date, 'manual', products);
+            await logPurchase(activePurchaseContext.clientId, totalAmount, date, 'manual', products, amountPaid);
             closeAddPurchaseModal();
         }
 
-        async function logPurchase(clientId, amount, date, type, products = [], sourceId = null) {
+        async function logPurchase(clientId, amount, date, type, products = [], amountPaid = amount, sourceId = null) {
             if (!clientId || !amount || !date || !type) return;
 
             const batch = writeBatch(db);
             const clientRef = doc(db, `artifacts/${appId}/users/${currentUserId}/clients/${clientId}`);
             const purchasesRef = collection(clientRef, "purchases");
 
+            const balanceDifference = amount - amountPaid;
+            let status = 'Pendiente';
+            if (balanceDifference <= 0) {
+                status = 'Pagado';
+            } else if (amountPaid > 0) {
+                status = 'Pago Parcial';
+            }
+
             const newPurchaseRef = doc(purchasesRef);
             const purchaseData = {
                 amount: amount,
+                amountPaid: amountPaid,
                 date: date,
                 type: type, 
+                status: status,
                 createdAt: serverTimestamp()
             };
             if (products.length > 0) {
@@ -1426,7 +1497,8 @@
 
             batch.update(clientRef, {
                 totalSpent: increment(amount),
-                purchaseCount: increment(1)
+                purchaseCount: increment(1),
+                balance: increment(balanceDifference)
             });
             
             await batch.commit();
@@ -1450,28 +1522,34 @@
         }
 
         function renderPurchaseHistory(purchases) {
-             const container = ui.purchaseHistoryListContainer;
-             container.innerHTML = '';
-             if(purchases.length === 0) {
+            const container = ui.purchaseHistoryListContainer;
+            container.innerHTML = '';
+            if(purchases.length === 0) {
                 container.innerHTML = `<p class="text-center text-gray-500">No hay compras registradas.</p>`;
                 return;
-             }
+            }
 
-             const list = document.createElement('ul');
-             list.className = "divide-y divide-gray-200";
-             
-             purchases.forEach(p => {
+            const list = document.createElement('ul');
+            list.className = "divide-y divide-gray-200";
+            
+            purchases.forEach(p => {
                 const li = document.createElement('li');
                 li.className = "py-4";
                 const productsHtml = p.products ? p.products.map(prod => 
                     `<li class="text-xs text-gray-600 ml-4">${prod.quantity} x ${prod.name} (${formatCurrency(prod.price)})</li>`
                 ).join('') : '';
+                const paymentStatus = p.status || 'N/A';
+                const colors = getPaymentStatusColors(paymentStatus);
 
                 li.innerHTML = `
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="text-sm text-gray-800 font-medium">${p.date}</p>
+                            <div class="flex items-center gap-3">
+                                <p class="text-sm text-gray-800 font-medium">${p.date}</p>
+                                <span class="px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${colors.bg} ${colors.text}">${paymentStatus}</span>
+                            </div>
                             <p class="text-lg font-bold text-green-600">${formatCurrency(p.amount)}</p>
+                            <p class="text-sm font-medium text-gray-700">Abonado: ${formatCurrency(p.amountPaid)}</p>
                             ${p.products ? `<ul class="mt-2 list-disc list-inside">${productsHtml}</ul>` : ''}
                         </div>
                         <div class="flex-shrink-0 flex items-center space-x-2">
@@ -1481,21 +1559,21 @@
                     </div>
                 `;
                 list.appendChild(li);
-             });
-             container.appendChild(list);
+            });
+            container.appendChild(list);
 
-             container.querySelectorAll('.edit-purchase-btn').forEach(btn => {
+            container.querySelectorAll('.edit-purchase-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const purchase = purchases.find(p => p.id === btn.dataset.id);
                     openEditPurchaseModal(purchase);
                 });
-             });
-             container.querySelectorAll('.delete-purchase-btn').forEach(btn => {
+            });
+            container.querySelectorAll('.delete-purchase-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const purchase = purchases.find(p => p.id === btn.dataset.id);
                     handleDeletePurchase(purchase);
                 });
-             });
+            });
         }
         
         function closePurchaseHistoryModal() {
@@ -1505,17 +1583,18 @@
         }
 
         function openEditPurchaseModal(purchase) {
-             activePurchaseContext.purchaseId = purchase.id;
-             activePurchaseContext.oldPurchaseData = purchase;
+            activePurchaseContext.purchaseId = purchase.id;
+            activePurchaseContext.oldPurchaseData = purchase;
 
-             document.getElementById('editPurchaseId').value = purchase.id;
-             document.getElementById('editPurchaseDateInput').value = purchase.date;
-             document.getElementById('editPurchaseProductsInput').value = formatProductsToText(purchase.products);
-             document.getElementById('editPurchaseAmountInput').value = purchase.amount.toFixed(2);
-             
-             const modal = ui.editPurchaseModal;
-             modal.classList.remove('hidden'); modal.classList.add('flex');
-             setTimeout(() => {
+            document.getElementById('editPurchaseId').value = purchase.id;
+            document.getElementById('editPurchaseDateInput').value = purchase.date;
+            document.getElementById('editPurchaseProductsInput').value = formatProductsToText(purchase.products);
+            document.getElementById('editPurchaseAmountInput').value = purchase.amount.toFixed(2);
+            document.getElementById('editPurchaseAmountPaidInput').value = purchase.amountPaid.toFixed(2);
+            
+            const modal = ui.editPurchaseModal;
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => {
                 modal.querySelector('#edit-purchase-modal-content').classList.remove('opacity-0', '-translate-y-10');
             }, 10);
         }
@@ -1529,10 +1608,11 @@
             const { clientId, purchaseId, oldPurchaseData } = activePurchaseContext;
             const newDate = document.getElementById('editPurchaseDateInput').value;
             const newProductsText = document.getElementById('editPurchaseProductsInput').value;
+            const newAmountPaid = parseFloat(document.getElementById('editPurchaseAmountPaidInput').value) || 0;
             const { products: newProducts, totalAmount: newAmount } = parseProductsInput(newProductsText);
 
             if (newProducts.length === 0 || newAmount <= 0 || !newDate) {
-                 alert("Por favor, ingresa un importe y fecha válidos.");
+                alert("Por favor, ingresa un importe y fecha válidos.");
                 return;
             }
 
@@ -1541,12 +1621,30 @@
                     const clientRef = doc(db, `artifacts/${appId}/users/${currentUserId}/clients/${clientId}`);
                     const purchaseRef = doc(clientRef, "purchases", purchaseId);
 
+                    // Calcular el nuevo estado de pago
+                    const newBalanceDifference = newAmount - newAmountPaid;
+                    let newStatus = 'Pendiente';
+                    if (newBalanceDifference <= 0) newStatus = 'Pagado';
+                    else if (newAmountPaid > 0) newStatus = 'Pago Parcial';
+
                     // 1. Actualizar el documento de compra
-                    transaction.update(purchaseRef, { date: newDate, products: newProducts, amount: newAmount });
+                    transaction.update(purchaseRef, { 
+                        date: newDate, 
+                        products: newProducts, 
+                        amount: newAmount, 
+                        amountPaid: newAmountPaid,
+                        status: newStatus
+                    });
 
                     // 2. Ajustar las estadísticas del cliente
                     const amountDifference = newAmount - oldPurchaseData.amount;
-                    transaction.update(clientRef, { totalSpent: increment(amountDifference) });
+                    const oldBalanceDifference = oldPurchaseData.amount - (oldPurchaseData.amountPaid || 0);
+                    const balanceAdjustment = newBalanceDifference - oldBalanceDifference;
+                    
+                    transaction.update(clientRef, { 
+                        totalSpent: increment(amountDifference),
+                        balance: increment(balanceAdjustment)
+                    });
                     
                     // 3. Revertir estadísticas de productos antiguos
                     if (oldPurchaseData.products) {
@@ -1583,28 +1681,31 @@
         async function handleDeletePurchase(purchase) {
             if (!purchase) return;
             if (confirm(`¿Seguro que quieres eliminar la compra del ${purchase.date} por ${formatCurrency(purchase.amount)}?`)) {
-                 const { clientId } = activePurchaseContext;
-                 const clientRef = doc(db, `artifacts/${appId}/users/${currentUserId}/clients/${clientId}`);
-                 const purchaseRef = doc(clientRef, "purchases", purchase.id);
+                const { clientId } = activePurchaseContext;
+                const clientRef = doc(db, `artifacts/${appId}/users/${currentUserId}/clients/${clientId}`);
+                const purchaseRef = doc(clientRef, "purchases", purchase.id);
 
-                 const batch = writeBatch(db);
-                 // 1. Eliminar el documento de la compra
-                 batch.delete(purchaseRef);
+                const balanceToRevert = purchase.amount - (purchase.amountPaid || 0);
 
-                 // 2. Ajustar las estadísticas en el documento del cliente
-                 batch.update(clientRef, {
+                const batch = writeBatch(db);
+                // 1. Eliminar el documento de la compra
+                batch.delete(purchaseRef);
+
+                // 2. Ajustar las estadísticas en el documento del cliente
+                batch.update(clientRef, {
                     totalSpent: increment(-purchase.amount),
-                    purchaseCount: increment(-1)
-                 });
-                 
-                 try {
+                    purchaseCount: increment(-1),
+                    balance: increment(-balanceToRevert)
+                });
+                
+                try {
                     await batch.commit();
                     await updateProductStats(purchase.products, 'subtract');
                     await openPurchaseHistoryModal(clientId); // Refresh
-                 } catch (error) {
+                } catch (error) {
                     console.error("Error al eliminar compra:", error);
                     alert("No se pudo eliminar la compra.");
-                 }
+                }
             }
         }
 
@@ -1656,6 +1757,7 @@
             document.getElementById('purchaseProductsInput').addEventListener('input', (e) => {
                 const { totalAmount } = parseProductsInput(e.target.value);
                 document.getElementById('purchaseAmountInput').value = totalAmount.toFixed(2);
+                document.getElementById('purchaseAmountPaidInput').value = totalAmount.toFixed(2);
             });
             ui.cancelAddPurchaseBtn.addEventListener('click', closeAddPurchaseModal);
             ui.addPurchaseModal.addEventListener('click', (e) => { if (e.target.id === 'add-purchase-modal') closeAddPurchaseModal(); });
@@ -1688,6 +1790,29 @@
                 ui.minAvgPurchaseInput.value = '';
                 ui.maxAvgPurchaseInput.value = '';
                 applyAndRenderClientFilters();
+            });
+
+            // Listener para el modal de pedidos
+            document.getElementById('productosInput').addEventListener('input', (e) => {
+                const { totalAmount } = parseProductsInput(e.target.value);
+                if (totalAmount > 0) {
+                    document.getElementById('importeInput').value = totalAmount.toFixed(2);
+                }
+            });
+
+            // Listener para autocompletar datos del cliente en modal de pedido
+            document.getElementById('clienteInput').addEventListener('change', (e) => {
+                const selectedClientName = e.target.value;
+                const client = allClients.find(c => c.cliente === selectedClientName);
+                if (client) {
+                    document.getElementById('direccionInput').value = client.direccion;
+                    if (client.latitude && client.longitude) {
+                        const latLng = new google.maps.LatLng(client.latitude, client.longitude);
+                        modalMap.setCenter(latLng);
+                        modalMap.setZoom(16);
+                        updateModalMarker(latLng);
+                    }
+                }
             });
         }
         
@@ -1809,8 +1934,8 @@
             `).join('') || '<p class="text-sm text-gray-500">No hay datos de productos.</p>';
 
             // Client Rankings
-             const sortedBySpent = [...allClients].sort((a, b) => (b.totalSpent || 0) - (a.totalSpent || 0)).slice(0, 5);
-             ui.rankingClientsBySpent.innerHTML = sortedBySpent.map((c, i) => `
+            const sortedBySpent = [...allClients].sort((a, b) => (b.totalSpent || 0) - (a.totalSpent || 0)).slice(0, 5);
+            ui.rankingClientsBySpent.innerHTML = sortedBySpent.map((c, i) => `
                 <div class="flex items-center text-sm">
                     <span class="font-bold text-gray-500 w-6">${i + 1}.</span>
                     <span class="flex-1 font-medium text-gray-700">${c.cliente}</span>
@@ -1819,7 +1944,7 @@
             `).join('') || '<p class="text-sm text-gray-500">No hay datos de clientes.</p>';
 
             const sortedByPurchases = [...allClients].sort((a, b) => (b.purchaseCount || 0) - (a.purchaseCount || 0)).slice(0, 5);
-             ui.rankingClientsByPurchases.innerHTML = sortedByPurchases.map((c, i) => `
+            ui.rankingClientsByPurchases.innerHTML = sortedByPurchases.map((c, i) => `
                 <div class="flex items-center text-sm">
                     <span class="font-bold text-gray-500 w-6">${i + 1}.</span>
                     <span class="flex-1 font-medium text-gray-700">${c.cliente}</span>
@@ -1888,8 +2013,8 @@
             let filteredClients = allClients.filter(client => {
                 // Filtro por término de búsqueda (nombre o dirección)
                 const matchesSearch = searchTerm === '' || 
-                                    client.cliente.toLowerCase().includes(searchTerm) || 
-                                    client.direccion.toLowerCase().includes(searchTerm);
+                                      client.cliente.toLowerCase().includes(searchTerm) || 
+                                      client.direccion.toLowerCase().includes(searchTerm);
                 
                 if (!matchesSearch) return false;
 
@@ -1904,6 +2029,15 @@
 
             renderClientsList(filteredClients);
             renderClientMap(filteredClients);
+        }
+        
+        function populateClientDatalist() {
+            ui.clientDatalist.innerHTML = '';
+            allClients.forEach(client => {
+                const option = document.createElement('option');
+                option.value = client.cliente;
+                ui.clientDatalist.appendChild(option);
+            });
         }
 
         // --- FUNCIÓN DE INICIO GLOBAL Y VERIFICACIÓN ---
@@ -1945,9 +2079,7 @@
                 ui.loginScreen.innerHTML = `<div class="text-center p-8 max-w-lg mx-auto"><h2 class="text-2xl font-bold text-red-600 mb-2">Error de Firebase</h2><p class="text-gray-700">No se pudo inicializar Firebase. Revisa la consola para ver los detalles del error. Es muy probable que la clave de API sea inválida o que el dominio no esté autorizado.</p></div>`;
             }
         }
-
         main();
-
     </script>
 </body>
 </html>
