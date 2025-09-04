@@ -739,13 +739,14 @@
         }
         function listenToClients() {
             if (clientsUnsubscribe) clientsUnsubscribe();
-            const q = query(collection(db, `artifacts/${appId}/users/${currentUserId}/clientes`));
+            const q = query(collection(db, `artifacts/${appId}/users/${currentUserId}/clientes`)); // CORRECT PATH
             clientsUnsubscribe = onSnapshot(q, (querySnapshot) => {
                 allClients = querySnapshot.docs.map(doc => {
                     const data = doc.data();
                     return {
                         id: doc.id,
-                        cliente: data.nombre, // Mapeo de 'nombre' a 'cliente'
+                        cliente: data.nombre, // Mapeo de 'nombre' a 'cliente' para compatibilidad
+                        direccion: data.direccion,
                         ...data
                     }
                 });
@@ -778,14 +779,14 @@
         }
 
         async function findOrCreateClientForOrder(orderData) {
-            const clientsRef = collection(db, `artifacts/${appId}/users/${currentUserId}/clientes`);
+            const clientsRef = collection(db, `artifacts/${appId}/users/${currentUserId}/clientes`); // CORRECT PATH
             const normalizedName = orderData.cliente.toLowerCase().replace(/\s+/g, ' ').trim();
             const q = query(clientsRef, where("normalizedName", "==", normalizedName));
             const querySnapshot = await getDocs(q);
 
             if (querySnapshot.empty) {
                 const newClientRef = await addDoc(clientsRef, {
-                    nombre: orderData.cliente.trim(), // Guardar como 'nombre'
+                    nombre: orderData.cliente.trim(), // CORRECT FIELD NAME
                     normalizedName: normalizedName,
                     direccion: orderData.direccion,
                     latitude: orderData.latitude,
@@ -812,7 +813,7 @@
 
         // --- CÁLCULO DE FRECUENCIA ---
         async function getClientPurchaseHistory(clientId) {
-            const purchasesRef = collection(db, `artifacts/${appId}/users/${currentUserId}/clientes/${clientId}/purchases`);
+            const purchasesRef = collection(db, `artifacts/${appId}/users/${currentUserId}/clientes/${clientId}/purchases`); // CORRECT PATH
             const snapshot = await getDocs(query(purchasesRef, orderBy("date", "desc")));
             return snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
         }
@@ -1276,7 +1277,7 @@
             }
 
             const normalizedName = clientName.toLowerCase().replace(/\s+/g, ' ').trim();
-            const q = query(collection(db, `artifacts/${appId}/users/${currentUserId}/clients`), where("normalizedName", "==", normalizedName));
+            const q = query(collection(db, `artifacts/${appId}/users/${currentUserId}/clientes`), where("normalizedName", "==", normalizedName));
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) {
                 const existingClient = querySnapshot.docs[0];
@@ -1288,7 +1289,7 @@
 
             const saveData = async (location) => {
                 const data = {
-                    cliente: clientName,
+                    nombre: clientName,
                     normalizedName: normalizedName,
                     direccion: clientAddress,
                     latitude: location.lat(),
@@ -1296,13 +1297,13 @@
                 };
                 try {
                     if (clientId) {
-                        await updateDoc(doc(db, `artifacts/${appId}/users/${currentUserId}/clients`, clientId), data);
+                        await updateDoc(doc(db, `artifacts/${appId}/users/${currentUserId}/clientes`, clientId), data);
                     } else {
                         data.firstSeen = serverTimestamp();
                         data.totalSpent = 0;
                         data.purchaseCount = 0;
                         data.balance = 0;
-                        await addDoc(collection(db, `artifacts/${appId}/users/${currentUserId}/clients`), data);
+                        await addDoc(collection(db, `artifacts/${appId}/users/${currentUserId}/clientes`), data);
                     }
                     toggleClientModal(false);
                 } catch (error) {
@@ -1360,7 +1361,7 @@
             if (confirm(`¿Estás seguro de que quieres eliminar a ${clientToDelete.cliente}? Esta acción también eliminará su historial de compras y afectará las estadísticas de productos.`)) {
                 try {
                     await runTransaction(db, async (transaction) => {
-                        const clientRef = doc(db, `artifacts/${appId}/users/${currentUserId}/clients`, docId);
+                        const clientRef = doc(db, `artifacts/${appId}/users/${currentUserId}/clientes`, docId);
                         
                         // Revertir estadísticas de productos de todas las compras de este cliente
                         const purchasesRef = collection(clientRef, "purchases");
@@ -1474,7 +1475,7 @@
             if (!clientId || !amount || !date || !type) return;
 
             const batch = writeBatch(db);
-            const clientRef = doc(db, `artifacts/${appId}/users/${currentUserId}/clients/${clientId}`);
+            const clientRef = doc(db, `artifacts/${appId}/users/${currentUserId}/clientes/${clientId}`);
             const purchasesRef = collection(clientRef, "purchases");
 
             const balanceDifference = amount - amountPaid;
@@ -1625,7 +1626,7 @@
 
             try {
                 await runTransaction(db, async (transaction) => {
-                    const clientRef = doc(db, `artifacts/${appId}/users/${currentUserId}/clients/${clientId}`);
+                    const clientRef = doc(db, `artifacts/${appId}/users/${currentUserId}/clientes/${clientId}`);
                     const purchaseRef = doc(clientRef, "purchases", purchaseId);
 
                     // Calcular el nuevo estado de pago
@@ -1689,7 +1690,7 @@
             if (!purchase) return;
             if (confirm(`¿Seguro que quieres eliminar la compra del ${purchase.date} por ${formatCurrency(purchase.amount)}?`)) {
                 const { clientId } = activePurchaseContext;
-                const clientRef = doc(db, `artifacts/${appId}/users/${currentUserId}/clients/${clientId}`);
+                const clientRef = doc(db, `artifacts/${appId}/users/${currentUserId}/clientes/${clientId}`);
                 const purchaseRef = doc(clientRef, "purchases", purchase.id);
 
                 const balanceToRevert = purchase.amount - (purchase.amountPaid || 0);
