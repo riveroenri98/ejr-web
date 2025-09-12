@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestor de Envíos y CRM con Ranking de Productos</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -16,10 +14,10 @@
         .spinner { border-top-color: #4f46e5; animation: spin 1s linear infinite; }
         .modal-backdrop { background-color: rgba(0, 0, 0, 0.5); }
         .ai-spinner { border-top-color: #10b981; animation: spin 0.8s linear infinite; }
-        #main-map, #modal-map, #start-point-map, #clients-map, #client-modal-map { 
-            width: 100%; 
-            border-radius: 0.75rem; 
-            border: 1px solid #d1d5db; 
+        #main-map, #modal-map, #start-point-map, #clients-map, #client-modal-map {
+            width: 100%;
+            border-radius: 0.75rem;
+            border: 1px solid #d1d5db;
             background-color: #e5e7eb; /* Color de fondo mientras carga el mapa */
         }
         #main-map, #clients-map { height: 65vh; min-height: 500px; }
@@ -42,7 +40,6 @@
 </head>
 <body class="antialiased text-gray-800">
 
-    <!-- Pantalla de Login -->
     <div id="login-screen" class="fixed inset-0 bg-gray-100 flex items-center justify-center z-50">
         <div class="w-full max-w-md p-8 space-y-8 bg-white shadow-xl rounded-2xl">
             <div>
@@ -94,7 +91,6 @@
                 </div>
             </header>
 
-            <!-- Pestañas de Navegación -->
             <div class="mb-6">
                 <div class="border-b border-gray-200">
                     <nav class="-mb-px flex space-x-4" aria-label="Tabs">
@@ -105,7 +101,6 @@
                 </div>
             </div>
 
-            <!-- Contenido de Logística -->
             <div id="logistics-view">
                 <div class="flex flex-wrap items-center gap-x-3 gap-y-2 mb-4">
                     <button id="set-start-point-btn" class="flex items-center justify-center bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
@@ -173,7 +168,6 @@
                 </div>
             </div>
 
-            <!-- Contenido de Clientes -->
             <div id="clients-view" class="hidden">
                 <div class="mb-4 flex flex-wrap gap-3">
                     <button id="add-client-btn" class="flex items-center justify-center bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors">
@@ -185,15 +179,12 @@
                         ✨ Analizar Zona de Clientes
                     </button>
                 </div>
-                <!-- Barra de Búsqueda y Filtros -->
                 <div class="mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
                     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
-                        <!-- Búsqueda por Nombre/Dirección -->
                         <div class="md:col-span-2 lg:col-span-2">
                             <label for="client-search-input" class="block text-sm font-medium text-gray-700">Buscar por Nombre o Dirección</label>
                             <input type="text" id="client-search-input" placeholder="Escriba para buscar..." class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                         </div>
-                        <!-- Filtro por Compra Promedio -->
                         <div>
                             <label for="min-avg-purchase-input" class="block text-sm font-medium text-gray-700">Compra Prom. Mín.</label>
                             <input type="number" id="min-avg-purchase-input" placeholder="Desde $" min="0" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
@@ -233,8 +224,7 @@
                     </div>
                 </div>
             </div>
-            
-            <!-- Contenido de Análisis -->
+
             <div id="analysis-view" class="hidden">
                 <div class="bg-white p-6 rounded-xl shadow-lg">
                     <h2 class="text-2xl font-bold text-gray-900 mb-6">Análisis de Rendimiento Global</h2>
@@ -276,7 +266,6 @@
             </div>
         </div>
 
-        <!-- MODALES -->
         <div id="order-modal" class="fixed inset-0 z-40 hidden items-center justify-center p-4 modal-backdrop">
             <div id="order-modal-content" class="bg-white rounded-xl shadow-2xl w-full max-w-3xl transform transition-all opacity-0 -translate-y-10 max-h-[90vh] overflow-y-auto">
                 <form id="order-form" class="p-6 sm:p-8">
@@ -448,8 +437,7 @@
             <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl transform transition-all opacity-0 -translate-y-10 max-h-[90vh] flex flex-col">
                 <h2 id="purchase-history-modal-title" class="text-2xl font-bold text-gray-900 p-6 border-b">Historial de Compras</h2>
                 <div id="purchase-history-list-container" class="p-6 overflow-y-auto">
-                    <!-- El contenido se generará dinámicamente -->
-                </div>
+                    </div>
                 <div class="p-4 bg-gray-50 border-t flex justify-end">
                     <button type="button" id="close-purchase-history-btn" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">Cerrar</button>
                 </div>
@@ -493,7 +481,6 @@
                 </form>
             </div>
         </div>
-        <!-- Modal de Ranking de Productos por Cliente -->
         <div id="client-ranking-modal" class="fixed inset-0 z-40 hidden items-center justify-center p-4 modal-backdrop">
             <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl transform transition-all opacity-0 -translate-y-10 max-h-[90vh] flex flex-col">
                 <h2 id="client-ranking-modal-title" class="text-2xl font-bold text-gray-900 p-6 border-b">Ranking de Productos</h2>
@@ -513,13 +500,12 @@
             </div>
         </div>
     </div>
-    
-    <!-- Firebase SDKs -->
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, collection, addDoc, onSnapshot, updateDoc, deleteDoc, query, serverTimestamp, orderBy, where, getDocs, writeBatch, increment, getDoc, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        
+
         // --- CONFIGURACIÓN ---
         const firebaseConfig = {
             apiKey: "AIzaSyAJbCC1pR-CQTpOXBicC59Jqm32Rr7q9M8",
@@ -530,7 +516,7 @@
             appId: "1:221163223090:web:ffe60b7a75758d591c242b",
             measurementId: "G-79RSPJE5L8"
         };
-        const Maps_API_KEY = "AIzaSyD9d0wzamU3rHdnfjVHeT0ZQWBz1-1bvd8"; 
+        const Maps_API_KEY = "AIzaSyD9d0wzamU3rHdnfjVHeT0ZQWBz1-1bvd8";
 
         // --- VARIABLES GLOBALES ---
         let db, auth, mainMap, modalMap, startPointMap, clientsMap, clientModalMap, heatmap, geocoder;
@@ -541,7 +527,7 @@
         let allOrders = [], allClients = [];
         let modalLatLng = null, startPointLatLng = null, clientModalLatLng = null, startPoint = null;
         let activePurchaseContext = {}; // { clientId, purchaseId, oldPurchaseData }
-        const appId = "control-ventas-app"; 
+        const appId = "control-ventas-app";
 
         const ui = {
             loginScreen: document.getElementById('login-screen'),
@@ -551,24 +537,24 @@
             logoutBtn: document.getElementById('logout-btn'),
             userEmailDisplay: document.getElementById('user-email-display'),
             loadingOverlay: document.getElementById('loading-overlay'),
-            initialLoadingScreen: document.getElementById('initial-loading-screen'), 
+            initialLoadingScreen: document.getElementById('initial-loading-screen'),
             appContent: document.getElementById('app-content'),
-            orderList: document.getElementById('order-list'), 
+            orderList: document.getElementById('order-list'),
             emptyState: document.getElementById('empty-state'),
-            clientsList: document.getElementById('clients-list'), 
+            clientsList: document.getElementById('clients-list'),
             clientsEmptyState: document.getElementById('clients-empty-state'),
             startPointDisplay: document.getElementById('start-point-display'),
-            orderModal: document.getElementById('order-modal'), 
+            orderModal: document.getElementById('order-modal'),
             orderModalContent: document.getElementById('order-modal-content'),
-            orderForm: document.getElementById('order-form'), 
+            orderForm: document.getElementById('order-form'),
             orderModalTitle: document.getElementById('order-modal-title'),
-            addOrderBtn: document.getElementById('add-order-btn'), 
+            addOrderBtn: document.getElementById('add-order-btn'),
             cancelOrderBtn: document.getElementById('cancel-order-btn'),
-            saveOrderBtn: document.getElementById('save-order-btn'), 
+            saveOrderBtn: document.getElementById('save-order-btn'),
             searchAddressBtn: document.getElementById('search-address-btn'),
-            clientModal: document.getElementById('client-modal'), 
+            clientModal: document.getElementById('client-modal'),
             clientModalContent: document.getElementById('client-modal-content'),
-            clientForm: document.getElementById('client-form'), 
+            clientForm: document.getElementById('client-form'),
             addClientBtn: document.getElementById('add-client-btn'),
             cancelClientBtn: document.getElementById('cancel-client-btn'),
             searchClientAddressBtn: document.getElementById('search-client-address-btn'),
@@ -586,16 +572,16 @@
             generateConfirmationBtn: document.getElementById('generate-confirmation-btn'),
             copyConfirmationBtn: document.getElementById('copy-confirmation-btn'),
             confirmationMessage: document.getElementById('confirmationMessage'),
-            startPointModal: document.getElementById('start-point-modal'), 
+            startPointModal: document.getElementById('start-point-modal'),
             startPointModalContent: document.getElementById('start-point-modal-content'),
-            setStartPointBtn: document.getElementById('set-start-point-btn'), 
+            setStartPointBtn: document.getElementById('set-start-point-btn'),
             searchStartAddrBtn: document.getElementById('search-start-address-btn'),
-            cancelStartPointBtn: document.getElementById('cancel-start-point-btn'), 
+            cancelStartPointBtn: document.getElementById('cancel-start-point-btn'),
             saveStartPointBtn: document.getElementById('save-start-point-btn'),
-            tabLogistics: document.getElementById('tab-logistics'), 
+            tabLogistics: document.getElementById('tab-logistics'),
             tabClients: document.getElementById('tab-clients'),
             tabAnalysis: document.getElementById('tab-analysis'),
-            logisticsView: document.getElementById('logistics-view'), 
+            logisticsView: document.getElementById('logistics-view'),
             clientsView: document.getElementById('clients-view'),
             analysisView: document.getElementById('analysis-view'),
             addPurchaseModal: document.getElementById('add-purchase-modal'),
@@ -623,11 +609,11 @@
             clientDatalist: document.getElementById('client-datalist'),
             openGmapsLink: document.getElementById('open-gmaps-link'),
         };
-        
+
         // --- LLAMADA A LA API DE GEMINI ---
         async function callGemini(prompt, retries = 3, delay = 1000) {
             ui.loadingOverlay.classList.remove('hidden'); ui.loadingOverlay.classList.add('flex');
-            const apiKey = ""; 
+            const apiKey = "";
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
             const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
 
@@ -643,16 +629,16 @@
                     else throw new Error("Respuesta inválida de la API de Gemini.");
                 } catch (error) {
                     console.error(`Attempt ${i + 1} failed:`, error);
-                    if (i === retries - 1) { 
-                        console.error('No se pudo obtener una respuesta de la IA.'); 
+                    if (i === retries - 1) {
+                        console.error('No se pudo obtener una respuesta de la IA.');
                         ui.loadingOverlay.classList.add('hidden'); ui.loadingOverlay.classList.remove('flex');
-                        return null; 
+                        return null;
                     }
                     await new Promise(res => setTimeout(res, delay)); delay *= 2;
                 }
             }
         }
-        
+
         // --- INICIALIZACIÓN Y AUTENTICACIÓN ---
         function setupAuthListener() {
             onAuthStateChanged(auth, (user) => {
@@ -680,7 +666,7 @@
                 }
             });
         }
-        
+
         async function handleLogin(e) {
             e.preventDefault();
             const email = ui.loginForm['email-address'].value;
@@ -755,7 +741,7 @@
                 updateRankings();
             }, (error) => console.error("Error al escuchar clientes:", error));
         }
-        
+
         async function updateProductStats(products, operation = 'add') {
             if (!products || products.length === 0) return;
 
@@ -766,7 +752,7 @@
                 const sanitizedName = product.name.trim().toLowerCase().replace(/\s+/g, '-');
                 if (!sanitizedName) return;
                 const productRef = doc(db, `artifacts/${appId}/users/${currentUserId}/products/${sanitizedName}`);
-                
+
                 batch.set(productRef, {
                     name: product.name.trim(),
                     totalQuantitySold: increment(product.quantity * multiplier),
@@ -791,9 +777,9 @@
                     direccion: orderData.direccion,
                     latitude: orderData.latitude,
                     longitude: orderData.longitude,
-                    totalSpent: 0, 
+                    totalSpent: 0,
                     purchaseCount: 0,
-                    balance: 0, 
+                    balance: 0,
                     firstSeen: serverTimestamp()
                 });
                 return newClientRef.id;
@@ -881,15 +867,15 @@
                 clientsToRender = allClients;
             }
             ui.clientsList.innerHTML = '';
-            
+
             ui.clientsEmptyState.classList.toggle('hidden', allClients.length > 0);
-            
+
             if (allClients.length > 0 && clientsToRender.length === 0) {
                 ui.clientsList.innerHTML = `<li class="p-8 text-center text-gray-500">No se encontraron clientes que coincidan con los filtros.</li>`;
             } else {
                 clientsToRender.forEach(async (client) => {
                     const avgPurchase = (client.purchaseCount > 0) ? (client.totalSpent || 0) / client.purchaseCount : 0;
-                    
+
                     const purchases = await getClientPurchaseHistory(client.id);
                     const frequency = calculateFrequency(purchases);
                     const frequencyText = frequency !== null ? `Cada ${frequency} días (aprox)` : 'N/A';
@@ -925,31 +911,45 @@
                 });
             }
         }
-        
+
         function renderClientMap(clientsToRender) {
             if (clientsToRender === undefined) {
                 clientsToRender = allClients;
             }
             clientMapMarkers.forEach(marker => marker.setMap(null));
             clientMapMarkers = [];
-            
-            const points = clientsToRender.filter(c => c.latitude).map(client => new google.maps.LatLng(client.latitude, client.longitude));
-            
+
+            // --- INICIO DE LA MODIFICACIÓN ---
+
+            // 1. Definir el ícono personalizado con la ruta a su logo.
+            const logoIcon = {
+                url: './images/logo.PNG', // Ruta a su imagen desde el archivo HTML
+                scaledSize: new google.maps.Size(40, 40), // Tamaño deseado (ancho, alto)
+                origin: new google.maps.Point(0, 0), // Origen de la imagen
+                anchor: new google.maps.Point(20, 20) // Punto de anclaje (la mitad del tamaño para centrarlo)
+            };
+
+            // 2. Se elimina la lógica del heatmap. Si existía, se oculta.
             if (heatmap) {
-                heatmap.setData(points);
-            } else if (points.length > 0) {
-                heatmap = new google.maps.visualization.HeatmapLayer({
-                    data: points, map: clientsMap, radius: 30, opacity: 0.8
-                });
+                heatmap.setMap(null);
             }
+
+            // --- FIN DE LA MODIFICACIÓN ---
 
             clientsToRender.forEach(client => {
                 if (!client.latitude) return;
                 const avgPurchase = (client.purchaseCount > 0) ? (client.totalSpent || 0) / client.purchaseCount : 0;
                 const position = new google.maps.LatLng(client.latitude, client.longitude);
-                const marker = new google.maps.Marker({ position, map: clientsMap, title: client.cliente });
-                
-                marker.addListener('click', async () => { 
+
+                // 3. Agregar la propiedad 'icon' al crear el marcador.
+                const marker = new google.maps.Marker({
+                    position,
+                    map: clientsMap,
+                    title: client.cliente,
+                    icon: logoIcon // <-- ÍCONO PERSONALIZADO APLICADO AQUÍ
+                });
+
+                marker.addListener('click', async () => {
                     const purchases = await getClientPurchaseHistory(client.id);
                     const frequency = calculateFrequency(purchases);
                     const frequencyText = frequency !== null ? `Cada ${frequency} días (aprox)` : 'N/A';
@@ -961,12 +961,13 @@
                             <p class="font-semibold text-green-600">Promedio: ${formatCurrency(avgPurchase)}</p>
                             <p class="font-semibold text-blue-600">Frecuencia: ${frequencyText}</p>
                         </div>`;
-                    infoWindow.setContent(contentString); 
-                    infoWindow.open(clientsMap, marker); 
+                    infoWindow.setContent(contentString);
+                    infoWindow.open(clientsMap, marker);
                 });
                 clientMapMarkers.push(marker);
             });
         }
+
 
         // --- LÓGICA DE GOOGLE MAPS ---
         function clearRoute() {
@@ -984,7 +985,7 @@
         function updateMainMapMarkers() {
             clearMarkers();
             const bounds = new google.maps.LatLngBounds();
-            
+
             if (startPoint) {
                 const startMarker = new google.maps.Marker({
                     position: startPoint,
@@ -1003,19 +1004,19 @@
                 mainMapMarkers.push(marker);
                 bounds.extend(position);
             });
-            
+
             if (mainMapMarkers.length > 0) mainMap.fitBounds(bounds);
         }
         function generateRoute() {
             clearRoute();
             const pendingOrders = allOrders.filter(order => order.estado === 'Pendiente' && order.latitude);
-            if (pendingOrders.length < 1) { 
+            if (pendingOrders.length < 1) {
                 alert("No hay pedidos pendientes con ubicación para generar una ruta.");
                 return;
             }
-            if (!startPoint) { 
+            if (!startPoint) {
                 alert("Por favor, define un punto de partida.");
-                return; 
+                return;
             }
 
             const waypoints = pendingOrders.map(order => ({ location: new google.maps.LatLng(order.latitude, order.longitude), stopover: true }));
@@ -1026,12 +1027,12 @@
                 optimizeWaypoints: true,
                 travelMode: google.maps.TravelMode.DRIVING
             };
-            
+
             directionsService.route(request, (result, status) => {
                 if (status === 'OK') {
                     directionsRenderer.setDirections(result);
                     displayItinerary(result, pendingOrders);
-                } else { 
+                } else {
                     console.error('Directions request failed due to ' + status);
                     alert('Error al generar la ruta: ' + status);
                 }
@@ -1050,9 +1051,9 @@
             const waypointsString = waypointsInOrder
                 .map(order => `${order.latitude},${order.longitude}`)
                 .join('|');
-            
+
             const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${startPoint.lat},${startPoint.lng}&destination=${startPoint.lat},${startPoint.lng}&waypoints=${waypointsString}&travelmode=driving`;
-            
+
             ui.openGmapsLink.href = googleMapsUrl;
 
             const startLi = document.createElement('li');
@@ -1081,14 +1082,14 @@
                     map.setCenter(results[0].geometry.location);
                     map.setZoom(16);
                     successCallback(results[0].geometry.location);
-                } else { 
+                } else {
                     if (failureCallback) failureCallback();
                     else alert('La dirección no fue encontrada por el siguiente motivo: ' + status);
                     console.error('Geocode was not successful for the following reason: ' + status);
                 }
             });
         }
-        
+
         // --- FUNCIONES DE IA ---
         async function handleAnalyzeRoute() {
             const currentRoute = directionsRenderer.getDirections()?.routes[0];
@@ -1107,7 +1108,7 @@
             const improvedAddress = await callGemini(prompt);
             if (improvedAddress) ui.orderForm.direccionInput.value = improvedAddress;
         }
-        
+
         async function handleGenerateConfirmation() {
             const client = ui.orderForm.clienteInput.value;
             const orderId = ui.orderForm.pedidoIdInput.value;
@@ -1131,7 +1132,7 @@
                 ui.clientAnalysisContainer.classList.remove('hidden');
             }
         }
-        
+
         // --- LÓGICA DE MODALES ---
         function setupModalMap(mapContainerId, clickCallback) {
             const mapOptions = { center: { lat: -34.6037, lng: -58.3816 }, zoom: 12, mapTypeControl: false, streetViewControl: false };
@@ -1139,7 +1140,7 @@
             map.addListener('click', (e) => clickCallback(e.latLng));
             return map;
         }
-        
+
         function toggleOrderModal(show) {
             if (show) {
                 ui.confirmationMessageContainer.classList.add('hidden');
@@ -1165,37 +1166,37 @@
             const productsText = document.getElementById('productosInput').value;
             const { products } = parseProductsInput(productsText);
             const amountPaid = parseFloat(document.getElementById('orderAmountPaidInput').value) || 0;
-            
+
             const importeFinal = parseFloat(document.getElementById('importeInput').value) || 0;
 
             const data = {
-                pedidoId: document.getElementById('pedidoIdInput').value, 
+                pedidoId: document.getElementById('pedidoIdInput').value,
                 cliente: document.getElementById('clienteInput').value,
-                direccion: document.getElementById('direccionInput').value, 
+                direccion: document.getElementById('direccionInput').value,
                 productos: formatProductsToText(products),
-                estado: document.getElementById('estadoInput').value, 
+                estado: document.getElementById('estadoInput').value,
                 tracking: document.getElementById('trackingInput').value,
                 importe: importeFinal
             };
-            if(modalLatLng) { 
-                data.latitude = modalLatLng.lat(); 
-                data.longitude = modalLatLng.lng(); 
+            if(modalLatLng) {
+                data.latitude = modalLatLng.lat();
+                data.longitude = modalLatLng.lng();
             }
             try {
                 let savedOrderId = orderDocId;
                 if (orderDocId) {
                     await updateDoc(doc(db,`artifacts/${appId}/users/${currentUserId}/pedidos`,orderDocId), data);
-                } else { 
-                    data.timestamp = serverTimestamp(); 
-                    const newOrderRef = await addDoc(collection(db,`artifacts/${appId}/users/${currentUserId}/pedidos`), data); 
+                } else {
+                    data.timestamp = serverTimestamp();
+                    const newOrderRef = await addDoc(collection(db,`artifacts/${appId}/users/${currentUserId}/pedidos`), data);
                     savedOrderId = newOrderRef.id;
                 }
-                
+
                 if (data.latitude && data.importe > 0) {
                     const clientId = await findOrCreateClientForOrder(data);
                     await logPurchase(clientId, data.importe, new Date().toISOString().split('T')[0], 'order', products, amountPaid, savedOrderId);
                 }
-                
+
                 toggleOrderModal(false);
             } catch (error) { console.error("Error al guardar:", error); alert("Error al guardar el pedido.");}
         }
@@ -1238,15 +1239,15 @@
         async function handleDelete(docId) {
             // Note: Deleting an order does not automatically reverse the purchase stats. This could be a future enhancement.
             if (confirm('¿Estás seguro de que quieres eliminar este pedido?')) {
-                try { 
+                try {
                     await deleteDoc(doc(db,`artifacts/${appId}/users/${currentUserId}/pedidos`,docId));
-                } catch(e) { 
+                } catch(e) {
                     console.error(e);
                     alert("Error al eliminar el pedido.");
                 }
             }
         }
-        
+
         function toggleClientModal(show) {
             if (show) {
                 ui.clientModal.classList.remove('hidden'); ui.clientModal.classList.add('flex');
@@ -1262,7 +1263,7 @@
         }
         function updateClientModalMarker(latLng) {
             clientModalLatLng = latLng;
-            if (clientModalMarker) clientModalMarker.setPosition(latLng); 
+            if (clientModalMarker) clientModalMarker.setPosition(latLng);
             else clientModalMarker = new google.maps.Marker({ position: latLng, map: clientModalMap });
         }
         async function handleSaveClient(e) {
@@ -1271,8 +1272,8 @@
             const clientName = document.getElementById('clientNameInput').value.trim();
             const clientAddress = document.getElementById('clientAddressInput').value.trim();
 
-            if(!clientName || !clientAddress) { 
-                alert("Nombre y dirección son requeridos."); 
+            if(!clientName || !clientAddress) {
+                alert("Nombre y dirección son requeridos.");
                 return;
             }
 
@@ -1362,7 +1363,7 @@
                 try {
                     await runTransaction(db, async (transaction) => {
                         const clientRef = doc(db, `artifacts/${appId}/users/${currentUserId}/clientes`, docId);
-                        
+
                         // Revertir estadísticas de productos de todas las compras de este cliente
                         const purchasesRef = collection(clientRef, "purchases");
                         const purchasesSnapshot = await getDocs(query(purchasesRef));
@@ -1383,12 +1384,12 @@
                             // Eliminar el documento de la compra
                             transaction.delete(purchaseDoc.ref);
                         }
-                        
+
                         // Finalmente, eliminar el cliente
                         transaction.delete(clientRef);
                     });
                     console.log("Cliente y sus datos asociados eliminados correctamente.");
-                } catch(e) { 
+                } catch(e) {
                     console.error("Error al eliminar el cliente y sus datos:", e);
                     alert("Error al eliminar el cliente.");
                 }
@@ -1441,7 +1442,7 @@
             document.getElementById('add-purchase-modal-title').textContent = `Agregar Compra a ${client.cliente}`;
             ui.addPurchaseForm.reset();
             document.getElementById('purchaseDateInput').value = new Date().toISOString().slice(0, 10);
-            
+
             ui.addPurchaseModal.classList.remove('hidden');
             ui.addPurchaseModal.classList.add('flex');
             setTimeout(() => {
@@ -1455,18 +1456,18 @@
         }
         async function handleSavePurchase(e) {
             e.preventDefault();
-            
+
             const date = document.getElementById('purchaseDateInput').value;
             const productsText = document.getElementById('purchaseProductsInput').value;
             const amountPaid = parseFloat(document.getElementById('purchaseAmountPaidInput').value) || 0;
             const { products } = parseProductsInput(productsText);
             const totalAmount = parseFloat(document.getElementById('purchaseAmountInput').value) || 0;
-            
+
             if (totalAmount <= 0 || !date) {
                 alert("Por favor, ingresa una fecha y un importe total válido.");
                 return;
             }
-            
+
             await logPurchase(activePurchaseContext.clientId, totalAmount, date, 'manual', products, amountPaid);
             closeAddPurchaseModal();
         }
@@ -1491,7 +1492,7 @@
                 amount: amount,
                 amountPaid: amountPaid,
                 date: date,
-                type: type, 
+                type: type,
                 status: status,
                 createdAt: serverTimestamp()
             };
@@ -1508,7 +1509,7 @@
                 purchaseCount: increment(1),
                 balance: increment(balanceDifference)
             });
-            
+
             await batch.commit();
             await updateProductStats(products, 'add');
         }
@@ -1518,7 +1519,7 @@
             if (!client) return;
             activePurchaseContext.clientId = clientId;
             document.getElementById('purchase-history-modal-title').textContent = `Historial de ${client.cliente}`;
-            
+
             const purchases = await getClientPurchaseHistory(clientId);
             renderPurchaseHistory(purchases);
 
@@ -1539,11 +1540,11 @@
 
             const list = document.createElement('ul');
             list.className = "divide-y divide-gray-200";
-            
+
             purchases.forEach(p => {
                 const li = document.createElement('li');
                 li.className = "py-4";
-                const productsHtml = p.products ? p.products.map(prod => 
+                const productsHtml = p.products ? p.products.map(prod =>
                     `<li class="text-xs text-gray-600 ml-4">${prod.quantity} x ${prod.name} (${formatCurrency(prod.price)})</li>`
                 ).join('') : '';
                 const paymentStatus = p.status || 'N/A';
@@ -1583,7 +1584,7 @@
                 });
             });
         }
-        
+
         function closePurchaseHistoryModal() {
             const modal = ui.purchaseHistoryModal;
             modal.querySelector('.bg-white').classList.add('opacity-0', '-translate-y-10');
@@ -1599,7 +1600,7 @@
             document.getElementById('editPurchaseProductsInput').value = formatProductsToText(purchase.products);
             document.getElementById('editPurchaseAmountInput').value = purchase.amount.toFixed(2);
             document.getElementById('editPurchaseAmountPaidInput').value = purchase.amountPaid.toFixed(2);
-            
+
             const modal = ui.editPurchaseModal;
             modal.classList.remove('hidden'); modal.classList.add('flex');
             setTimeout(() => {
@@ -1636,10 +1637,10 @@
                     else if (newAmountPaid > 0) newStatus = 'Pago Parcial';
 
                     // 1. Actualizar el documento de compra
-                    transaction.update(purchaseRef, { 
-                        date: newDate, 
-                        products: newProducts, 
-                        amount: newAmount, 
+                    transaction.update(purchaseRef, {
+                        date: newDate,
+                        products: newProducts,
+                        amount: newAmount,
                         amountPaid: newAmountPaid,
                         status: newStatus
                     });
@@ -1648,12 +1649,12 @@
                     const amountDifference = newAmount - oldPurchaseData.amount;
                     const oldBalanceDifference = oldPurchaseData.amount - (oldPurchaseData.amountPaid || 0);
                     const balanceAdjustment = newBalanceDifference - oldBalanceDifference;
-                    
-                    transaction.update(clientRef, { 
+
+                    transaction.update(clientRef, {
                         totalSpent: increment(amountDifference),
                         balance: increment(balanceAdjustment)
                     });
-                    
+
                     // 3. Revertir estadísticas de productos antiguos
                     if (oldPurchaseData.products) {
                         oldPurchaseData.products.forEach(product => {
@@ -1665,7 +1666,7 @@
                             }, { merge: true });
                         });
                     }
-                    
+
                     // 4. Aplicar estadísticas de nuevos productos
                     newProducts.forEach(product => {
                         const sanitizedName = product.name.trim().toLowerCase().replace(/\s+/g, '-');
@@ -1677,7 +1678,7 @@
                         }, { merge: true });
                     });
                 });
-                
+
                 closeEditPurchaseModal();
                 await openPurchaseHistoryModal(clientId); // Refresh history
                 await updateRankings();
@@ -1705,7 +1706,7 @@
                     purchaseCount: increment(-1),
                     balance: increment(-balanceToRevert)
                 });
-                
+
                 try {
                     await batch.commit();
                     await updateProductStats(purchase.products, 'subtract');
@@ -1736,7 +1737,7 @@
                 const addPurchaseBtn = e.target.closest('.add-purchase-btn');
                 const historyBtn = e.target.closest('.view-history-btn');
                 const rankingBtn = e.target.closest('.client-ranking-btn');
-                
+
                 if (editBtn) openClientModalInMode('edit', editBtn.dataset.id);
                 else if (deleteBtn) handleDeleteClient(deleteBtn.dataset.id);
                 else if (addPurchaseBtn) openAddPurchaseModal(addPurchaseBtn.dataset.id);
@@ -1744,7 +1745,7 @@
                 else if (rankingBtn) showClientProductRanking(rankingBtn.dataset.id);
             });
             ui.searchClientAddressBtn.addEventListener('click', () => geocodeSearch(document.getElementById('clientAddressInput').value, clientModalMap, updateClientModalMarker));
-            
+
             ui.setStartPointBtn.addEventListener('click', () => toggleStartPointModal(true));
             ui.cancelStartPointBtn.addEventListener('click', () => toggleStartPointModal(false));
             ui.startPointModal.addEventListener('click', (e) => { if (e.target === ui.startPointModal) toggleStartPointModal(false); });
@@ -1772,7 +1773,7 @@
 
             ui.closePurchaseHistoryBtn.addEventListener('click', closePurchaseHistoryModal);
             ui.purchaseHistoryModal.addEventListener('click', (e) => { if(e.target.id === 'purchase-history-modal') closePurchaseHistoryModal(); });
-            
+
             ui.editPurchaseForm.addEventListener('submit', handleUpdatePurchase);
             document.getElementById('editPurchaseProductsInput').addEventListener('input', (e) => {
                 const { totalAmount } = parseProductsInput(e.target.value);
@@ -1781,7 +1782,7 @@
             ui.cancelEditPurchaseBtn.addEventListener('click', closeEditPurchaseModal);
             ui.editPurchaseModal.addEventListener('click', (e) => { if(e.target.id === 'edit-purchase-modal') closeEditPurchaseModal(); });
 
-            
+
             ui.tabLogistics.addEventListener('click', () => switchTab('logistics'));
             ui.tabClients.addEventListener('click', () => switchTab('clients'));
             ui.tabAnalysis.addEventListener('click', () => switchTab('analysis'));
@@ -1823,7 +1824,7 @@
                 }
             });
         }
-        
+
         function switchTab(tabName) {
             ui.logisticsView.classList.add('hidden');
             ui.clientsView.classList.add('hidden');
@@ -1853,14 +1854,14 @@
                 updateRankings();
             }
         }
-        
+
         function formatCurrency(value) {
             return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(value || 0);
         }
 
         function parseProductsInput(text) {
             if (!text || !text.trim()) return { products: [], totalAmount: 0 };
-            
+
             const lines = text.trim().split('\n');
             const products = [];
             let totalAmount = 0;
@@ -1892,9 +1893,9 @@
                                 return parseFloat(pStr.replace(/,/g, ''));
                             }
                         };
-                        
+
                         const lineTotalPrice = normalizePrice(priceString);
-                        
+
                         if (!isNaN(quantity) && !isNaN(lineTotalPrice) && name && quantity > 0) {
                             // Calcular el precio unitario
                             const price = lineTotalPrice / quantity;
@@ -1906,7 +1907,7 @@
                     }
                 }
             });
-            
+
             return { products, totalAmount };
         }
 
@@ -1972,9 +1973,9 @@
             if (!client) return;
 
             ui.clientRankingModalTitle.textContent = `Ranking de Productos para ${client.cliente}`;
-            
+
             const purchases = await getClientPurchaseHistory(clientId);
-            
+
             const productStats = {};
 
             purchases.forEach(p => {
@@ -2003,7 +2004,7 @@
             ui.clientRankingByRevenue.innerHTML = sortedByRevenue.map((p, i) => `
                 <li><span class="font-medium">${i + 1}. ${p.name}</span> - <span class="font-bold text-green-600">${formatCurrency(p.totalRevenue)}</span></li>
             `).join('') || '<p class="text-sm text-gray-500">No hay datos de productos para este cliente.</p>';
-            
+
             // Abrir el modal
             const modal = ui.clientRankingModal;
             modal.classList.remove('hidden');
@@ -2020,15 +2021,15 @@
 
             let filteredClients = allClients.filter(client => {
                 // Filtro por término de búsqueda (nombre o dirección)
-                const matchesSearch = searchTerm === '' || 
-                                      client.cliente.toLowerCase().includes(searchTerm) || 
+                const matchesSearch = searchTerm === '' ||
+                                      client.cliente.toLowerCase().includes(searchTerm) ||
                                       client.direccion.toLowerCase().includes(searchTerm);
-                
+
                 if (!matchesSearch) return false;
 
                 // Filtro por compra promedio
                 const avgPurchase = (client.purchaseCount > 0) ? (client.totalSpent || 0) / client.purchaseCount : 0;
-                
+
                 const matchesMin = isNaN(minAvg) || avgPurchase >= minAvg;
                 const matchesMax = isNaN(maxAvg) || avgPurchase <= maxAvg;
 
@@ -2038,7 +2039,7 @@
             renderClientsList(filteredClients);
             renderClientMap(filteredClients);
         }
-        
+
         function populateClientDatalist() {
             ui.clientDatalist.innerHTML = '';
             allClients.forEach(client => {
