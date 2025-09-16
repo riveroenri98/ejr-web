@@ -1237,18 +1237,16 @@
             const monthlyPurchasesBreakdownContainer = page.querySelector('#monthly-purchases-breakdown-container');
             const monthlySalesBreakdownContainer = page.querySelector('#monthly-sales-breakdown-container');
             
-            // ---> INICIO: VARIABLES Y LISTENERS PARA FILTROS
             const filterStartDate = page.querySelector('#filter-start-date');
             const filterEndDate = page.querySelector('#filter-end-date');
             const filterName = page.querySelector('#filter-name');
             const clearFiltersBtn = page.querySelector('#clear-filters-btn');
-            // ---> FIN: VARIABLES Y LISTENERS PARA FILTROS
 
             let lineChart, supplierPieChart, paymentPieChart;
             let allTransactions = []; 
             let newlyAddedSupplierId = null;
 
-            // --- NUEVO: Listener para mostrar/ocultar el campo de fecha de cheque (MODIFICADO) ---
+            // --- NUEVO: Listener para mostrar/ocultar el campo de fecha de cheque ---
             const paymentMethodSelect = page.querySelector('#purchase-paymentMethod');
             const chequeDateField = page.querySelector('#cheque-due-date-field');
             const chequeDateInput = page.querySelector('#cheque-due-date');
@@ -1265,7 +1263,6 @@
                 }
             });
             
-            // ---> INICIO: FUNCIÓN PARA APLICAR FILTROS Y RENDERIZAR
             function applyFiltersAndRender() {
                 const startDate = filterStartDate.value;
                 const endDate = filterEndDate.value;
@@ -1287,7 +1284,6 @@
 
                 renderTransactions(filteredTransactions);
             }
-            // ---> FIN: FUNCIÓN PARA APLICAR FILTROS Y RENDERIZAR
 
             function listenForSuppliersInDashboard() {
                 if (!auth.currentUser) return;
@@ -1384,11 +1380,11 @@
                 if (selectedType === 'purchase') {
                     purchaseFields.style.display = 'block';
                     saleFields.style.display = 'none';
-                    purchaseSupplierSelect.required = true; // Lo hacemos obligatorio
-                } else { // Para 'sale'
+                    purchaseSupplierSelect.required = true;
+                } else {
                     purchaseFields.style.display = 'none';
                     saleFields.style.display = 'block';
-                    purchaseSupplierSelect.required = false; // DEJA de ser obligatorio
+                    purchaseSupplierSelect.required = false;
                 }
             };
             
@@ -1401,7 +1397,7 @@
 
                 unsubscribeFinancial = onSnapshot(q, (snapshot) => {
                     allTransactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    applyFiltersAndRender(); // MODIFICADO: Llama a la función de filtro en lugar de render directo
+                    applyFiltersAndRender();
                     updateAllCharts(allTransactions);
                     updateAllMonthlyAnalyses(allTransactions);
                 }, (error) => {
@@ -1452,7 +1448,6 @@
                     const selectedSupplierId = supplierSelect.value;
                     const amount = parseFloat(page.querySelector('#purchase-amount').value);
 
-                    // Validación para compras
                     if (!selectedSupplierId) {
                         errorMessageDiv.textContent = "Debe seleccionar un proveedor.";
                         errorMessageDiv.classList.remove('hidden');
@@ -1466,7 +1461,7 @@
                     
                     const supplierData = allSuppliers.find(s => s.id === selectedSupplierId);
 
-                    // --- NUEVO: Lógica para guardar fecha de cheque (MODIFICADO) ---
+                    // --- NUEVO: Lógica para guardar fecha de cheque ---
                     const paymentMethod = page.querySelector('#purchase-paymentMethod').value;
 
                     if (paymentMethod === 'Cheque') {
@@ -1488,7 +1483,6 @@
                     const partyName = page.querySelector('#sale-customerName').value.trim();
                     const amount = parseFloat(page.querySelector('#sale-amount').value);
 
-                    // Validación para ventas
                     if (!partyName || isNaN(amount) || amount <= 0) {
                         errorMessageDiv.textContent = "El nombre del cliente y el importe son obligatorios.";
                         errorMessageDiv.classList.remove('hidden');
@@ -1507,7 +1501,7 @@
                     transactionForm.reset();
                     page.querySelector('#date').valueAsDate = new Date();
                     handleFormDisplay();
-                    handleSupplierChange(); // Resetea el CUIT
+                    handleSupplierChange();
                 } catch (err) {
                     console.error("Error al agregar transacción:", err);
                     showToast("Error al guardar la transacción.", "error");
@@ -1572,7 +1566,7 @@
                         paymentMethod: editModal.querySelector('#edit-purchase-paymentMethod').value,
                         amount: parseFloat(editModal.querySelector('#edit-purchase-amount').value)
                     };
-                } else { // Venta
+                } else {
                      updatedData = {
                         partyName: editModal.querySelector('#edit-sale-customerName').value,
                         partyCuit: editModal.querySelector('#edit-sale-cuit').value,
@@ -1600,7 +1594,7 @@
             
             function setupCharts() {
                 if (lineChart) lineChart.destroy();
-                // --- NUEVA CONFIGURACIÓN DEL GRÁFICO (MODIFICADO) ---
+                // --- NUEVA CONFIGURACIÓN DEL GRÁFICO ---
                 lineChart = new Chart(lineCtx, {
                     type: 'line',
                     data: {
@@ -1653,7 +1647,7 @@
                 paymentPieChart = new Chart(paymentPieCtx, { type: 'pie', data: { labels: [], datasets: [{ data: [], backgroundColor: [], hoverOffset: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' }, tooltip: { callbacks: { label: (context) => { const label = context.label || ''; const value = context.raw; const total = context.chart.getDatasetMeta(0).total; const percentage = total > 0 ? ((value / total) * 100).toFixed(2) + '%' : '0.00%'; return `${label}: ${formatCurrency(value)} (${percentage})`; }}}}}});
             }
 
-            // --- FUNCIÓN DE ACTUALIZACIÓN DE GRÁFICOS COMPLETAMENTE REEMPLAZADA (MODIFICADO) ---
+            // --- FUNCIÓN DE ACTUALIZACIÓN DE GRÁFICOS REEMPLAZADA ---
             function updateAllCharts(transactions) {
                 const sortedByDate = [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
 
@@ -1793,7 +1787,7 @@
                 }, {});
 
                 let content = '';
-                for (let i = 11; i >= 0; i--) { // Loop from December to January
+                for (let i = 11; i >= 0; i--) {
                     if (byMonth[i]) {
                         const monthTransactions = byMonth[i];
                         const totalMonthAmount = monthTransactions.reduce((sum, t) => sum + t.amount, 0);
@@ -1836,7 +1830,6 @@
             
             yearSelector.addEventListener('change', () => updateAllMonthlyAnalyses(allTransactions));
             
-            // ---> INICIO: LISTENERS PARA LOS NUEVOS FILTROS
             filterStartDate.addEventListener('change', applyFiltersAndRender);
             filterEndDate.addEventListener('change', applyFiltersAndRender);
             filterName.addEventListener('input', applyFiltersAndRender);
@@ -1846,7 +1839,6 @@
                 filterName.value = '';
                 applyFiltersAndRender();
             });
-            // ---> FIN: LISTENERS PARA LOS NUEVOS FILTROS
 
             function generateColors(numColors) { const colors = []; for (let i = 0; i < numColors; i++) { colors.push(`hsl(${(i * 137.508) % 360}, 65%, 60%)`); } return colors; }
 
