@@ -168,7 +168,6 @@
 </a>
 
 
-<!-- Botón para el Nuevo Sistema de Control de Ventas -->
 <a href="controlventas.html" class="w-full sm:w-auto px-8 py-4 bg-primary text-white font-bold rounded-lg bg-primary-hover transition-transform transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
     Sistema Control de Ventas <i class="fas fa-file-invoice-dollar"></i>
 </a>
@@ -481,6 +480,12 @@
                                         <option value="Transferencia">Transferencia</option>
                                         <option value="Cheque">Cheque</option>
                                     </select>
+                                </div>
+                                <div id="cheque-due-date-field" class="space-y-4 hidden">
+                                    <div>
+                                        <label for="cheque-due-date" class="block text-sm font-medium text-gray-700">Fecha de Vencimiento del Cheque</label>
+                                        <input type="date" id="cheque-due-date" name="chequeDueDate" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    </div>
                                 </div>
                                 <div>
                                     <label for="purchase-amount" class="block text-sm font-medium text-gray-700">Importe</label>
@@ -1242,6 +1247,23 @@
             let lineChart, supplierPieChart, paymentPieChart;
             let allTransactions = []; 
             let newlyAddedSupplierId = null;
+
+            // --- NUEVO: Listener para mostrar/ocultar el campo de fecha de cheque (MODIFICADO) ---
+            const paymentMethodSelect = page.querySelector('#purchase-paymentMethod');
+            const chequeDateField = page.querySelector('#cheque-due-date-field');
+            const chequeDateInput = page.querySelector('#cheque-due-date');
+
+            paymentMethodSelect.addEventListener('change', () => {
+                if (paymentMethodSelect.value === 'Cheque') {
+                    chequeDateField.classList.remove('hidden');
+                    chequeDateField.style.display = 'block';
+                    chequeDateInput.required = true;
+                } else {
+                    chequeDateField.classList.add('hidden');
+                    chequeDateField.style.display = 'none';
+                    chequeDateInput.required = false;
+                }
+            });
             
             // ---> INICIO: FUNCIÓN PARA APLICAR FILTROS Y RENDERIZAR
             function applyFiltersAndRender() {
@@ -1441,11 +1463,25 @@
                         errorMessageDiv.classList.remove('hidden');
                         return;
                     }
-
+                    
                     const supplierData = allSuppliers.find(s => s.id === selectedSupplierId);
+
+                    // --- NUEVO: Lógica para guardar fecha de cheque (MODIFICADO) ---
+                    const paymentMethod = page.querySelector('#purchase-paymentMethod').value;
+
+                    if (paymentMethod === 'Cheque') {
+                        const dueDate = page.querySelector('#cheque-due-date').value;
+                        if (!dueDate) {
+                            errorMessageDiv.textContent = "Debe especificar la fecha de vencimiento del cheque.";
+                            errorMessageDiv.classList.remove('hidden');
+                            return;
+                        }
+                        newTransaction.checkDueDate = dueDate;
+                    }
+
                     newTransaction.partyName = supplierData.name;
                     newTransaction.partyCuit = supplierData.cuit;
-                    newTransaction.paymentMethod = page.querySelector('#purchase-paymentMethod').value;
+                    newTransaction.paymentMethod = paymentMethod;
                     newTransaction.amount = amount;
 
                 } else { // Venta
@@ -1564,7 +1600,51 @@
             
             function setupCharts() {
                 if (lineChart) lineChart.destroy();
-                lineChart = new Chart(lineCtx, { type: 'line', data: { labels: [], datasets: [ { label: 'Ventas', data: [], borderColor: 'rgba(75, 192, 192, 1)', backgroundColor: 'rgba(75, 192, 192, 0.2)', tension: 0.1, fill: true }, { label: 'Compras', data: [], borderColor: 'rgba(255, 99, 132, 1)', backgroundColor: 'rgba(255, 99, 132, 0.2)', tension: 0.1, fill: true } ] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { title: { display: true, text: 'Fecha' } }, y: { title: { display: true, text: 'Monto' }, beginAtZero: true } }, plugins: { legend: { position: 'top' }, tooltip: { callbacks: { label: (context) => `${context.dataset.label || ''}: ${formatCurrency(context.parsed.y)}` } } } } });
+                // --- NUEVA CONFIGURACIÓN DEL GRÁFICO (MODIFICADO) ---
+                lineChart = new Chart(lineCtx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [
+                            {
+                                label: 'Ventas',
+                                data: [],
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                tension: 0.1,
+                                fill: true
+                            },
+                            {
+                                label: 'Compras',
+                                data: [],
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                                tension: 0.1,
+                                fill: true
+                            },
+                            {
+                                type: 'bar', 
+                                label: 'Cheques Pendientes',
+                                data: [],
+                                borderColor: 'rgba(255, 206, 86, 1)', 
+                                backgroundColor: 'rgba(255, 206, 86, 0.6)', 
+                                borderWidth: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { title: { display: true, text: 'Fecha' } },
+                            y: { title: { display: true, text: 'Monto' }, beginAtZero: true }
+                        },
+                        plugins: {
+                            legend: { position: 'top' },
+                            tooltip: { callbacks: { label: (context) => `${context.dataset.label || ''}: ${formatCurrency(context.parsed.y)}` } }
+                        }
+                    }
+                });
 
                 if (supplierPieChart) supplierPieChart.destroy();
                 supplierPieChart = new Chart(supplierPieCtx, { type: 'pie', data: { labels: [], datasets: [{ data: [], backgroundColor: [], hoverOffset: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' }, tooltip: { callbacks: { label: (context) => { const label = context.label || ''; const value = context.raw; const total = context.chart.getDatasetMeta(0).total; const percentage = total > 0 ? ((value / total) * 100).toFixed(2) + '%' : '0.00%'; return `${label}: ${formatCurrency(value)} (${percentage})`; }}}}}});
@@ -1573,18 +1653,37 @@
                 paymentPieChart = new Chart(paymentPieCtx, { type: 'pie', data: { labels: [], datasets: [{ data: [], backgroundColor: [], hoverOffset: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' }, tooltip: { callbacks: { label: (context) => { const label = context.label || ''; const value = context.raw; const total = context.chart.getDatasetMeta(0).total; const percentage = total > 0 ? ((value / total) * 100).toFixed(2) + '%' : '0.00%'; return `${label}: ${formatCurrency(value)} (${percentage})`; }}}}}});
             }
 
+            // --- FUNCIÓN DE ACTUALIZACIÓN DE GRÁFICOS COMPLETAMENTE REEMPLAZADA (MODIFICADO) ---
             function updateAllCharts(transactions) {
                 const sortedByDate = [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
-                const labels = [...new Set(sortedByDate.map(t => t.date))];
-                const salesData = {}; const purchasesData = {};
+
+                const pendingChecks = transactions.filter(t => t.type === 'purchase' && t.paymentMethod === 'Cheque' && t.checkDueDate);
+                const pendingChecksData = {};
+                pendingChecks.forEach(t => {
+                    const dueDate = t.checkDueDate;
+                    pendingChecksData[dueDate] = (pendingChecksData[dueDate] || 0) + t.amount;
+                });
+                
+                const transactionDates = sortedByDate.map(t => t.date);
+                const checkDueDates = Object.keys(pendingChecksData);
+                const allDates = [...new Set([...transactionDates, ...checkDueDates])].sort();
+
+                const salesData = {};
+                const purchasesData = {};
+                
                 sortedByDate.forEach(t => {
                     const date = t.date;
-                    if (t.type === 'sale') salesData[date] = (salesData[date] || 0) + t.amount;
-                    else purchasesData[date] = (purchasesData[date] || 0) + t.amount;
+                    if (t.type === 'sale') {
+                        salesData[date] = (salesData[date] || 0) + t.amount;
+                    } else {
+                        purchasesData[date] = (purchasesData[date] || 0) + t.amount;
+                    }
                 });
-                lineChart.data.labels = labels;
-                lineChart.data.datasets[0].data = labels.map(date => salesData[date] || 0);
-                lineChart.data.datasets[1].data = labels.map(date => purchasesData[date] || 0);
+
+                lineChart.data.labels = allDates;
+                lineChart.data.datasets[0].data = allDates.map(date => salesData[date] || 0);
+                lineChart.data.datasets[1].data = allDates.map(date => purchasesData[date] || 0);
+                lineChart.data.datasets[2].data = allDates.map(date => pendingChecksData[date] || 0);
                 lineChart.update();
 
                 const purchases = transactions.filter(t => t.type === 'purchase');
