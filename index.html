@@ -1216,6 +1216,7 @@
             const page = document.getElementById('financial-dashboard-page');
             if (!page) return;
 
+            // --- INICIO: Declaraciones de elementos del DOM ---
             const transactionForm = page.querySelector('#transaction-form');
             const typeSelect = page.querySelector('#type');
             const purchaseFields = page.querySelector('#purchase-fields');
@@ -1237,22 +1238,25 @@
             const yearSelector = page.querySelector('#year-selector');
             const monthlyPurchasesBreakdownContainer = page.querySelector('#monthly-purchases-breakdown-container');
             const monthlySalesBreakdownContainer = page.querySelector('#monthly-sales-breakdown-container');
-            
             const filterStartDate = page.querySelector('#filter-start-date');
             const filterEndDate = page.querySelector('#filter-end-date');
             const filterName = page.querySelector('#filter-name');
             const clearFiltersBtn = page.querySelector('#clear-filters-btn');
-
-            let lineChart, supplierPieChart, paymentPieChart;
-            let allTransactions = []; 
-            let newlyAddedSupplierId = null;
-
-            // --- Lógica para mostrar/ocultar campo de fecha de vencimiento ---
             const paymentMethodSelect = page.querySelector('#purchase-paymentMethod');
             const dueDateField = page.querySelector('#due-date-field');
             const dueDateLabel = page.querySelector('#due-date-label');
             const dueDateInput = page.querySelector('#due-date');
+            // --- FIN: Declaraciones de elementos del DOM ---
 
+            let lineChart, supplierPieChart, paymentPieChart;
+            let allTransactions = []; 
+            let newlyAddedSupplierId = null;
+            
+            // --- NUEVO: Variables para guardar detalles para el tooltip ---
+            let detailedCheques = [];
+            let detailedCtaCte = [];
+
+            // Lógica para mostrar/ocultar campo de fecha de vencimiento
             paymentMethodSelect.addEventListener('change', () => {
                 const paymentMethod = paymentMethodSelect.value;
                 if (paymentMethod === 'Cheque' || paymentMethod === 'Cuenta Corriente') {
@@ -1601,50 +1605,43 @@
                     data: {
                         labels: [],
                         datasets: [
-                            {
-                                label: 'Ventas',
-                                data: [],
-                                borderColor: 'rgba(75, 192, 192, 1)',
-                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                                tension: 0.1,
-                                fill: true
-                            },
-                            {
-                                label: 'Compras',
-                                data: [],
-                                borderColor: 'rgba(255, 99, 132, 1)',
-                                backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                                tension: 0.1,
-                                fill: true
-                            },
-                            {
-                                type: 'bar', 
-                                label: 'Cheques Pendientes',
-                                data: [],
-                                borderColor: 'rgba(255, 206, 86, 1)', 
-                                backgroundColor: 'rgba(255, 206, 86, 0.6)', 
-                                borderWidth: 1
-                            },
-                            {
-                                type: 'bar', 
-                                label: 'Cta. Cte. a Pagar',
-                                data: [],
-                                borderColor: 'rgba(255, 159, 64, 1)', // Naranja
-                                backgroundColor: 'rgba(255, 159, 64, 0.6)', // Naranja
-                                borderWidth: 1
-                            }
+                            { label: 'Ventas', data: [], borderColor: 'rgba(75, 192, 192, 1)', backgroundColor: 'rgba(75, 192, 192, 0.2)', tension: 0.1, fill: true },
+                            { label: 'Compras', data: [], borderColor: 'rgba(255, 99, 132, 1)', backgroundColor: 'rgba(255, 99, 132, 0.2)', tension: 0.1, fill: true },
+                            { type: 'bar', label: 'Cheques Pendientes', data: [], borderColor: 'rgba(255, 206, 86, 1)', backgroundColor: 'rgba(255, 206, 86, 0.6)', borderWidth: 1 },
+                            { type: 'bar', label: 'Cta. Cte. a Pagar', data: [], borderColor: 'rgba(255, 159, 64, 1)', backgroundColor: 'rgba(255, 159, 64, 0.6)', borderWidth: 1 }
                         ]
                     },
                     options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            x: { title: { display: true, text: 'Fecha' } },
-                            y: { title: { display: true, text: 'Monto' }, beginAtZero: true }
-                        },
+                        responsive: true, maintainAspectRatio: false,
+                        scales: { x: { title: { display: true, text: 'Fecha' } }, y: { title: { display: true, text: 'Monto' }, beginAtZero: true } },
                         plugins: {
                             legend: { position: 'top' },
-                            tooltip: { callbacks: { label: (context) => `${context.dataset.label || ''}: ${formatCurrency(context.parsed.y)}` } }
+                            tooltip: {
+                                callbacks: {
+                                    label: (context) => `${context.dataset.label || ''}: ${formatCurrency(context.parsed.y)}`,
+                                    // --- NUEVO: Callback para el pie de página del tooltip ---
+                                    footer: (tooltipItems) => {
+                                        const item = tooltipItems[0];
+                                        const date = item.label;
+                                        const datasetIndex = item.datasetIndex;
+                                        let footerLines = [];
+
+                                        // Chequear si es el dataset de Cheques (índice 2) o Cta Cte (índice 3)
+                                        if (datasetIndex === 2 || datasetIndex === 3) {
+                                            const sourceData = datasetIndex === 2 ? detailedCheques : detailedCtaCte;
+                                            const detailsForDate = sourceData.filter(t => t.dueDate === date);
+
+                                            if (detailsForDate.length > 0) {
+                                                footerLines.push(''); // Espacio en blanco
+                                                detailsForDate.forEach(t => {
+                                                    footerLines.push(`- ${t.partyName}: ${formatCurrency(t.amount)}`);
+                                                });
+                                            }
+                                        }
+                                        return footerLines;
+                                    }
+                                }
+                            }
                         }
                     }
                 });
@@ -1659,21 +1656,19 @@
             function updateAllCharts(transactions) {
                 const sortedByDate = [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
 
-                // Procesamiento de Cheques
-                const pendingCheques = transactions.filter(t => t.paymentMethod === 'Cheque' && t.dueDate);
+                // --- MODIFICADO: Guardar detalles y agregar Cta. Cte. ---
+                detailedCheques = transactions.filter(t => t.paymentMethod === 'Cheque' && t.dueDate);
                 const pendingChequesData = {};
-                pendingCheques.forEach(t => {
+                detailedCheques.forEach(t => {
                     pendingChequesData[t.dueDate] = (pendingChequesData[t.dueDate] || 0) + t.amount;
                 });
 
-                // Procesamiento de Cuentas Corrientes
-                const pendingCtaCte = transactions.filter(t => t.paymentMethod === 'Cuenta Corriente' && t.dueDate);
+                detailedCtaCte = transactions.filter(t => t.paymentMethod === 'Cuenta Corriente' && t.dueDate);
                 const pendingCtaCteData = {};
-                pendingCtaCte.forEach(t => {
+                detailedCtaCte.forEach(t => {
                     pendingCtaCteData[t.dueDate] = (pendingCtaCteData[t.dueDate] || 0) + t.amount;
                 });
                 
-                // Combinar todas las fechas para el eje X
                 const transactionDates = sortedByDate.map(t => t.date);
                 const chequeDueDates = Object.keys(pendingChequesData);
                 const ctaCteDueDates = Object.keys(pendingCtaCteData);
@@ -1689,15 +1684,13 @@
                     }
                 });
 
-                // Actualizar los datos del gráfico
                 lineChart.data.labels = allDates;
-                lineChart.data.datasets[0].data = allDates.map(date => salesData[date] || 0); // Ventas
-                lineChart.data.datasets[1].data = allDates.map(date => purchasesData[date] || 0); // Compras
-                lineChart.data.datasets[2].data = allDates.map(date => pendingChequesData[date] || 0); // Cheques
-                lineChart.data.datasets[3].data = allDates.map(date => pendingCtaCteData[date] || 0); // Cta. Cte.
+                lineChart.data.datasets[0].data = allDates.map(date => salesData[date] || 0);
+                lineChart.data.datasets[1].data = allDates.map(date => purchasesData[date] || 0);
+                lineChart.data.datasets[2].data = allDates.map(date => pendingChequesData[date] || 0);
+                lineChart.data.datasets[3].data = allDates.map(date => pendingCtaCteData[date] || 0);
                 lineChart.update();
 
-                // Actualizar gráficos de torta
                 const purchases = transactions.filter(t => t.type === 'purchase');
                 const supplierSpending = {};
                 purchases.forEach(t => { supplierSpending[t.partyName] = (supplierSpending[t.partyName] || 0) + t.amount; });
