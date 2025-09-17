@@ -52,47 +52,6 @@
         
         .star-icon { color: #facc15; }
 
-        /* Estilos Específicos del Juego 1 */
-        #game-1-page .game-container { font-family: 'Nunito', sans-serif; width: 100%; max-width: 800px; text-align: center; margin: 0 auto; }
-        #game-1-page .game-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 15px; perspective: 1000px; }
-        #game-1-page .card { width: 100%; aspect-ratio: 1 / 1; position: relative; cursor: pointer; transform-style: preserve-3d; transition: transform 0.6s; border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        #game-1-page .card.is-flipped { transform: rotateY(180deg); }
-        #game-1-page .card.is-matched { opacity: 0.5; cursor: default; }
-        #game-1-page .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; justify-content: center; align-items: center; border-radius: 15px; overflow: hidden; }
-        #game-1-page .card-face--front { background-color: #ffffff; border: 3px solid #b0c4de; }
-        #game-1-page .card-face--front svg { width: 50%; height: 50%; color: #4682b4; }
-        #game-1-page .card-face--back { background-color: #f0f8ff; transform: rotateY(180deg); padding: 10px; box-sizing: border-box; }
-        #game-1-page .card-face--back svg { width: 80%; height: 80%; }
-        #game-1-page .game-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; z-index: 1000; }
-        #game-1-page .game-modal-overlay.is-visible { opacity: 1; visibility: visible; }
-        #game-1-page .game-modal-content { background-color: white; padding: 30px; border-radius: 15px; text-align: center; width: 90%; max-width: 500px; transform: scale(0.9); transition: transform 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        #game-1-page .game-modal-overlay.is-visible .game-modal-content { transform: scale(1); }
-        #game-1-page .modal-monster { width: 100px; height: 100px; margin: 0 auto 20px; }
-        #game-1-page .modal-question { font-size: clamp(1.1rem, 4vw, 1.4rem); margin-bottom: 25px; line-height: 1.5; }
-        #game-1-page .modal-choices { display: flex; flex-direction: column; gap: 10px; }
-        #game-1-page .game-button { background-color: #4682b4; color: white; border: none; padding: 12px 25px; border-radius: 25px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: background-color 0.3s, transform 0.2s; }
-        #game-1-page .game-button:hover { background-color: #5a9bd8; transform: translateY(-2px); }
-        #game-1-page .controls { margin-top: 30px; }
-
-        /* Estilos Específicos del Juego 2 */
-        #game-2-page .game-container { font-family: 'Nunito', sans-serif; width: 100%; max-width: 600px; background-color: #ffffff; border-radius: 20px; padding: clamp(20px, 5vw, 40px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); text-align: center; transition: transform 0.3s ease; border: 3px solid #fff; margin: 0 auto; }
-        #game-2-page h1 { font-weight: 900; font-size: clamp(2rem, 6vw, 2.8rem); color: #ff6347; margin-top: 0; margin-bottom: 20px; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
-        #game-2-page .scenario-card { margin-bottom: 30px; }
-        #game-2-page .scenario-image { width: 160px; height: 160px; margin: 0 auto 20px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 6px solid #4682b4; background-color: #f0f8ff; overflow: hidden; }
-        #game-2-page .scenario-image img { width: 100%; height: 100%; object-fit: cover; }
-        #game-2-page .scenario-text { font-size: clamp(1.1rem, 4vw, 1.4rem); line-height: 1.6; min-height: 80px; color: #2c3e50; }
-        #game-2-page .choices-container { display: flex; flex-direction: column; gap: 15px; }
-        #game-2-page .choice-btn { background-color: #4682b4; color: white; border: none; padding: 15px 20px; border-radius: 15px; font-size: clamp(1rem, 3vw, 1.1rem); font-weight: 700; cursor: pointer; transition: all 0.3s; text-align: left; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        #game-2-page .choice-btn:hover { background-color: #5a9bd8; transform: translateY(-4px) scale(1.02); box-shadow: 0 8px 12px rgba(0,0,0,0.15); }
-        #game-2-page .choice-btn .icon { flex-shrink: 0; font-size: 1.2em; }
-        #game-2-page .game-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; z-index: 1000; }
-        #game-2-page .game-modal-overlay.is-visible { opacity: 1; visibility: visible; }
-        #game-2-page .game-modal-content { background-color: white; padding: 30px; border-radius: 20px; text-align: center; width: 90%; max-width: 500px; transform: scale(0.9); transition: transform 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.3); border-top: 10px solid #32cd32; }
-        #game-2-page .game-modal-overlay.is-visible .game-modal-content { transform: scale(1); }
-        #game-2-page .outcome-text { font-size: clamp(1.1rem, 4vw, 1.3rem); margin-bottom: 25px; line-height: 1.5; }
-        #game-2-page .next-btn { background-color: #32cd32; color: white; border: none; padding: 14px 35px; border-radius: 30px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 1px; }
-        #game-2-page .next-btn:hover { background-color: #38d838; transform: scale(1.05); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
-
         /* ESTILOS PARA EL DASHBOARD FINANCIERO */
         #financial-dashboard-page {
             font-family: 'Inter', sans-serif;
@@ -160,17 +119,12 @@
                         <button id="main-to-sales-analyzer" class="w-full sm:w-auto px-8 py-4 bg-primary text-white font-bold rounded-lg bg-primary-hover transition-transform transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
                             Analizador de Ventas <i class="fas fa-search-dollar"></i>
                         </button>
-                        <button id="main-to-licenciada" class="w-full sm:w-auto px-8 py-4 bg-gray-700 text-white font-bold rounded-lg hover:bg-gray-800 transition-transform transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
-                            Lic. Maria de los Milagros Garcia Olivera <i class="fas fa-brain"></i>
-                        </button>
                         <a href="gestor.html" target="_blank" class="w-full sm:w-auto px-8 py-4 bg-primary text-white font-bold rounded-lg bg-primary-hover transition-transform transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
-    GESTION ENVIOS SUPER 21 <i class="fas fa-truck"></i>
-</a>
-
-
-<a href="controlventas.html" class="w-full sm:w-auto px-8 py-4 bg-primary text-white font-bold rounded-lg bg-primary-hover transition-transform transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
-    Sistema Control de Ventas <i class="fas fa-file-invoice-dollar"></i>
-</a>
+                            GESTION ENVIOS SUPER 21 <i class="fas fa-truck"></i>
+                        </a>
+                        <a href="controlventas.html" class="w-full sm:w-auto px-8 py-4 bg-primary text-white font-bold rounded-lg bg-primary-hover transition-transform transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
+                            Sistema Control de Ventas <i class="fas fa-file-invoice-dollar"></i>
+                        </a>
                     </div>
                 </div>
             </section>
@@ -294,132 +248,6 @@
                         </tr></thead>
                         <tbody id="supplier-list-tbody"></tbody>
                     </table>
-                </div>
-            </div>
-        </main>
-    </div>
-    <div id="licenciada-hub-page" style="display: none;">
-        <header class="bg-white shadow-sm">
-            <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-                <div class="text-2xl font-black text-primary">EJR<span class="font-light">.com.ar</span></div>
-                <button id="nav-to-home-from-licenciada" class="font-bold text-primary hover:opacity-70 transition-opacity flex items-center gap-2">
-                    <i class="fas fa-home"></i> Volver al Inicio
-                </button>
-            </nav>
-        </header>
-        <main class="container mx-auto p-4 sm:p-6 lg:p-8 text-center">
-            <h1 class="text-4xl md:text-5xl font-black text-primary mb-4">Lic. Maria de los Milagros Garcia Olivera</h1>
-            <p class="text-xl text-secondary mb-10">Selecciona una opción</p>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-                <button id="go-to-appointments" class="card-custom border rounded-xl shadow-sm p-8 text-center hover:shadow-lg hover:-translate-y-1 transition-all">
-                    <i class="fas fa-calendar-check text-5xl text-primary mb-4"></i>
-                    <h2 class="text-2xl font-bold text-primary">Solicitar Turno</h2>
-                </button>
-                <button id="play-game-1" class="card-custom border rounded-xl shadow-sm p-8 text-center hover:shadow-lg hover:-translate-y-1 transition-all">
-                    <i class="fas fa-gamepad text-5xl text-primary mb-4"></i>
-                    <h2 class="text-2xl font-bold text-primary">Monstruos de Emociones</h2>
-                </button>
-                <button id="play-game-2" class="card-custom border rounded-xl shadow-sm p-8 text-center hover:shadow-lg hover:-translate-y-1 transition-all">
-                    <i class="fas fa-puzzle-piece text-5xl text-primary mb-4"></i>
-                    <h2 class="text-2xl font-bold text-primary">Aventura Social</h2>
-                </button>
-            </div>
-        </main>
-    </div>
-
-    <div id="appointments-page" style="display: none;">
-        <header class="bg-white shadow-sm">
-            <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-                <div class="text-2xl font-black text-primary">EJR<span class="font-light">.com.ar</span></div>
-                <button id="back-to-hub-from-appointments" class="font-bold text-primary hover:opacity-70 transition-opacity flex items-center gap-2">
-                    <i class="fas fa-arrow-left"></i> Volver
-                </button>
-            </nav>
-        </header>
-        <main class="container mx-auto p-4 sm:p-6 lg:p-8">
-            <div id="appointments-public-view">
-                <div class="max-w-2xl mx-auto text-center">
-                    <h1 class="text-4xl md:text-5xl font-black text-primary mb-4">Solicitud de Turno</h1>
-                    <p class="text-xl text-secondary mb-10">Completa el formulario para enviar tu solicitud.</p>
-                </div>
-                <div class="card-custom border rounded-xl shadow-sm max-w-2xl mx-auto">
-                    <form id="request-appointment-form" class="p-8 space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div><label for="appointment-name" class="block text-sm font-medium mb-1 text-secondary">Nombre</label><input type="text" id="appointment-name" required class="w-full p-3 border border-custom rounded-lg focus:outline-none ring-custom transition" /></div>
-                            <div><label for="appointment-surname" class="block text-sm font-medium mb-1 text-secondary">Apellido</label><input type="text" id="appointment-surname" required class="w-full p-3 border border-custom rounded-lg focus:outline-none ring-custom transition" /></div>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div><label for="appointment-date" class="block text-sm font-medium mb-1 text-secondary">Fecha Deseada</label><input type="date" id="appointment-date" required class="w-full p-3 border border-custom rounded-lg focus:outline-none ring-custom transition" /></div>
-                            <div><label for="appointment-time" class="block text-sm font-medium mb-1 text-secondary">Horario Deseado</label><input type="time" id="appointment-time" required class="w-full p-3 border border-custom rounded-lg focus:outline-none ring-custom transition" /></div>
-                        </div>
-                        <button type="submit" class="w-full bg-primary bg-primary-hover text-white font-bold rounded-lg py-3 flex items-center justify-center gap-2"><i class="fas fa-calendar-check"></i> Enviar Solicitud</button>
-                    </form>
-                </div>
-            </div>
-            <div id="appointments-admin-view" style="display: none;">
-                <h1 class="text-4xl md:text-5xl font-black text-primary mb-10">Panel de Administración de Turnos</h1>
-                <div class="card-custom border rounded-xl shadow-sm">
-                    <div class="p-0 overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead class="bg-gray-50 border-b border-custom"><tr>
-                                <th class="p-4 font-bold text-primary">Paciente</th><th class="p-4 font-bold text-primary">Fecha Solicitada</th><th class="p-4 font-bold text-primary">Estado</th><th class="p-4 font-bold text-primary text-right">Acciones</th>
-                            </tr></thead>
-                            <tbody id="appointments-list-tbody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <div id="game-1-page" style="display: none;">
-        <header class="bg-white shadow-sm">
-            <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-                <h2 class="text-xl font-bold text-primary">Juego: Monstruos de las Emociones</h2>
-                <button id="back-to-hub-from-game1" class="font-bold text-primary hover:opacity-70 transition-opacity flex items-center gap-2">
-                    <i class="fas fa-arrow-left"></i> Volver
-                </button>
-            </nav>
-        </header>
-        <main class="container mx-auto p-4">
-            <div class="game-container">
-                <div id="game-board" class="game-board"></div>
-                <div class="controls">
-                    <button id="restart-btn" class="game-button">Reiniciar Juego</button>
-                </div>
-            </div>
-            <div id="prompt-modal" class="game-modal-overlay">
-                <div class="game-modal-content">
-                    <div id="modal-monster-container" class="modal-monster"></div>
-                    <p id="modal-question" class="modal-question"></p>
-                    <div id="modal-choices" class="modal-choices"></div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <div id="game-2-page" style="display: none;">
-        <header class="bg-white shadow-sm">
-            <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-                <h2 class="text-xl font-bold text-primary">Juego: Aventura Social</h2>
-                <button id="back-to-hub-from-game2" class="font-bold text-primary hover:opacity-70 transition-opacity flex items-center gap-2">
-                    <i class="fas fa-arrow-left"></i> Volver
-                </button>
-            </nav>
-        </header>
-        <main class="container mx-auto p-4">
-            <div id="game-2-container" class="game-container">
-                <h1>Aventura Social</h1>
-                <div id="scenario-card" class="scenario-card">
-                    <div id="scenario-image" class="scenario-image"></div>
-                    <p id="scenario-text" class="scenario-text"></p>
-                </div>
-                <div id="choices-container" class="choices-container"></div>
-            </div>
-            <div id="outcome-modal" class="game-modal-overlay">
-                <div class="game-modal-content">
-                    <p id="outcome-text" class="outcome-text"></p>
-                    <button id="next-btn" class="next-btn">Siguiente</button>
                 </div>
             </div>
         </main>
@@ -837,12 +665,9 @@
         let intendedTargetPage = null; 
         
         let unsubscribeClients = null; 
-        let unsubscribeAppointments = null;
         let unsubscribeFinancial = null;
         let unsubscribeSuppliers = null;
 
-        let isGame1Initialized = false;
-        let isGame2Initialized = false;
         let isFinancialDashboardInitialized = false;
         let isSalesAnalyzerInitialized = false;
         let isSupplierManagementInitialized = false;
@@ -856,18 +681,15 @@
         function setupAuthListener() {
             onAuthStateChanged(auth, user => {
                 updateNavUI(user);
-                updateAppointmentView(user);
                 if (user && intendedTargetPage) {
                     navigateTo(intendedTargetPage);
                     intendedTargetPage = null; 
                 } else if (!user) {
                     navigateTo('landing');
                     if (unsubscribeClients) unsubscribeClients();
-                    if (unsubscribeAppointments) unsubscribeAppointments();
                     if (unsubscribeFinancial) unsubscribeFinancial();
                     if (unsubscribeSuppliers) unsubscribeSuppliers();
                     unsubscribeClients = null;
-                    unsubscribeAppointments = null;
                     unsubscribeFinancial = null;
                     unsubscribeSuppliers = null;
                 }
@@ -899,7 +721,7 @@
         }
 
         function navigateTo(page) {
-            document.querySelectorAll('#landing-page, #customer-system-page, #supplier-management-page, #licenciada-hub-page, #appointments-page, #game-1-page, #game-2-page, #login-page, #financial-dashboard-page, #sales-analyzer-page').forEach(p => p.style.display = 'none');
+            document.querySelectorAll('#landing-page, #customer-system-page, #supplier-management-page, #login-page, #financial-dashboard-page, #sales-analyzer-page').forEach(p => p.style.display = 'none');
             const targetPage = document.getElementById(`${page}-page`);
             if (targetPage) {
                 targetPage.style.display = page === 'login' ? 'flex' : 'block';
@@ -907,11 +729,8 @@
 
             if (page === 'customer-system' && auth.currentUser && !unsubscribeClients) listenForClients();
             if (page === 'supplier-management' && auth.currentUser && !isSupplierManagementInitialized) { initializeSupplierManagement(); isSupplierManagementInitialized = true; }
-            if (page.startsWith('appointments') && auth.currentUser && !unsubscribeAppointments) listenForAppointments();
             if (page === 'financial-dashboard' && auth.currentUser && !isFinancialDashboardInitialized) { initializeFinancialDashboard(); isFinancialDashboardInitialized = true; }
             if (page === 'sales-analyzer' && auth.currentUser && !isSalesAnalyzerInitialized) { initializeSalesAnalyzer(); isSalesAnalyzerInitialized = true; }
-            if (page === 'game-1' && !isGame1Initialized) { initializeGame1(); isGame1Initialized = true; }
-            if (page === 'game-2' && !isGame2Initialized) { initializeGame2(); isGame2Initialized = true; }
         }
         
         function handleProtectedRoute(targetPage) {
@@ -951,21 +770,12 @@
             addListener('main-to-customers', 'click', () => handleProtectedRoute('customer-system'));
             addListener('main-to-financial', 'click', () => handleProtectedRoute('financial-dashboard'));
             addListener('main-to-sales-analyzer', 'click', () => handleProtectedRoute('sales-analyzer'));
-            addListener('main-to-licenciada', 'click', () => navigateTo('licenciada-hub'));
             
             addListener('nav-to-home-from-customers', 'click', () => navigateTo('landing'));
             addListener('nav-to-home-from-suppliers', 'click', () => navigateTo('landing'));
-            addListener('nav-to-home-from-licenciada', 'click', () => navigateTo('landing'));
             addListener('nav-to-home-from-financial', 'click', () => navigateTo('landing'));
             addListener('nav-to-home-from-analyzer', 'click', () => navigateTo('landing'));
             addListener('back-to-home-from-login', 'click', () => navigateTo('landing'));
-            addListener('back-to-hub-from-appointments', 'click', () => navigateTo('licenciada-hub'));
-
-            addListener('go-to-appointments', 'click', () => navigateTo('appointments'));
-            addListener('play-game-1', 'click', () => navigateTo('game-1'));
-            addListener('play-game-2', 'click', () => navigateTo('game-2'));
-            addListener('back-to-hub-from-game1', 'click', () => navigateTo('licenciada-hub'));
-            addListener('back-to-hub-from-game2', 'click', () => navigateTo('licenciada-hub'));
 
             addListener('add-client-form', 'submit', handleAddClient);
             addListener('search-client-input', 'input', renderClientList);
@@ -986,87 +796,6 @@
             addListener('use-balance-form', 'submit', handleUseBalance);
             addListener('confirm-delete-btn', 'click', handleConfirmDelete);
             addListener('confirm-redeem-btn', 'click', handleRedeemStars);
-            addListener('request-appointment-form', 'submit', handleRequestAppointment);
-        }
-
-        // --- LÓGICA DE TURNOS ---
-        function updateAppointmentView(user) {
-            const publicView = document.getElementById('appointments-public-view');
-            const adminView = document.getElementById('appointments-admin-view');
-            if (!publicView || !adminView) return;
-
-            if (user) {
-                publicView.style.display = 'none';
-                adminView.style.display = 'block';
-                if (!unsubscribeAppointments) listenForAppointments();
-            } else {
-                publicView.style.display = 'block';
-                adminView.style.display = 'none';
-            }
-        }
-        async function handleRequestAppointment(e) {
-            e.preventDefault();
-            const form = e.target;
-            const name = form.elements['appointment-name'].value;
-            const surname = form.elements['appointment-surname'].value;
-            const date = form.elements['appointment-date'].value;
-            const time = form.elements['appointment-time'].value;
-            if (!name || !surname || !date || !time) return showToast('Todos los campos son obligatorios.', 'error');
-            try {
-                await addDoc(collection(db, 'appointments'), { name, surname, date, time, status: 'pending', requestedAt: serverTimestamp() });
-                showToast('Tu solicitud de turno ha sido enviada.', 'success');
-                form.reset();
-            } catch (error) {
-                showToast('Error al enviar la solicitud.', 'error');
-                console.error("Appointment request error:", error);
-            }
-        }
-        function listenForAppointments() {
-            if (!db || !auth.currentUser || unsubscribeAppointments) return;
-            const q = query(collection(db, "appointments"), orderBy('requestedAt', 'desc'));
-            unsubscribeAppointments = onSnapshot(q, (snapshot) => {
-                const appointments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderAppointmentsList(appointments);
-            });
-        }
-        function renderAppointmentsList(appointments) {
-            const tbody = document.getElementById('appointments-list-tbody');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-            if (appointments.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center p-8 text-secondary">No hay solicitudes de turno.</td></tr>`;
-                return;
-            }
-            appointments.forEach(app => {
-                const tr = document.createElement('tr');
-                tr.className = 'border-b border-custom last:border-none';
-                const statusInfo = {
-                    pending: { text: 'Pendiente', class: 'status-pending' },
-                    confirmed: { text: 'Confirmado', class: 'status-confirmed' },
-                    declined: { text: 'Rechazado', class: 'status-declined' }
-                };
-                const currentStatus = statusInfo[app.status] || { text: app.status, class: 'bg-gray-200 text-gray-800' };
-
-                tr.innerHTML = `
-                    <td class="p-4 font-semibold text-primary">${app.name} ${app.surname}</td>
-                    <td class="p-4 text-secondary">${new Date(app.date + 'T00:00:00').toLocaleDateString('es-AR')} - ${app.time} hs</td>
-                    <td class="p-4"><span class="status-badge ${currentStatus.class}">${currentStatus.text}</span></td>
-                    <td class="p-4 text-right">
-                        ${app.status === 'pending' ? `<div class="flex justify-end gap-2"><button data-action="confirm" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-3 rounded-lg"><i class="fas fa-check"></i></button><button data-action="decline" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-3 rounded-lg"><i class="fas fa-times"></i></button></div>` : ''}
-                    </td>`;
-                if (app.status === 'pending') {
-                    tr.querySelector('[data-action="confirm"]').addEventListener('click', () => updateAppointmentStatus(app.id, 'confirmed'));
-                    tr.querySelector('[data-action="decline"]').addEventListener('click', () => updateAppointmentStatus(app.id, 'declined'));
-                }
-                tbody.appendChild(tr);
-            });
-        }
-        async function updateAppointmentStatus(id, newStatus) {
-            const appointmentRef = doc(db, 'appointments', id);
-            try {
-                await updateDoc(appointmentRef, { status: newStatus });
-                showToast(`Turno ${newStatus === 'confirmed' ? 'confirmado' : 'rechazado'}.`, 'success');
-            } catch (error) { showToast('Error al actualizar el turno.', 'error'); }
         }
 
         // --- LÓGICA DE CLIENTES ---
@@ -1207,10 +936,6 @@
             }).join('');
         }
 
-        // --- LÓGICA DE JUEGOS ---
-        function initializeGame1() { /* ...código sin cambios... */ }
-        function initializeGame2() { /* ...código sin cambios... */ }
-
         // --- LÓGICA DEL DASHBOARD FINANCIERO ---
         function initializeFinancialDashboard() {
             const page = document.getElementById('financial-dashboard-page');
@@ -1252,11 +977,9 @@
             let allTransactions = []; 
             let newlyAddedSupplierId = null;
             
-            // --- NUEVO: Variables para guardar detalles para el tooltip ---
             let detailedCheques = [];
             let detailedCtaCte = [];
 
-            // Lógica para mostrar/ocultar campo de fecha de vencimiento
             paymentMethodSelect.addEventListener('change', () => {
                 const paymentMethod = paymentMethodSelect.value;
                 if (paymentMethod === 'Cheque' || paymentMethod === 'Cuenta Corriente') {
@@ -1275,9 +998,7 @@
                 const startDate = filterStartDate.value;
                 const endDate = filterEndDate.value;
                 const nameQuery = filterName.value.toLowerCase();
-
                 let filteredTransactions = allTransactions;
-
                 if (startDate) {
                     filteredTransactions = filteredTransactions.filter(t => t.date >= startDate);
                 }
@@ -1289,21 +1010,17 @@
                         t.partyName.toLowerCase().includes(nameQuery)
                     );
                 }
-
                 renderTransactions(filteredTransactions);
             }
 
             function listenForSuppliersInDashboard() {
                 if (!auth.currentUser) return;
                 if (unsubscribeSuppliers) unsubscribeSuppliers();
-                
                 const q = query(collection(db, "suppliers"), orderBy("name"));
                 unsubscribeSuppliers = onSnapshot(q, (snapshot) => {
                     allSuppliers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    
                     const currentSelection = newlyAddedSupplierId || supplierSelect.value;
                     renderSupplierDropdown(currentSelection);
-                    
                     if (newlyAddedSupplierId) {
                         handleSupplierChange();
                         newlyAddedSupplierId = null; 
@@ -1345,29 +1062,24 @@
                 const newName = addSupplierForm.querySelector('#new-supplier-name').value.trim();
                 const newCuit = addSupplierForm.querySelector('#new-supplier-cuit').value.trim();
                 const errorDiv = addSupplierForm.querySelector('#new-supplier-error');
-                
                 if (!newName || !newCuit) {
                     errorDiv.textContent = 'Nombre y CUIT son obligatorios.';
                     errorDiv.classList.remove('hidden');
                     return;
                 }
-                
                 const nameExists = allSuppliers.some(s => s.name.toLowerCase() === newName.toLowerCase());
                 if (nameExists) {
                     errorDiv.textContent = `El proveedor "${newName}" ya se encuentra registrado.`;
                     errorDiv.classList.remove('hidden');
                     return;
                 }
-                
                 const cuitExists = allSuppliers.some(s => s.cuit === newCuit);
                 if (cuitExists) {
                     errorDiv.textContent = `Ya existe un proveedor con el CUIT ${newCuit}.`;
                     errorDiv.classList.remove('hidden');
                     return;
                 }
-
                 errorDiv.classList.add('hidden');
-
                 try {
                     const docRef = await addDoc(collection(db, 'suppliers'), { name: newName, cuit: newCuit });
                     showToast('Proveedor agregado con éxito.', 'success');
@@ -1384,7 +1096,6 @@
             const handleFormDisplay = () => {
                 const selectedType = typeSelect.value;
                 const purchaseSupplierSelect = page.querySelector('#purchase-supplier');
-
                 if (selectedType === 'purchase') {
                     purchaseFields.style.display = 'block';
                     saleFields.style.display = 'none';
@@ -1402,7 +1113,6 @@
                 if (!auth.currentUser) return;
                 if (unsubscribeFinancial) unsubscribeFinancial();
                 const q = query(collection(db, "financial_transactions"), orderBy("createdAt", "desc"));
-
                 unsubscribeFinancial = onSnapshot(q, (snapshot) => {
                     allTransactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     applyFiltersAndRender();
@@ -1444,18 +1154,15 @@
             transactionForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 errorMessageDiv.classList.add('hidden');
-
                 const type = page.querySelector('#type').value;
                 let newTransaction = {
                     date: page.querySelector('#date').value,
                     type: type,
                     createdAt: serverTimestamp()
                 };
-
                 if (type === 'purchase') {
                     const selectedSupplierId = supplierSelect.value;
                     const amount = parseFloat(page.querySelector('#purchase-amount').value);
-
                     if (!selectedSupplierId) {
                         errorMessageDiv.textContent = "Debe seleccionar un proveedor.";
                         errorMessageDiv.classList.remove('hidden');
@@ -1466,11 +1173,9 @@
                         errorMessageDiv.classList.remove('hidden');
                         return;
                     }
-                    
                     const supplierData = allSuppliers.find(s => s.id === selectedSupplierId);
                     const paymentMethod = page.querySelector('#purchase-paymentMethod').value;
                     newTransaction.paymentMethod = paymentMethod;
-
                     if (paymentMethod === 'Cheque' || paymentMethod === 'Cuenta Corriente') {
                         const dueDate = page.querySelector('#due-date').value;
                         if (!dueDate) {
@@ -1480,27 +1185,22 @@
                         }
                         newTransaction.dueDate = dueDate;
                     }
-
                     newTransaction.partyName = supplierData.name;
                     newTransaction.partyCuit = supplierData.cuit;
                     newTransaction.amount = amount;
-
                 } else { // Venta
                     const partyName = page.querySelector('#sale-customerName').value.trim();
                     const amount = parseFloat(page.querySelector('#sale-amount').value);
-
                     if (!partyName || isNaN(amount) || amount <= 0) {
                         errorMessageDiv.textContent = "El nombre del cliente y el importe son obligatorios.";
                         errorMessageDiv.classList.remove('hidden');
                         return;
                     }
-                    
                     newTransaction.partyName = partyName;
                     newTransaction.partyCuit = page.querySelector('#sale-cuit').value.trim();
                     newTransaction.saleType = page.querySelector('#sale-type').value;
                     newTransaction.amount = amount;
                 }
-
                 try {
                     await addDoc(collection(db, 'financial_transactions'), newTransaction);
                     showToast("Transacción agregada con éxito.", "success");
@@ -1524,10 +1224,8 @@
                     if (t) {
                         editModal.querySelector('#edit-id').value = t.id;
                         editModal.querySelector('#edit-transaction-type').value = t.type;
-                        
                         const editPurchaseFields = editModal.querySelector('#edit-purchase-fields');
                         const editSaleFields = editModal.querySelector('#edit-sale-fields');
-
                         if (t.type === 'purchase') {
                             editSaleFields.classList.add('hidden');
                             editPurchaseFields.classList.remove('hidden');
@@ -1564,7 +1262,6 @@
                 const id = editModal.querySelector('#edit-id').value;
                 const type = editModal.querySelector('#edit-transaction-type').value;
                 let updatedData = {};
-
                 if(type === 'purchase') {
                     updatedData = {
                         partyName: editModal.querySelector('#edit-purchase-supplierName').value,
@@ -1580,7 +1277,6 @@
                         amount: parseFloat(editModal.querySelector('#edit-sale-amount').value)
                     };
                 }
-
                 try {
                     const transactionRef = doc(db, "financial_transactions", id);
                     await updateDoc(transactionRef, updatedData);
@@ -1619,20 +1315,17 @@
                             tooltip: {
                                 callbacks: {
                                     label: (context) => `${context.dataset.label || ''}: ${formatCurrency(context.parsed.y)}`,
-                                    // --- NUEVO: Callback para el pie de página del tooltip ---
                                     footer: (tooltipItems) => {
                                         const item = tooltipItems[0];
                                         const date = item.label;
                                         const datasetIndex = item.datasetIndex;
                                         let footerLines = [];
 
-                                        // Chequear si es el dataset de Cheques (índice 2) o Cta Cte (índice 3)
                                         if (datasetIndex === 2 || datasetIndex === 3) {
                                             const sourceData = datasetIndex === 2 ? detailedCheques : detailedCtaCte;
                                             const detailsForDate = sourceData.filter(t => t.dueDate === date);
-
                                             if (detailsForDate.length > 0) {
-                                                footerLines.push(''); // Espacio en blanco
+                                                footerLines.push('');
                                                 detailsForDate.forEach(t => {
                                                     footerLines.push(`- ${t.partyName}: ${formatCurrency(t.amount)}`);
                                                 });
@@ -1656,7 +1349,6 @@
             function updateAllCharts(transactions) {
                 const sortedByDate = [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
 
-                // --- MODIFICADO: Guardar detalles y agregar Cta. Cte. ---
                 detailedCheques = transactions.filter(t => t.paymentMethod === 'Cheque' && t.dueDate);
                 const pendingChequesData = {};
                 detailedCheques.forEach(t => {
@@ -1717,13 +1409,11 @@
                     option.textContent = year;
                     yearSelector.appendChild(option);
                 });
-
                 if (currentYearSelection && years.includes(parseInt(currentYearSelection))) {
                     yearSelector.value = currentYearSelection;
                 } else if (years.length > 0) {
                     yearSelector.value = years[0];
                 }
-
                 renderMonthlyPurchasesBreakdown(transactions);
                 renderMonthlySalesBreakdown(transactions);
             }
@@ -1732,31 +1422,25 @@
                 const selectedYear = parseInt(yearSelector.value);
                 monthlyPurchasesBreakdownContainer.innerHTML = '';
                 if (isNaN(selectedYear)) return;
-
                 const purchases = transactions.filter(t => t.type === 'purchase' && new Date(t.date).getFullYear() === selectedYear);
-                
                 const byMonth = purchases.reduce((acc, t) => {
                     const month = new Date(t.date).getMonth();
                     if (!acc[month]) acc[month] = [];
                     acc[month].push(t);
                     return acc;
                 }, {});
-
                 let content = '';
                 for (let i = 11; i >= 0; i--) {
                     if (byMonth[i]) {
                         const monthTransactions = byMonth[i];
                         const totalMonthAmount = monthTransactions.reduce((sum, t) => sum + t.amount, 0);
-                        
                         const bySupplier = monthTransactions.reduce((acc, t) => {
                             if (!acc[t.partyName]) acc[t.partyName] = 0;
                             acc[t.partyName] += t.amount;
                             return acc;
                         }, {});
-
                         const sortedSuppliers = Object.entries(bySupplier).sort(([, a], [, b]) => b - a);
                         const monthName = new Date(selectedYear, i).toLocaleString('es-ES', { month: 'long' });
-                        
                         let suppliersHTML = sortedSuppliers.map(([name, total]) => {
                             const percentage = (total / totalMonthAmount) * 100;
                             return `
@@ -1771,7 +1455,6 @@
                                     <div class="text-right text-xs text-gray-500 mt-1">${percentage.toFixed(2)}%</div>
                                 </li>`;
                         }).join('');
-
                         content += `
                             <div class="bg-gray-50 p-4 rounded-lg border mb-4">
                                 <h4 class="font-bold text-lg capitalize text-primary">${monthName} ${selectedYear}</h4>
@@ -1787,32 +1470,26 @@
                 const selectedYear = parseInt(yearSelector.value);
                 monthlySalesBreakdownContainer.innerHTML = '';
                 if (isNaN(selectedYear)) return;
-
                 const sales = transactions.filter(t => t.type === 'sale' && new Date(t.date).getFullYear() === selectedYear);
-                
                 const byMonth = sales.reduce((acc, t) => {
                     const month = new Date(t.date).getMonth();
                     if (!acc[month]) acc[month] = [];
                     acc[month].push(t);
                     return acc;
                 }, {});
-
                 let content = '';
                 for (let i = 11; i >= 0; i--) {
                     if (byMonth[i]) {
                         const monthTransactions = byMonth[i];
                         const totalMonthAmount = monthTransactions.reduce((sum, t) => sum + t.amount, 0);
-                        
                         const byChannel = monthTransactions.reduce((acc, t) => {
                             const channel = t.saleType || 'No especificado';
                             if (!acc[channel]) acc[channel] = 0;
                             acc[channel] += t.amount;
                             return acc;
                         }, {});
-
                         const sortedChannels = Object.entries(byChannel).sort(([, a], [, b]) => b - a);
                         const monthName = new Date(selectedYear, i).toLocaleString('es-ES', { month: 'long' });
-                        
                         let channelsHTML = sortedChannels.map(([name, total]) => {
                             const percentage = (total / totalMonthAmount) * 100;
                             return `
@@ -1827,7 +1504,6 @@
                                     <div class="text-right text-xs text-gray-500 mt-1">${percentage.toFixed(2)}%</div>
                                 </li>`;
                         }).join('');
-
                         content += `
                             <div class="bg-gray-50 p-4 rounded-lg border mb-4">
                                 <h4 class="font-bold text-lg capitalize text-primary">${monthName} ${selectedYear}</h4>
@@ -1840,7 +1516,6 @@
             }
             
             yearSelector.addEventListener('change', () => updateAllMonthlyAnalyses(allTransactions));
-            
             filterStartDate.addEventListener('change', applyFiltersAndRender);
             filterEndDate.addEventListener('change', applyFiltersAndRender);
             filterName.addEventListener('input', applyFiltersAndRender);
@@ -1860,7 +1535,7 @@
             handleFormDisplay();
         }
         
-        // --- INICIO: LÓGICA DEL ANALIZADOR DE VENTAS ---
+        // --- LÓGICA DEL ANALIZADOR DE VENTAS ---
         function initializeSalesAnalyzer() {
             const page = document.getElementById('sales-analyzer-page');
             if(!page) return;
