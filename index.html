@@ -479,12 +479,13 @@
                                         <option value="Efectivo">Efectivo</option>
                                         <option value="Transferencia">Transferencia</option>
                                         <option value="Cheque">Cheque</option>
+                                        <option value="Cuenta Corriente">Cuenta Corriente</option>
                                     </select>
                                 </div>
-                                <div id="cheque-due-date-field" class="space-y-4 hidden">
+                                <div id="due-date-field" class="space-y-4 hidden">
                                     <div>
-                                        <label for="cheque-due-date" class="block text-sm font-medium text-gray-700">Fecha de Vencimiento del Cheque</label>
-                                        <input type="date" id="cheque-due-date" name="chequeDueDate" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                        <label id="due-date-label" for="due-date" class="block text-sm font-medium text-gray-700"></label>
+                                        <input type="date" id="due-date" name="dueDate" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                     </div>
                                 </div>
                                 <div>
@@ -1246,20 +1247,23 @@
             let allTransactions = []; 
             let newlyAddedSupplierId = null;
 
-            // --- NUEVO: Listener para mostrar/ocultar el campo de fecha de cheque ---
+            // --- Lógica para mostrar/ocultar campo de fecha de vencimiento ---
             const paymentMethodSelect = page.querySelector('#purchase-paymentMethod');
-            const chequeDateField = page.querySelector('#cheque-due-date-field');
-            const chequeDateInput = page.querySelector('#cheque-due-date');
+            const dueDateField = page.querySelector('#due-date-field');
+            const dueDateLabel = page.querySelector('#due-date-label');
+            const dueDateInput = page.querySelector('#due-date');
 
             paymentMethodSelect.addEventListener('change', () => {
-                if (paymentMethodSelect.value === 'Cheque') {
-                    chequeDateField.classList.remove('hidden');
-                    chequeDateField.style.display = 'block';
-                    chequeDateInput.required = true;
+                const paymentMethod = paymentMethodSelect.value;
+                if (paymentMethod === 'Cheque' || paymentMethod === 'Cuenta Corriente') {
+                    dueDateField.classList.remove('hidden');
+                    dueDateField.style.display = 'block';
+                    dueDateLabel.textContent = paymentMethod === 'Cheque' ? 'Fecha de Vencimiento del Cheque' : 'Fecha de Pago Cta. Cte.';
+                    dueDateInput.required = true;
                 } else {
-                    chequeDateField.classList.add('hidden');
-                    chequeDateField.style.display = 'none';
-                    chequeDateInput.required = false;
+                    dueDateField.classList.add('hidden');
+                    dueDateField.style.display = 'none';
+                    dueDateInput.required = false;
                 }
             });
             
@@ -1460,23 +1464,21 @@
                     }
                     
                     const supplierData = allSuppliers.find(s => s.id === selectedSupplierId);
-
-                    // --- NUEVO: Lógica para guardar fecha de cheque ---
                     const paymentMethod = page.querySelector('#purchase-paymentMethod').value;
+                    newTransaction.paymentMethod = paymentMethod;
 
-                    if (paymentMethod === 'Cheque') {
-                        const dueDate = page.querySelector('#cheque-due-date').value;
+                    if (paymentMethod === 'Cheque' || paymentMethod === 'Cuenta Corriente') {
+                        const dueDate = page.querySelector('#due-date').value;
                         if (!dueDate) {
-                            errorMessageDiv.textContent = "Debe especificar la fecha de vencimiento del cheque.";
+                            errorMessageDiv.textContent = "Debe especificar la fecha de pago/vencimiento.";
                             errorMessageDiv.classList.remove('hidden');
                             return;
                         }
-                        newTransaction.checkDueDate = dueDate;
+                        newTransaction.dueDate = dueDate;
                     }
 
                     newTransaction.partyName = supplierData.name;
                     newTransaction.partyCuit = supplierData.cuit;
-                    newTransaction.paymentMethod = paymentMethod;
                     newTransaction.amount = amount;
 
                 } else { // Venta
@@ -1594,7 +1596,6 @@
             
             function setupCharts() {
                 if (lineChart) lineChart.destroy();
-                // --- NUEVA CONFIGURACIÓN DEL GRÁFICO ---
                 lineChart = new Chart(lineCtx, {
                     type: 'line',
                     data: {
@@ -1623,6 +1624,14 @@
                                 borderColor: 'rgba(255, 206, 86, 1)', 
                                 backgroundColor: 'rgba(255, 206, 86, 0.6)', 
                                 borderWidth: 1
+                            },
+                            {
+                                type: 'bar', 
+                                label: 'Cta. Cte. a Pagar',
+                                data: [],
+                                borderColor: 'rgba(255, 159, 64, 1)', // Naranja
+                                backgroundColor: 'rgba(255, 159, 64, 0.6)', // Naranja
+                                borderWidth: 1
                             }
                         ]
                     },
@@ -1647,39 +1656,48 @@
                 paymentPieChart = new Chart(paymentPieCtx, { type: 'pie', data: { labels: [], datasets: [{ data: [], backgroundColor: [], hoverOffset: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' }, tooltip: { callbacks: { label: (context) => { const label = context.label || ''; const value = context.raw; const total = context.chart.getDatasetMeta(0).total; const percentage = total > 0 ? ((value / total) * 100).toFixed(2) + '%' : '0.00%'; return `${label}: ${formatCurrency(value)} (${percentage})`; }}}}}});
             }
 
-            // --- FUNCIÓN DE ACTUALIZACIÓN DE GRÁFICOS REEMPLAZADA ---
             function updateAllCharts(transactions) {
                 const sortedByDate = [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
 
-                const pendingChecks = transactions.filter(t => t.type === 'purchase' && t.paymentMethod === 'Cheque' && t.checkDueDate);
-                const pendingChecksData = {};
-                pendingChecks.forEach(t => {
-                    const dueDate = t.checkDueDate;
-                    pendingChecksData[dueDate] = (pendingChecksData[dueDate] || 0) + t.amount;
+                // Procesamiento de Cheques
+                const pendingCheques = transactions.filter(t => t.paymentMethod === 'Cheque' && t.dueDate);
+                const pendingChequesData = {};
+                pendingCheques.forEach(t => {
+                    pendingChequesData[t.dueDate] = (pendingChequesData[t.dueDate] || 0) + t.amount;
+                });
+
+                // Procesamiento de Cuentas Corrientes
+                const pendingCtaCte = transactions.filter(t => t.paymentMethod === 'Cuenta Corriente' && t.dueDate);
+                const pendingCtaCteData = {};
+                pendingCtaCte.forEach(t => {
+                    pendingCtaCteData[t.dueDate] = (pendingCtaCteData[t.dueDate] || 0) + t.amount;
                 });
                 
+                // Combinar todas las fechas para el eje X
                 const transactionDates = sortedByDate.map(t => t.date);
-                const checkDueDates = Object.keys(pendingChecksData);
-                const allDates = [...new Set([...transactionDates, ...checkDueDates])].sort();
+                const chequeDueDates = Object.keys(pendingChequesData);
+                const ctaCteDueDates = Object.keys(pendingCtaCteData);
+                const allDates = [...new Set([...transactionDates, ...chequeDueDates, ...ctaCteDueDates])].sort();
 
                 const salesData = {};
                 const purchasesData = {};
-                
                 sortedByDate.forEach(t => {
-                    const date = t.date;
                     if (t.type === 'sale') {
-                        salesData[date] = (salesData[date] || 0) + t.amount;
+                        salesData[t.date] = (salesData[t.date] || 0) + t.amount;
                     } else {
-                        purchasesData[date] = (purchasesData[date] || 0) + t.amount;
+                        purchasesData[t.date] = (purchasesData[t.date] || 0) + t.amount;
                     }
                 });
 
+                // Actualizar los datos del gráfico
                 lineChart.data.labels = allDates;
-                lineChart.data.datasets[0].data = allDates.map(date => salesData[date] || 0);
-                lineChart.data.datasets[1].data = allDates.map(date => purchasesData[date] || 0);
-                lineChart.data.datasets[2].data = allDates.map(date => pendingChecksData[date] || 0);
+                lineChart.data.datasets[0].data = allDates.map(date => salesData[date] || 0); // Ventas
+                lineChart.data.datasets[1].data = allDates.map(date => purchasesData[date] || 0); // Compras
+                lineChart.data.datasets[2].data = allDates.map(date => pendingChequesData[date] || 0); // Cheques
+                lineChart.data.datasets[3].data = allDates.map(date => pendingCtaCteData[date] || 0); // Cta. Cte.
                 lineChart.update();
 
+                // Actualizar gráficos de torta
                 const purchases = transactions.filter(t => t.type === 'purchase');
                 const supplierSpending = {};
                 purchases.forEach(t => { supplierSpending[t.partyName] = (supplierSpending[t.partyName] || 0) + t.amount; });
