@@ -62,35 +62,18 @@
             height: 40vh;
             width: 100%;
         }
-        #financial-dashboard-page .modal-overlay, #sales-analyzer-page .modal-overlay {
+        #financial-dashboard-page .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background-color: rgba(0, 0, 0, 0.5);
             display: flex; align-items: center; justify-content: center;
             z-index: 50;
         }
-        #financial-dashboard-page .modal-content, #sales-analyzer-page .modal-content {
+        #financial-dashboard-page .modal-content {
             background-color: white; padding: 1.5rem; border-radius: 0.5rem;
             width: 90%; max-width: 500px;
         }
-        #financial-dashboard-page .hidden, #sales-analyzer-page .hidden {
+        #financial-dashboard-page .hidden {
             display: none;
-        }
-
-        /* ESTILOS PARA EL ANALIZADOR DE VENTAS */
-        #sales-analyzer-page #drop-zone {
-            border: 2px dashed #cbd5e1;
-            transition: all 0.3s ease;
-        }
-        #sales-analyzer-page #drop-zone.dragover {
-            border-color: #2563eb;
-            background-color: #eff6ff;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        #sales-analyzer-page .fade-in {
-            animation: fadeIn 0.5s ease-out forwards;
         }
     </style>
 </head>
@@ -115,9 +98,6 @@
                         </button>
                         <button id="main-to-financial" class="w-full sm:w-auto px-8 py-4 bg-primary text-white font-bold rounded-lg bg-primary-hover transition-transform transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
                             Dashboard Financiero <i class="fas fa-chart-line"></i>
-                        </button>
-                        <button id="main-to-sales-analyzer" class="w-full sm:w-auto px-8 py-4 bg-primary text-white font-bold rounded-lg bg-primary-hover transition-transform transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
-                            Analizador de Ventas <i class="fas fa-search-dollar"></i>
                         </button>
                         <a href="gestor.html" target="_blank" class="w-full sm:w-auto px-8 py-4 bg-primary text-white font-bold rounded-lg bg-primary-hover transition-transform transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
                             GESTION ENVIOS SUPER 21 <i class="fas fa-truck"></i>
@@ -353,11 +333,36 @@
                     </div>
 
                     <div class="lg:col-span-2 space-y-8">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div class="bg-white p-6 rounded-lg shadow-md md:col-span-2">
-                                <h2 class="text-2xl font-semibold mb-4">Resumen de Transacciones</h2>
-                                <div class="chart-container"><canvas id="transaction-chart"></canvas></div>
+                        
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h2 class="text-2xl font-semibold mb-4">Análisis Diario (Ventas - Compras)</h2>
+                            <div class="flex flex-col sm:flex-row items-center gap-4">
+                                <div>
+                                    <label for="day-selector" class="block text-sm font-medium text-gray-700">Seleccione un día:</label>
+                                    <input type="date" id="day-selector" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                </div>
+                                <div class="flex-1 text-center sm:text-left">
+                                    <p class="text-gray-600">Resultado del día:</p>
+                                    <div id="daily-difference-display" class="text-3xl font-bold">-</div>
+                                </div>
                             </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h2 class="text-2xl font-semibold mb-4">Resumen de Transacciones (Global)</h2>
+                            <div class="chart-container"><canvas id="transaction-chart"></canvas></div>
+                        </div>
+                        
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+                                <h2 class="text-2xl font-semibold">Resumen Mensual</h2>
+                                <div class="mt-4 sm:mt-0">
+                                    <label for="month-selector" class="text-sm font-medium text-gray-700 mr-2">Mes:</label>
+                                    <select id="month-selector" class="p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></select>
+                                </div>
+                            </div>
+                            <div class="chart-container"><canvas id="monthly-transaction-chart"></canvas></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div class="bg-white p-6 rounded-lg shadow-md">
                                 <h2 class="text-2xl font-semibold mb-4">Compras por Proveedor</h2>
                                 <div class="chart-container"><canvas id="supplier-pie-chart"></canvas></div>
@@ -514,100 +519,7 @@
             </div>
         </main>
     </div>
-    <div id="sales-analyzer-page" style="display: none;">
-        <header class="bg-white shadow-sm">
-            <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-                <div class="text-2xl font-black text-primary">EJR<span class="font-light">.com.ar</span></div>
-                <div class="flex items-center gap-4">
-                     <button id="nav-to-home-from-analyzer" class="font-bold text-primary hover:opacity-70 transition-opacity">INICIO</button>
-                    <button id="logout-btn-analyzer" class="font-bold text-red-500 hover:opacity-70 transition-opacity flex items-center gap-2"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
-                </div>
-            </nav>
-        </header>
-        <main class="text-gray-800">
-            <div class="container mx-auto p-4 sm:p-6 lg:p-8 max-w-7xl">
-                <header class="text-center mb-8">
-                    <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">Analizador de Ventas Avanzado</h1>
-                    <p class="mt-2 text-lg text-gray-600">Sube tu archivo de ventas para un análisis completo.</p>
-                </header>
-
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <div id="drop-zone" class="flex flex-col items-center justify-center p-8 rounded-lg text-center cursor-pointer">
-                        <svg class="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-4-4V7a4 4 0 014-4h1.586A3 3 0 0111.172 4l1.414 1.414A1 1 0 0013 6h4a4 4 0 014 4v5a4 4 0 01-4 4H7z"></path></svg>
-                        <p class="text-gray-700 font-semibold">Arrastra y suelta tu archivo Excel aquí</p>
-                        <p class="text-gray-500 text-sm mt-1">o haz clic para seleccionar</p>
-                        <input type="file" id="file-input" class="hidden" accept=".xlsx, .xls">
-                    </div>
-                    <div id="file-info" class="mt-4 text-center text-gray-600"></div>
-                    <div id="analyzer-error-message" class="mt-4 text-center text-red-600 font-medium"></div>
-                </div>
-
-                <div id="results-section" class="hidden mt-8 space-y-8">
-                    <div id="summary-cards" class="grid grid-cols-1 md:grid-cols-3 gap-6 fade-in">
-                        <div class="bg-white p-6 rounded-xl shadow-md flex items-center space-x-4">
-                            <div class="bg-blue-100 p-3 rounded-full">
-                                <svg class="w-8 h-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0l.879-.659M7.5 14.25l.879.659c1.171.879 3.07.879 4.242 0l.879-.659M7.5 12l.879.659c1.171.879 3.07.879 4.242 0l.879-.659M7.5 9.75l.879.659c1.171.879 3.07.879 4.242 0l.879-.659M7.5 7.5l.879.659c1.171.879 3.07.879 4.242 0l.879-.659" /></svg>
-                            </div>
-                            <div>
-                                <p class="text-gray-500">Ingresos Totales</p>
-                                <p id="total-revenue" class="text-2xl font-bold text-gray-900">$0</p>
-                            </div>
-                        </div>
-                         <div class="bg-white p-6 rounded-xl shadow-md flex items-center space-x-4">
-                            <div class="bg-purple-100 p-3 rounded-full">
-                                <svg class="w-8 h-8 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                  <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.31h5.418a.562.562 0 01.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-3.35a.563.563 0 00-.586 0l-4.725 3.35a.562.562 0 01-.84-.61l1.285-5.385a.562.562 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988h5.418a.563.563 0 00.475-.31l2.125-5.111z" />
-                                </svg>
-                            </div>
-                            <div>
-                                <p class="text-gray-500">Ingresos Top 10</p>
-                                <p id="top-10-revenue" class="text-2xl font-bold text-gray-900">$0</p>
-                            </div>
-                        </div>
-                        <div class="bg-white p-6 rounded-xl shadow-md flex items-center space-x-4">
-                            <div class="bg-green-100 p-3 rounded-full">
-                                <svg class="w-8 h-8 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>
-                            </div>
-                            <div>
-                                <p class="text-gray-500">Artículos Únicos Vendidos</p>
-                                <p id="unique-products" class="text-2xl font-bold text-gray-900">0</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <div class="bg-white p-6 rounded-xl shadow-md fade-in space-y-6" style="animation-delay: 0.1s;">
-                            <h2 class="text-2xl font-bold text-gray-800">🚀 Top 10 por Unidades</h2>
-                            <div id="table-container-units"></div>
-                            <div class="relative h-96">
-                                <canvas id="chart-units"></canvas>
-                            </div>
-                        </div>
-                        <div class="bg-white p-6 rounded-xl shadow-md fade-in space-y-6" style="animation-delay: 0.2s;">
-                            <h2 class="text-2xl font-bold text-gray-800">💰 Top 10 por Ingresos</h2>
-                            <div id="table-container-revenue"></div>
-                            <div class="relative h-96">
-                                <canvas id="chart-revenue"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="bottom-section" class="bg-white p-6 rounded-xl shadow-md fade-in space-y-6" style="animation-delay: 0.3s;">
-                         <h2 class="text-2xl font-bold text-gray-800">📉 20 Productos Menos Vendidos</h2>
-                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                             <div>
-                                 <div id="table-container-bottom-units"></div>
-                             </div>
-                             <div class="relative h-96">
-                                 <canvas id="chart-bottom-units"></canvas>
-                             </div>
-                         </div>
-                    </div>
-
-                </div>
-            </div>
-        </main>
-    </div>
+    
     <div id="add-change-modal" class="modal-backdrop"><div class="modal-content"><h3 class="text-lg font-bold text-primary p-6 border-b border-custom" id="add-change-modal-title">Agregar Vuelto</h3><form id="add-change-form"><div class="p-6 space-y-4"><div><label class="block text-sm font-medium mb-1 text-secondary">Total Compra</label><input name="purchaseTotal" type="number" step="0.01" required placeholder="80.00" class="w-full p-3 border border-custom rounded-lg focus:outline-none ring-custom transition" /></div><div><label class="block text-sm font-medium mb-1 text-secondary">Monto Pagado</label><input name="amountPaid" type="number" step="0.01" required placeholder="100.00" class="w-full p-3 border border-custom rounded-lg focus:outline-none ring-custom transition" /></div></div><div class="p-6 border-t border-custom flex justify-end gap-3"><button type="button" class="modal-close-btn bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300">Cancelar</button><button type="submit" class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700">Confirmar</button></div></form></div></div>
     <div id="use-balance-modal" class="modal-backdrop"><div class="modal-content"><h3 class="text-lg font-bold text-primary p-6 border-b border-custom" id="use-balance-modal-title">Usar Saldo</h3><form id="use-balance-form"><div class="p-6 space-y-4"><p class="text-secondary">Saldo disponible: <span class="font-bold text-primary" id="use-balance-current-saldo"></span></p><div><label class="block text-sm font-medium mb-1 text-secondary">Total Nueva Compra</label><input name="purchaseTotal" type="number" step="0.01" required placeholder="150.00" class="w-full p-3 border border-custom rounded-lg focus:outline-none ring-custom transition"/></div><div><label class="block text-sm font-medium mb-1 text-secondary">Pago en Efectivo</label><input name="cashPaid" type="number" step="0.01" required placeholder="110.00" class="w-full p-3 border border-custom rounded-lg focus:outline-none ring-custom transition"/></div></div><div class="p-6 border-t border-custom flex justify-end gap-3"><button type="button" class="modal-close-btn bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300">Cancelar</button><button type="submit" class="bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700">Confirmar</button></div></form></div></div>
     <div id="history-modal" class="modal-backdrop"><div class="modal-content"><h3 class="text-lg font-bold text-primary p-6 border-b border-custom" id="history-modal-title">Historial</h3><div id="history-list-content" class="p-6 max-h-96 overflow-y-auto space-y-3"></div><div class="p-6 border-t border-custom flex justify-end"><button type="button" class="modal-close-btn bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300">Cerrar</button></div></div></div>
@@ -669,7 +581,6 @@
         let unsubscribeSuppliers = null;
 
         let isFinancialDashboardInitialized = false;
-        let isSalesAnalyzerInitialized = false;
         let isSupplierManagementInitialized = false;
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -703,13 +614,11 @@
                     <button id="nav-to-customers-auth" class="font-bold text-primary hover:opacity-70 transition-opacity">CLIENTES</button>
                     <button id="nav-to-suppliers" class="font-bold text-primary hover:opacity-70 transition-opacity">PROVEEDORES</button>
                     <button id="nav-to-financial-dashboard" class="font-bold text-primary hover:opacity-70 transition-opacity">FINANZAS</button>
-                    <button id="nav-to-sales-analyzer" class="font-bold text-primary hover:opacity-70 transition-opacity">ANALIZADOR</button>
                     <button id="logout-btn-main" class="font-bold text-red-500 hover:opacity-70 transition-opacity flex items-center gap-2"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
                 `;
                 document.getElementById('nav-to-customers-auth').addEventListener('click', () => handleProtectedRoute('customer-system'));
                 document.getElementById('nav-to-suppliers').addEventListener('click', () => handleProtectedRoute('supplier-management'));
                 document.getElementById('nav-to-financial-dashboard').addEventListener('click', () => handleProtectedRoute('financial-dashboard'));
-                document.getElementById('nav-to-sales-analyzer').addEventListener('click', () => handleProtectedRoute('sales-analyzer'));
                 document.getElementById('logout-btn-main').addEventListener('click', handleSignOut);
             } else {
                 authNavLinks.innerHTML = `<button id="login-nav-btn" class="font-bold text-primary hover:opacity-70 transition-opacity">LOGIN</button>`;
@@ -721,7 +630,7 @@
         }
 
         function navigateTo(page) {
-            document.querySelectorAll('#landing-page, #customer-system-page, #supplier-management-page, #login-page, #financial-dashboard-page, #sales-analyzer-page').forEach(p => p.style.display = 'none');
+            document.querySelectorAll('#landing-page, #customer-system-page, #supplier-management-page, #login-page, #financial-dashboard-page').forEach(p => p.style.display = 'none');
             const targetPage = document.getElementById(`${page}-page`);
             if (targetPage) {
                 targetPage.style.display = page === 'login' ? 'flex' : 'block';
@@ -730,7 +639,6 @@
             if (page === 'customer-system' && auth.currentUser && !unsubscribeClients) listenForClients();
             if (page === 'supplier-management' && auth.currentUser && !isSupplierManagementInitialized) { initializeSupplierManagement(); isSupplierManagementInitialized = true; }
             if (page === 'financial-dashboard' && auth.currentUser && !isFinancialDashboardInitialized) { initializeFinancialDashboard(); isFinancialDashboardInitialized = true; }
-            if (page === 'sales-analyzer' && auth.currentUser && !isSalesAnalyzerInitialized) { initializeSalesAnalyzer(); isSalesAnalyzerInitialized = true; }
         }
         
         function handleProtectedRoute(targetPage) {
@@ -769,12 +677,10 @@
             
             addListener('main-to-customers', 'click', () => handleProtectedRoute('customer-system'));
             addListener('main-to-financial', 'click', () => handleProtectedRoute('financial-dashboard'));
-            addListener('main-to-sales-analyzer', 'click', () => handleProtectedRoute('sales-analyzer'));
             
             addListener('nav-to-home-from-customers', 'click', () => navigateTo('landing'));
             addListener('nav-to-home-from-suppliers', 'click', () => navigateTo('landing'));
             addListener('nav-to-home-from-financial', 'click', () => navigateTo('landing'));
-            addListener('nav-to-home-from-analyzer', 'click', () => navigateTo('landing'));
             addListener('back-to-home-from-login', 'click', () => navigateTo('landing'));
 
             addListener('add-client-form', 'submit', handleAddClient);
@@ -784,7 +690,6 @@
             addListener('logout-btn-customers', 'click', handleSignOut);
             addListener('logout-btn-suppliers', 'click', handleSignOut);
             addListener('logout-btn-financial', 'click', handleSignOut);
-            addListener('logout-btn-analyzer', 'click', handleSignOut);
             
             document.querySelectorAll('.modal-close-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
@@ -972,11 +877,16 @@
             const dueDateLabel = page.querySelector('#due-date-label');
             const dueDateInput = page.querySelector('#due-date');
             // --- FIN: Declaraciones de elementos del DOM ---
+            
+            // --- NUEVO: Elementos para resumen diario y mensual ---
+            const daySelector = page.querySelector('#day-selector');
+            const dailyDifferenceDisplay = page.querySelector('#daily-difference-display');
+            const monthSelector = page.querySelector('#month-selector');
+            const monthlyCtx = page.querySelector('#monthly-transaction-chart').getContext('2d');
 
-            let lineChart, supplierPieChart, paymentPieChart;
+            let lineChart, monthlyChart, supplierPieChart, paymentPieChart;
             let allTransactions = []; 
             let newlyAddedSupplierId = null;
-            
             let detailedCheques = [];
             let detailedCtaCte = [];
 
@@ -1118,6 +1028,10 @@
                     applyFiltersAndRender();
                     updateAllCharts(allTransactions);
                     updateAllMonthlyAnalyses(allTransactions);
+                    // --- NUEVO: Actualizar nuevas vistas ---
+                    populateMonthSelector(allTransactions);
+                    updateMonthlyView();
+                    updateDailyDifference();
                 }, (error) => {
                     console.error("Error al escuchar transacciones financieras:", error);
                     showToast("Error al cargar las transacciones.", "error");
@@ -1295,48 +1209,54 @@
             });
             
             function setupCharts() {
-                if (lineChart) lineChart.destroy();
-                lineChart = new Chart(lineCtx, {
-                    type: 'line',
-                    data: {
-                        labels: [],
-                        datasets: [
-                            { label: 'Ventas', data: [], borderColor: 'rgba(75, 192, 192, 1)', backgroundColor: 'rgba(75, 192, 192, 0.2)', tension: 0.1, fill: true },
-                            { label: 'Compras', data: [], borderColor: 'rgba(255, 99, 132, 1)', backgroundColor: 'rgba(255, 99, 132, 0.2)', tension: 0.1, fill: true },
-                            { type: 'bar', label: 'Cheques Pendientes', data: [], borderColor: 'rgba(255, 206, 86, 1)', backgroundColor: 'rgba(255, 206, 86, 0.6)', borderWidth: 1 },
-                            { type: 'bar', label: 'Cta. Cte. a Pagar', data: [], borderColor: 'rgba(255, 159, 64, 1)', backgroundColor: 'rgba(255, 159, 64, 0.6)', borderWidth: 1 }
-                        ]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        scales: { x: { title: { display: true, text: 'Fecha' } }, y: { title: { display: true, text: 'Monto' }, beginAtZero: true } },
-                        plugins: {
-                            legend: { position: 'top' },
-                            tooltip: {
-                                callbacks: {
-                                    label: (context) => `${context.dataset.label || ''}: ${formatCurrency(context.parsed.y)}`,
-                                    footer: (tooltipItems) => {
-                                        const item = tooltipItems[0];
-                                        const date = item.label;
-                                        const datasetIndex = item.datasetIndex;
-                                        let footerLines = [];
-
-                                        if (datasetIndex === 2 || datasetIndex === 3) {
-                                            const sourceData = datasetIndex === 2 ? detailedCheques : detailedCtaCte;
-                                            const detailsForDate = sourceData.filter(t => t.dueDate === date);
-                                            if (detailsForDate.length > 0) {
-                                                footerLines.push('');
-                                                detailsForDate.forEach(t => {
-                                                    footerLines.push(`- ${t.partyName}: ${formatCurrency(t.amount)}`);
-                                                });
-                                            }
-                                        }
-                                        return footerLines;
+                const tooltipCallbacks = {
+                    callbacks: {
+                        label: (context) => `${context.dataset.label || ''}: ${formatCurrency(context.parsed.y)}`,
+                        footer: (tooltipItems) => {
+                            const item = tooltipItems[0];
+                            const date = item.label;
+                            const datasetIndex = item.datasetIndex;
+                            let footerLines = [];
+                            if (datasetIndex === 2 || datasetIndex === 3) {
+                                const sourceData = datasetIndex === 2 ? detailedCheques : detailedCtaCte;
+                                const detailsForDate = sourceData.filter(t => t.dueDate === date);
+                                if (detailsForDate.length > 0) {
+                                    footerLines.push('');
+                                    detailsForDate.slice(0, 5).forEach(t => { // Limitar a 5 para no saturar
+                                        footerLines.push(`- ${t.partyName}: ${formatCurrency(t.amount)}`);
+                                    });
+                                    if (detailsForDate.length > 5) {
+                                        footerLines.push(`...y ${detailsForDate.length - 5} más`);
                                     }
                                 }
                             }
+                            return footerLines;
                         }
                     }
+                };
+
+                if (lineChart) lineChart.destroy();
+                lineChart = new Chart(lineCtx, {
+                    type: 'line',
+                    data: { labels: [], datasets: [
+                        { label: 'Ventas', data: [], borderColor: 'rgba(75, 192, 192, 1)', backgroundColor: 'rgba(75, 192, 192, 0.2)', tension: 0.1, fill: true },
+                        { label: 'Compras', data: [], borderColor: 'rgba(255, 99, 132, 1)', backgroundColor: 'rgba(255, 99, 132, 0.2)', tension: 0.1, fill: true },
+                        { type: 'bar', label: 'Cheques Pendientes', data: [], borderColor: 'rgba(255, 206, 86, 1)', backgroundColor: 'rgba(255, 206, 86, 0.6)', borderWidth: 1 },
+                        { type: 'bar', label: 'Cta. Cte. a Pagar', data: [], borderColor: 'rgba(255, 159, 64, 1)', backgroundColor: 'rgba(255, 159, 64, 0.6)', borderWidth: 1 }
+                    ]},
+                    options: { responsive: true, maintainAspectRatio: false, scales: { x: { title: { display: true, text: 'Fecha' } }, y: { title: { display: true, text: 'Monto' }, beginAtZero: true } }, plugins: { legend: { position: 'top' }, tooltip: tooltipCallbacks } }
+                });
+                
+                if (monthlyChart) monthlyChart.destroy();
+                monthlyChart = new Chart(monthlyCtx, {
+                    type: 'line',
+                    data: { labels: [], datasets: [
+                        { label: 'Ventas', data: [], borderColor: 'rgba(75, 192, 192, 1)', backgroundColor: 'rgba(75, 192, 192, 0.2)', tension: 0.1, fill: true },
+                        { label: 'Compras', data: [], borderColor: 'rgba(255, 99, 132, 1)', backgroundColor: 'rgba(255, 99, 132, 0.2)', tension: 0.1, fill: true },
+                        { type: 'bar', label: 'Cheques Pendientes', data: [], borderColor: 'rgba(255, 206, 86, 1)', backgroundColor: 'rgba(255, 206, 86, 0.6)', borderWidth: 1 },
+                        { type: 'bar', label: 'Cta. Cte. a Pagar', data: [], borderColor: 'rgba(255, 159, 64, 1)', backgroundColor: 'rgba(255, 159, 64, 0.6)', borderWidth: 1 }
+                    ]},
+                    options: { responsive: true, maintainAspectRatio: false, scales: { x: { title: { display: true, text: 'Día del Mes' } }, y: { title: { display: true, text: 'Monto' }, beginAtZero: true } }, plugins: { legend: { position: 'top' }, tooltip: tooltipCallbacks } }
                 });
 
                 if (supplierPieChart) supplierPieChart.destroy();
@@ -1347,8 +1267,6 @@
             }
 
             function updateAllCharts(transactions) {
-                const sortedByDate = [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
-
                 detailedCheques = transactions.filter(t => t.paymentMethod === 'Cheque' && t.dueDate);
                 const pendingChequesData = {};
                 detailedCheques.forEach(t => {
@@ -1361,6 +1279,7 @@
                     pendingCtaCteData[t.dueDate] = (pendingCtaCteData[t.dueDate] || 0) + t.amount;
                 });
                 
+                const sortedByDate = [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
                 const transactionDates = sortedByDate.map(t => t.date);
                 const chequeDueDates = Object.keys(pendingChequesData);
                 const ctaCteDueDates = Object.keys(pendingCtaCteData);
@@ -1390,6 +1309,79 @@
                 const paymentMethodSpending = {};
                 purchases.forEach(t => { if (t.paymentMethod) { paymentMethodSpending[t.paymentMethod] = (paymentMethodSpending[t.paymentMethod] || 0) + t.amount; }});
                 updatePieChart(paymentPieChart, paymentMethodSpending);
+            }
+            
+            // --- NUEVO: Funciones para vistas diaria y mensual ---
+            function updateDailyDifference() {
+                const selectedDate = daySelector.value;
+                if (!selectedDate || allTransactions.length === 0) {
+                    dailyDifferenceDisplay.textContent = '-';
+                    dailyDifferenceDisplay.className = 'text-3xl font-bold';
+                    return;
+                }
+
+                const totalSales = allTransactions
+                    .filter(t => t.type === 'sale' && t.date === selectedDate)
+                    .reduce((sum, t) => sum + t.amount, 0);
+
+                const totalPurchases = allTransactions
+                    .filter(t => t.type === 'purchase' && t.date === selectedDate)
+                    .reduce((sum, t) => sum + t.amount, 0);
+
+                const difference = totalSales - totalPurchases;
+                
+                dailyDifferenceDisplay.textContent = formatCurrency(difference);
+                if (difference >= 0) {
+                    dailyDifferenceDisplay.className = 'text-3xl font-bold text-green-600';
+                } else {
+                    dailyDifferenceDisplay.className = 'text-3xl font-bold text-red-600';
+                }
+            }
+            
+            function populateMonthSelector(transactions) {
+                const months = [...new Set(transactions.map(t => t.date.substring(0, 7)))].sort().reverse();
+                monthSelector.innerHTML = '';
+                months.forEach(month => {
+                    const [year, m] = month.split('-');
+                    const date = new Date(year, m - 1, 1);
+                    const monthName = date.toLocaleString('es-ES', { month: 'long', year: 'numeric' });
+                    const option = document.createElement('option');
+                    option.value = month;
+                    option.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+                    monthSelector.appendChild(option);
+                });
+            }
+
+            function updateMonthlyView() {
+                const selectedMonth = monthSelector.value;
+                if (!selectedMonth || allTransactions.length === 0) return;
+
+                const monthlyTransactions = allTransactions.filter(t => t.date.startsWith(selectedMonth));
+                
+                const detailedChequesMonth = monthlyTransactions.filter(t => t.paymentMethod === 'Cheque' && t.dueDate);
+                const pendingChequesData = {};
+                detailedChequesMonth.forEach(t => { pendingChequesData[t.dueDate] = (pendingChequesData[t.dueDate] || 0) + t.amount; });
+
+                const detailedCtaCteMonth = monthlyTransactions.filter(t => t.paymentMethod === 'Cuenta Corriente' && t.dueDate);
+                const pendingCtaCteData = {};
+                detailedCtaCteMonth.forEach(t => { pendingCtaCteData[t.dueDate] = (pendingCtaCteData[t.dueDate] || 0) + t.amount; });
+
+                const daysInMonth = new Date(selectedMonth.split('-')[0], selectedMonth.split('-')[1], 0).getDate();
+                const allDates = Array.from({ length: daysInMonth }, (_, i) => `${selectedMonth}-${String(i + 1).padStart(2, '0')}`);
+                
+                const salesData = {};
+                const purchasesData = {};
+                monthlyTransactions.forEach(t => {
+                    if (t.type === 'sale') salesData[t.date] = (salesData[t.date] || 0) + t.amount;
+                    else purchasesData[t.date] = (purchasesData[t.date] || 0) + t.amount;
+                });
+                
+                monthlyChart.data.labels = allDates.map(d => d.split('-')[2]); // Solo el día
+                monthlyChart.data.datasets[0].data = allDates.map(date => salesData[date] || 0);
+                monthlyChart.data.datasets[1].data = allDates.map(date => purchasesData[date] || 0);
+                monthlyChart.data.datasets[2].data = allDates.map(date => pendingChequesData[date] || 0);
+                monthlyChart.data.datasets[3].data = allDates.map(date => pendingCtaCteData[date] || 0);
+                monthlyChart.update();
             }
 
             function updatePieChart(chart, dataMap) {
@@ -1525,6 +1517,9 @@
                 filterName.value = '';
                 applyFiltersAndRender();
             });
+            // --- NUEVO: Listeners para nuevas vistas ---
+            daySelector.addEventListener('change', updateDailyDifference);
+            monthSelector.addEventListener('change', updateMonthlyView);
 
             function generateColors(numColors) { const colors = []; for (let i = 0; i < numColors; i++) { colors.push(`hsl(${(i * 137.508) % 360}, 65%, 60%)`); } return colors; }
 
@@ -1535,247 +1530,7 @@
             handleFormDisplay();
         }
         
-        // --- LÓGICA DEL ANALIZADOR DE VENTAS ---
-        function initializeSalesAnalyzer() {
-            const page = document.getElementById('sales-analyzer-page');
-            if(!page) return;
-
-            const dropZone = page.querySelector('#drop-zone');
-            const fileInput = page.querySelector('#file-input');
-            const fileInfo = page.querySelector('#file-info');
-            const errorMessage = page.querySelector('#analyzer-error-message');
-            const resultsSection = page.querySelector('#results-section');
-            
-            let unitsChart = null;
-            let revenueChart = null;
-            let bottomUnitsChart = null;
-
-            dropZone.addEventListener('click', () => fileInput.click());
-            dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
-            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-            dropZone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                dropZone.classList.remove('dragover');
-                if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
-            });
-            fileInput.addEventListener('change', () => {
-                if (fileInput.files.length) handleFile(fileInput.files[0]);
-            });
-
-            function handleFile(file) {
-                fileInfo.textContent = `Archivo: ${file.name}`;
-                errorMessage.textContent = '';
-                resultsSection.classList.add('hidden');
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    try {
-                        const data = new Uint8Array(e.target.result);
-                        const workbook = XLSX.read(data, { type: 'array' });
-                        const sheetName = workbook.SheetNames[0];
-                        const worksheet = workbook.Sheets[sheetName];
-                        
-                        const sheetData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
-
-                        const headerRowIndex = 6; 
-                        if (sheetData.length <= headerRowIndex) {
-                            showError("El archivo no tiene suficientes filas. Se esperaba la cabecera en la fila 7.");
-                            return;
-                        }
-                        const headerRow = sheetData[headerRowIndex];
-
-                        const colIndices = {
-                            articulos: headerRow.indexOf('ARTICULOS'),
-                            unidades: headerRow.indexOf('UNIDADES'),
-                            total: headerRow.indexOf('TOTAL')
-                        };
-
-                        if (colIndices.articulos === -1 || colIndices.unidades === -1 || colIndices.total === -1) {
-                            showError("No se encontraron las columnas 'ARTICULOS', 'UNIDADES' y 'TOTAL' en la fila 7 del archivo.");
-                            return;
-                        }
-
-                        const dataRows = sheetData.slice(headerRowIndex + 1);
-
-                        const jsonData = dataRows.map(row => ({
-                            'ARTICULOS': row[colIndices.articulos],
-                            'UNIDADES': row[colIndices.unidades],
-                            'TOTAL': row[colIndices.total]
-                        })).filter(row => row.ARTICULOS); 
-
-                        processData(jsonData);
-
-                    } catch (error) {
-                        showError('Error al procesar el archivo. Asegúrate de que es un Excel válido.');
-                        console.error(error);
-                    }
-                };
-                reader.onerror = () => showError('No se pudo leer el archivo.');
-                reader.readAsArrayBuffer(file);
-            }
-
-            function processData(data) {
-                if (data.length === 0) {
-                    showError('No se encontraron datos de artículos para procesar después de la fila 7.');
-                    return;
-                }
-
-                const productSales = {};
-                let totalRevenue = 0;
-                data.forEach(row => {
-                    const product = row['ARTICULOS'];
-                    const units = Number(row['UNIDADES']);
-                    const total = Number(row['TOTAL']);
-                    
-                    if (product && typeof product === 'string' && product.trim().toUpperCase() !== 'TOTALES' && product.trim() !== '' && !isNaN(units) && !isNaN(total)) {
-                        if (!productSales[product]) {
-                            productSales[product] = { units: 0, total: 0 };
-                        }
-                        productSales[product].units += units;
-                        productSales[product].total += total;
-                        totalRevenue += total;
-                    }
-                });
-
-                const allProducts = Object.entries(productSales);
-
-                const top10ByUnits = [...allProducts].sort(([, a], [, b]) => b.units - a.units).slice(0, 10);
-                const top10ByRevenue = [...allProducts].sort(([, a], [, b]) => b.total - a.total).slice(0, 10);
-                const bottom20ByUnits = [...allProducts].sort(([, a], [, b]) => a.units - b.units).slice(0, 20);
-                
-                const top10RevenueSum = top10ByRevenue.reduce((sum, [, values]) => sum + values.total, 0);
-
-                if (top10ByUnits.length === 0) {
-                    showError('No se encontraron datos de ventas válidos para procesar.');
-                    return;
-                }
-                displayResults(top10ByUnits, top10ByRevenue, bottom20ByUnits, totalRevenue, Object.keys(productSales).length, top10RevenueSum);
-            }
-
-            function displayResults(top10ByUnits, top10ByRevenue, bottom20ByUnits, totalRevenue, uniqueProductsCount, top10RevenueSum) {
-                resultsSection.classList.remove('hidden');
-                const currencyFormatter = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' });
-                
-                page.querySelector('#total-revenue').textContent = currencyFormatter.format(totalRevenue);
-                page.querySelector('#top-10-revenue').textContent = currencyFormatter.format(top10RevenueSum);
-                page.querySelector('#unique-products').textContent = uniqueProductsCount;
-
-                createTable('table-container-units', top10ByUnits, currencyFormatter);
-                createTable('table-container-revenue', top10ByRevenue, currencyFormatter);
-                createTable('table-container-bottom-units', bottom20ByUnits, currencyFormatter);
-
-                createChart('chart-units', 'Unidades Vendidas', top10ByUnits, 'units', currencyFormatter);
-                createChart('chart-revenue', 'Ingresos Generados', top10ByRevenue, 'total', currencyFormatter);
-                createChart('chart-bottom-units', 'Unidades Vendidas', bottom20ByUnits, 'units', currencyFormatter);
-            }
-
-            function createTable(containerId, data, formatter) {
-                let tableHTML = `
-                    <table class="w-full text-left text-sm">
-                        <thead>
-                            <tr class="border-b">
-                                <th class="p-2 font-semibold">Artículo</th>
-                                <th class="p-2 font-semibold text-center">Unidades</th>
-                                <th class="p-2 font-semibold text-right">Ingresos</th>
-                            </tr>
-                        </thead>
-                        <tbody>`;
-                data.forEach(([product, values]) => {
-                    tableHTML += `
-                        <tr class="border-b border-gray-100 hover:bg-gray-50">
-                            <td class="p-2 font-medium">${product}</td>
-                            <td class="p-2 text-center font-bold">${values.units}</td>
-                            <td class="p-2 text-right font-semibold">${formatter.format(values.total)}</td>
-                        </tr>`;
-                });
-                tableHTML += `</tbody></table>`;
-                page.querySelector(`#${containerId}`).innerHTML = tableHTML;
-            }
-
-            function createChart(canvasId, label, data, dataKey, formatter) {
-                let chartInstance;
-                let barColor;
-                let borderColor;
-
-                if (canvasId === 'chart-units') {
-                    chartInstance = unitsChart;
-                    barColor = 'rgba(59, 130, 246, 0.7)';
-                    borderColor = 'rgba(59, 130, 246, 1)';
-                } else if (canvasId === 'chart-revenue') {
-                    chartInstance = revenueChart;
-                    barColor = 'rgba(168, 85, 247, 0.7)';
-                    borderColor = 'rgba(168, 85, 247, 1)';
-                } else { // chart-bottom-units
-                    chartInstance = bottomUnitsChart;
-                    barColor = 'rgba(249, 115, 22, 0.7)';
-                    borderColor = 'rgba(249, 115, 22, 1)';
-                }
-
-                if (chartInstance) chartInstance.destroy();
-
-                const labels = data.map(item => item[0]);
-                const chartData = data.map(item => item[1][dataKey]);
-                const revenueData = data.map(item => item[1].total); 
-                const unitsData = data.map(item => item[1].units);
-
-                const ctx = page.querySelector(`#${canvasId}`).getContext('2d');
-                const newChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: label,
-                            data: chartData,
-                            backgroundColor: barColor,
-                            borderColor: borderColor,
-                            borderWidth: 1,
-                            borderRadius: 4
-                        }]
-                    },
-                    options: {
-                        indexAxis: 'y',
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                                backgroundColor: '#1f2937',
-                                titleFont: { weight: 'bold' },
-                                bodyFont: { weight: 'normal' },
-                                padding: 10,
-                                cornerRadius: 6,
-                                callbacks: {
-                                    label: function(context) {
-                                        const unitLabel = `Unidades: ${unitsData[context.dataIndex]}`;
-                                        const revenueLabel = `Ingresos: ${formatter.format(revenueData[context.dataIndex])}`;
-                                        return [unitLabel, revenueLabel];
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            x: { beginAtZero: true, grid: { color: '#e5e7eb' } },
-                            y: { grid: { display: false } }
-                        }
-                    }
-                });
-
-                if (canvasId === 'chart-units') {
-                    unitsChart = newChart;
-                } else if (canvasId === 'chart-revenue') {
-                    revenueChart = newChart;
-                } else {
-                    bottomUnitsChart = newChart;
-                }
-            }
-
-            function showError(message) {
-                page.querySelector('#analyzer-error-message').textContent = message;
-                page.querySelector('#results-section').classList.add('hidden');
-            }
-        }
-        // --- FIN: LÓGICA DEL ANALIZADOR DE VENTAS ---
-
-        // --- INICIO: LÓGICA DE GESTIÓN DE PROVEEDORES ---
+        // --- LÓGICA DE GESTIÓN DE PROVEEDORES ---
         function initializeSupplierManagement() {
             const page = document.getElementById('supplier-management-page');
             if (!page) return;
@@ -1890,7 +1645,6 @@
             searchInput.addEventListener('input', renderSupplierList);
             listenForSuppliersInManagement();
         }
-        // --- FIN: LÓGICA DE GESTIÓN DE PROVEEDORES ---
 
         // --- LÓGICA DE ELIMINACIÓN GENERAL ---
         function openDeleteModal(type, id, name) {
