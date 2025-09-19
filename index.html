@@ -1242,7 +1242,9 @@
                         { label: 'Ventas', data: [], borderColor: 'rgba(75, 192, 192, 1)', backgroundColor: 'rgba(75, 192, 192, 0.2)', tension: 0.1, fill: true },
                         { label: 'Compras', data: [], borderColor: 'rgba(255, 99, 132, 1)', backgroundColor: 'rgba(255, 99, 132, 0.2)', tension: 0.1, fill: true },
                         { type: 'bar', label: 'Cheques Pendientes', data: [], borderColor: 'rgba(255, 206, 86, 1)', backgroundColor: 'rgba(255, 206, 86, 0.6)', borderWidth: 1 },
-                        { type: 'bar', label: 'Cta. Cte. a Pagar', data: [], borderColor: 'rgba(255, 159, 64, 1)', backgroundColor: 'rgba(255, 159, 64, 0.6)', borderWidth: 1 }
+                        { type: 'bar', label: 'Cta. Cte. a Pagar', data: [], borderColor: 'rgba(255, 159, 64, 1)', backgroundColor: 'rgba(255, 159, 64, 0.6)', borderWidth: 1 },
+                        { type: 'line', label: 'Ventas Promedio', data: [], borderColor: 'rgba(138, 43, 226, 1)', backgroundColor: 'rgba(138, 43, 226, 0.2)', tension: 0.1, fill: false, borderDash: [5, 5] },
+                        { label: 'Tendencia de Ventas', data: [], borderColor: 'rgba(255, 99, 71, 1)', type: 'line', fill: false, borderWidth: 2, pointRadius: 0 }
                     ]},
                     options: { responsive: true, maintainAspectRatio: false, scales: { x: { title: { display: true, text: 'Fecha' } }, y: { title: { display: true, text: 'Monto' }, beginAtZero: true } }, plugins: { legend: { position: 'top' }, tooltip: tooltipCallbacks } }
                 });
@@ -1254,7 +1256,9 @@
                         { label: 'Ventas', data: [], borderColor: 'rgba(75, 192, 192, 1)', backgroundColor: 'rgba(75, 192, 192, 0.2)', tension: 0.1, fill: true },
                         { label: 'Compras', data: [], borderColor: 'rgba(255, 99, 132, 1)', backgroundColor: 'rgba(255, 99, 132, 0.2)', tension: 0.1, fill: true },
                         { type: 'bar', label: 'Cheques Pendientes', data: [], borderColor: 'rgba(255, 206, 86, 1)', backgroundColor: 'rgba(255, 206, 86, 0.6)', borderWidth: 1 },
-                        { type: 'bar', label: 'Cta. Cte. a Pagar', data: [], borderColor: 'rgba(255, 159, 64, 1)', backgroundColor: 'rgba(255, 159, 64, 0.6)', borderWidth: 1 }
+                        { type: 'bar', label: 'Cta. Cte. a Pagar', data: [], borderColor: 'rgba(255, 159, 64, 1)', backgroundColor: 'rgba(255, 159, 64, 0.6)', borderWidth: 1 },
+                        { type: 'line', label: 'Ventas Promedio', data: [], borderColor: 'rgba(138, 43, 226, 1)', backgroundColor: 'rgba(138, 43, 226, 0.2)', tension: 0.1, fill: false, borderDash: [5, 5] },
+                        { label: 'Tendencia de Ventas', data: [], borderColor: 'rgba(255, 99, 71, 1)', type: 'line', fill: false, borderWidth: 2, pointRadius: 0 }
                     ]},
                     options: { responsive: true, maintainAspectRatio: false, scales: { x: { title: { display: true, text: 'Día del Mes' } }, y: { title: { display: true, text: 'Monto' }, beginAtZero: true } }, plugins: { legend: { position: 'top' }, tooltip: tooltipCallbacks } }
                 });
@@ -1294,12 +1298,21 @@
                         purchasesData[t.date] = (purchasesData[t.date] || 0) + t.amount;
                     }
                 });
+                
+                const globalSalesData = allDates.map(date => salesData[date] || 0);
+                const globalTrendlineData = calculateLinearRegression(globalSalesData);
 
                 lineChart.data.labels = allDates;
-                lineChart.data.datasets[0].data = allDates.map(date => salesData[date] || 0);
+                lineChart.data.datasets[0].data = globalSalesData;
                 lineChart.data.datasets[1].data = allDates.map(date => purchasesData[date] || 0);
                 lineChart.data.datasets[2].data = allDates.map(date => pendingChequesData[date] || 0);
                 lineChart.data.datasets[3].data = allDates.map(date => pendingCtaCteData[date] || 0);
+
+                const salesValues = Object.values(salesData).filter(amount => amount > 0);
+                const averageSale = salesValues.length > 0 ? salesValues.reduce((sum, amount) => sum + amount, 0) / salesValues.length : 0;
+                lineChart.data.datasets[4].data = allDates.map(() => averageSale);
+                lineChart.data.datasets[5].data = globalTrendlineData;
+
                 lineChart.update();
 
                 const purchases = transactions.filter(t => t.type === 'purchase');
@@ -1376,11 +1389,20 @@
                     else purchasesData[t.date] = (purchasesData[t.date] || 0) + t.amount;
                 });
                 
+                const monthlySalesData = allDates.map(date => salesData[date] || 0);
+                const monthlyTrendlineData = calculateLinearRegression(monthlySalesData);
+
                 monthlyChart.data.labels = allDates.map(d => d.split('-')[2]); // Solo el día
-                monthlyChart.data.datasets[0].data = allDates.map(date => salesData[date] || 0);
+                monthlyChart.data.datasets[0].data = monthlySalesData;
                 monthlyChart.data.datasets[1].data = allDates.map(date => purchasesData[date] || 0);
                 monthlyChart.data.datasets[2].data = allDates.map(date => pendingChequesData[date] || 0);
                 monthlyChart.data.datasets[3].data = allDates.map(date => pendingCtaCteData[date] || 0);
+
+                const monthlySalesValues = Object.values(salesData).filter(amount => amount > 0);
+                const averageSaleInMonth = monthlySalesValues.length > 0 ? monthlySalesValues.reduce((sum, amount) => sum + amount, 0) / monthlySalesValues.length : 0;
+                monthlyChart.data.datasets[4].data = allDates.map(() => averageSaleInMonth);
+                monthlyChart.data.datasets[5].data = monthlyTrendlineData;
+                
                 monthlyChart.update();
             }
 
@@ -1692,6 +1714,26 @@
             toast.textContent = message;
             toast.className = `toast show ${type === 'success' ? 'bg-green-600' : 'bg-red-600'}`;
             setTimeout(() => { toast.className = 'toast'; }, 3000);
+        }
+
+        function calculateLinearRegression(data) {
+            const n = data.length;
+            if (n < 2) return []; // No se puede calcular tendencia con menos de 2 puntos
+
+            let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+            data.forEach((y, i) => {
+                const x = i;
+                sumX += x;
+                sumY += y;
+                sumXY += x * y;
+                sumXX += x * x;
+            });
+
+            const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+            const intercept = (sumY - slope * sumX) / n;
+
+            // Devuelve los valores Y para la línea de tendencia
+            return data.map((_, i) => slope * i + intercept);
         }
 
     </script>
