@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Fidelidad - EJR.com.ar</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* Estilos Generales del Sitio */
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #F9F7F5;
+            color: #5A5751;
+        }
+        .text-primary { color: #5A5751; }
+        .text-secondary { color: #7d7a75; }
+        .bg-primary { background-color: #5A5751; }
+        .bg-primary-hover:hover { background-color: #4a4742; }
+        .border-custom { border-color: #CCC3BA; }
+        .ring-custom:focus { 
+            --tw-ring-color: #5A5751;
+            box-shadow: 0 0 0 2px var(--tw-ring-color);
+        }
+        .card-custom {
+            background-color: #FFFFFF;
+            border-color: #EAE6E1;
+        }
+        .icon-primary { color: #5A5751; }
+
+        .modal-backdrop { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 50; justify-content: center; align-items: center; }
+        .modal-content { background-color: white; padding: 1.5rem; border-radius: 0.75rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); width: 90%; max-width: 500px; }
+        .modal-show { display: flex; }
+
+        .toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); padding: 1rem 1.5rem; border-radius: 0.5rem; color: white; font-weight: 700; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); transition: bottom 0.5s ease-in-out; z-index: 100; }
+        .toast.show { bottom: 20px; }
+        
+        .status-badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; }
+        .status-pending { background-color: #fef3c7; color: #92400e; }
+        .status-confirmed { background-color: #d1fae5; color: #065f46; }
+        .status-declined { background-color: #fee2e2; color: #991b1b; }
+        
+        .star-icon { color: #facc15; }
+
+        /* ESTILOS PARA EL DASHBOARD FINANCIERO */
+        #financial-dashboard-page {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .chart-container {
+            position: relative;
+            height: 40vh;
+            width: 100%;
+        }
+        #financial-dashboard-page .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 50;
+        }
+        #financial-dashboard-page .modal-content {
+            background-color: white; padding: 1.5rem; border-radius: 0.5rem;
+            width: 90%; max-width: 500px;
+        }
+        #financial-dashboard-page .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div id="landing-page">
+        <header class="bg-white shadow-sm">
+            <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+                <div class="text-2xl font-black text-primary">EJR<span class="font-light">.com.ar</span></div>
+                <div id="auth-nav-links" class="flex items-center gap-4">
+                    </div>
+            </nav>
+        </header>
+        <main>
+            <section class="text-center py-20 sm:py-32 bg-white">
+                <div class="container mx-auto px-6">
+                    <h1 class="text-4xl md:text-6xl font-black text-primary leading-tight">C.P.N. Enrique Jose Rivero</h1>
+                    <p class="mt-4 text-lg md:text-xl text-secondary max-w-3xl mx-auto">[Aquí puedes poner una breve descripción de tu negocio.]</p>
+                    <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4 flex-wrap">
+                        <a href="inventario.html" class="w-full sm:w-auto px-8 py-4 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition-transform transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
+                            Análisis de Inventario <i class="fas fa-boxes"></i>
+                        </a>
+                        <button id="main-to-customers" class="w-full sm:w-auto px-8 py-4 bg-primary text-white font-bold rounded-lg bg-primary-hover transition-transform transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
+                            Sistema de Clientes - SUPER21 <i class="fas fa-users"></i>
+                        </button>
+                        <button id="main-to-financial" class="w-full sm:w-auto px-8 py-4 bg-primary text-white font-bold rounded-lg bg-primary-hover transition-transform transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
+                            Dashboard Financiero <i class="fas fa-chart-line"></i>
+                        </button>
+                        <a href="gestor.html" target="_blank" class="w-full sm:w-auto px-8 py-4 bg-primary text-white font-bold rounded-lg bg-primary-hover transition-transform transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
+                            GESTION ENVIOS SUPER 21 <i class="fas fa-truck"></i>
+                        </a>
+                        <a href="controlventas.html" class="w-full sm:w-auto px-8 py-4 bg-primary text-white font-bold rounded-lg bg-primary-hover transition-transform transform hover:scale-105 shadow-lg flex items-center justify-center gap-2">
+                            Sistema Control de Ventas <i class="fas fa-file-invoice-dollar"></i>
+                        </a>
+                    </div>
+                </div>
+            </section>
+            <section class="py-20">
+                <div class="container mx-auto px-6">
+                    <h2 class="text-3xl font-bold text-center text-primary mb-12">Nuestra Ubicación y Contacto</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                        <div class="card-custom border rounded-xl shadow-sm p-6 flex items-center gap-6"><i class="fas fa-map-marker-alt icon-primary text-4xl"></i><div><h3 class="text-xl font-bold text-primary">Dirección</h3><p class="text-secondary">[Tu Dirección, Ciudad, Provincia]</p></div></div>
+                        <div class="card-custom border rounded-xl shadow-sm p-6 flex items-center gap-6"><i class="fas fa-phone icon-primary text-4xl"></i><div><h3 class="text-xl font-bold text-primary">Teléfono</h3><p class="text-secondary">[Tu Número de Teléfono]</p></div></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+        <footer class="bg-primary text-white py-6">
+            <div class="container mx-auto px-6 text-center">
+                <p class="text-gray-200">&copy; <span id="footer-year"></span> C.P.N. Enrique Jose Rivero. Todos los derechos reservados.</p>
+                <p class="text-sm text-gray-400 mt-1">Powered by EJR.com.ar</p>
+            </div>
+        </footer>
+    </div>
+    
+    </body>
+</html>
